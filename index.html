@@ -61,7 +61,7 @@
   </section>
 
   <section id="appView" class="hidden">
-    <div class="welcome"><div><h2 id="welcomeTitle">Bảng điều khiển</h2><div id="welcomeSub" class="muted"></div></div><span id="roleBadge" class="pill">Đang kiểm tra vai trò…</span></div>
+    <div class="welcome"><div><h2 id="welcomeTitle">Bảng điều khiển</h2><div id="welcomeSub" class="muted"></div></div><span id="roleBadge" class="pill">Hội viên</span></div>
     <div class="layout">
       <nav class="side card">
         <button class="active" data-page="home" onclick="showPage('home',this)">🏠 Tổng quan</button>
@@ -103,7 +103,7 @@
           </div>
         </div>
         <div id="page-news" class="page hidden"><div class="card"><div class="section-head"><h3>Tin tức Hội và y học cổ truyền</h3><button onclick="loadNews()">Tải tin tức</button></div><div id="newsContent" class="muted">Đang tải tin tức…</div></div></div>
-        <div id="page-admin" class="page hidden"><div class="card"><h3>Quản trị hệ thống</h3><p class="muted">Trang tổng quan dành cho tài khoản có vai trò ADMIN. Dùng các mục bên trái để xem hội viên, báo cáo và tin tức.</p><div class="notice">Lưu ý: việc hiển thị trang quản trị không tự cấp quyền đọc/sửa dữ liệu. Các thao tác vẫn phải được cho phép bởi chính sách RLS trong Supabase.</div><div id="adminStatus" class="item">Đang kiểm tra quyền quản trị…</div></div></div>
+        <div id="page-admin" class="page hidden"><div class="card"><h3>Quản trị hệ thống</h3><p id="adminStatus" class="notice">Đang kiểm tra vai trò…</p><p class="muted">Tài khoản ADMIN có thể xem khu vực quản trị. Việc xem hoặc thêm dữ liệu vẫn phải được cho phép bởi chính sách bảo mật (RLS) trong Supabase.</p><button onclick="showPage('members',document.querySelector('[data-page=members]'))">Mở quản lý hội viên</button></div></div>
       </div>
     </div>
   </section>
@@ -181,27 +181,22 @@
   async function openApp(){
     if(!currentUser){const {data}=await sb.auth.getUser();currentUser=data.user;}if(!currentUser)return;
     $('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('logoutBtn').classList.remove('hidden');
-    $('headerUser').textContent=currentUser.email||'';$('welcomeTitle').textContent='Xin chào';$('welcomeSub').textContent=currentUser.email||'Tài khoản đã đăng nhập';
+    $('headerUser').textContent=currentUser.email||'';$('welcomeSub').textContent=currentUser.email||'Tài khoản đã đăng nhập';
     await loadRoles();await loadProfile();await loadNews();$('homeMessage').textContent='Đăng nhập thành công. Dữ liệu được đọc theo quyền của tài khoản.';
   }
   async function loadRoles(){
-    currentRoles=[];
+    currentRoles=[]; let roleError='';
     try{
-      const {data:links,error:linksError}=await sb.from('user_roles').select('role_id').eq('user_id',currentUser.id);
-      if(linksError)throw linksError;
-      const ids=[...new Set((links||[]).map(x=>Number(x.role_id)).filter(Number.isFinite))];
-      if(ids.length){
-        const {data:roleRows,error:roleError}=await sb.from('roles').select('code').in('id',ids);
-        if(roleError)throw roleError;
-        currentRoles=(roleRows||[]).map(x=>String(x.code||'').toUpperCase()).filter(Boolean);
-      }
-    }catch(e){console.warn('Không đọc được vai trò:',e.message);}
-    const role=currentRoles.join(', ')||'Chưa đọc được vai trò';
+      const {data,error}=await sb.from('user_roles').select('roles(code,name)').eq('user_id',currentUser.id);
+      if(error)throw error;
+      currentRoles=(data||[]).map(x=>x.roles?.code).filter(Boolean);
+    }catch(e){roleError=e.message;console.warn('Không đọc được user_roles:',e.message);}
+    const isAdmin=currentRoles.includes('ADMIN')||currentRoles.includes('EXECUTIVE');
+    const role=currentRoles.join(', ')||(roleError?'Không đọc được vai trò':'Chưa cấp vai trò');
     $('roleBadge').textContent=role;$('statRole').textContent=role;
-    const isAdmin=currentRoles.includes('ADMIN');
     $('adminMenuBtn').classList.toggle('hidden',!isAdmin);
-    if($('adminStatus'))$('adminStatus').textContent=isAdmin?'Đã nhận diện vai trò ADMIN cho tài khoản '+(currentUser.email||'')+'.':'Chưa xác nhận được ADMIN từ bảng user_roles. Kiểm tra quyền SELECT của tài khoản trong Supabase.';
-    $('welcomeTitle').textContent=isAdmin?'Bảng điều khiển quản trị':'Bảng điều khiển hội viên';
+    $('welcomeTitle').textContent=currentRoles.includes('ADMIN')?'Bảng điều khiển quản trị':(currentRoles.includes('EXECUTIVE')?'Bảng điều khiển Ban Thường vụ':'Bảng điều khiển');
+    if($('adminStatus'))$('adminStatus').textContent=isAdmin?'Đã nhận diện quyền quản trị cho tài khoản '+(currentUser.email||'')+'.':(roleError?'Không đọc được vai trò: '+roleError:'Tài khoản hiện chưa có vai trò quản trị.');
   }
   async function loadProfile(){
     const box=$('profileContent');box.textContent='Đang tải hồ sơ…';
@@ -215,11 +210,18 @@
   }
   function labelFor(k){return ({full_name:'Họ và tên',phone:'Số điện thoại',email:'Email',branch_id:'Mã chi hội',role:'Vai trò',created_at:'Ngày tạo'})[k]||k;}
   async function loadMembers(){
-    const box=$('membersContent');box.textContent='Đang tải…';
-    try{const {data,error}=await sb.from('members').select('id,member_code,full_name,gender,birth_year,phone,email,branch_id,status,education_level,professional_qualification,workplace,member_type').order('full_name').limit(300);if(error)throw error;
-      if(!data?.length){box.innerHTML='<p>Chưa có hội viên hoặc tài khoản không có quyền xem danh sách.</p>';return;}
-      box.innerHTML='<div class="table-wrap"><table><thead><tr><th>Mã hội viên</th><th>Họ tên</th><th>Điện thoại</th><th>Email</th><th>Trạng thái</th><th>Chi hội ID</th></tr></thead><tbody>'+data.map(m=>`<tr><td>${esc(m.member_code||'—')}</td><td>${esc(m.full_name||'—')}</td><td>${esc(m.phone||'—')}</td><td>${esc(m.email||'—')}</td><td>${esc(m.status||'—')}</td><td>${esc(m.branch_id??'—')}</td></tr>`).join('')+'</tbody></table></div>';
-    }catch(e){box.textContent='Không tải được danh sách hội viên. Có thể tài khoản chưa có quyền hoặc cấu trúc bảng khác: '+e.message;}
+    const box=$('membersContent');box.textContent='Đang tải danh sách hội viên…';
+    try{
+      const cols='id,user_id,branch_id,member_code,full_name,gender,birth_year,phone,email,address,education_level,professional_qualification,workplace,member_type,status';
+      const {data,error}=await sb.from('members').select(cols).order('full_name').limit(500);
+      if(error)throw error;
+      if(!data||data.length===0){box.innerHTML='<div class="notice">Bảng hội viên hiện chưa có bản ghi nào. Đây không phải lỗi hiển thị: cần thêm hồ sơ hội viên vào bảng <code>members</code> trước khi danh sách xuất hiện.</div>';return;}
+      const branchNames={1:'Chi hội An Hội',2:'Chi hội Phú Nhuận',3:'Chi hội Mỹ An',4:'Chi hội Sơn Phú'};
+      box.innerHTML='<p class="muted">Có '+data.length+' hội viên được trả về từ Supabase.</p><div class="table-wrap"><table><thead><tr><th>Mã hội viên</th><th>Họ tên</th><th>Giới tính</th><th>Năm sinh</th><th>Điện thoại</th><th>Email</th><th>Chi hội</th><th>Trình độ văn hóa</th><th>Văn bằng chuyên môn</th><th>Nơi hành nghề</th><th>Trạng thái</th></tr></thead><tbody>'+data.map(m=>`<tr><td>${esc(m.member_code||'—')}</td><td>${esc(m.full_name||'—')}</td><td>${esc(m.gender||'—')}</td><td>${esc(m.birth_year??'—')}</td><td>${esc(m.phone||'—')}</td><td>${esc(m.email||'—')}</td><td>${esc(branchNames[m.branch_id]||m.branch_id||'—')}</td><td>${esc(m.education_level||'—')}</td><td>${esc(m.professional_qualification||'—')}</td><td>${esc(m.workplace||'—')}</td><td>${esc(m.status||'—')}</td></tr>`).join('')+'</tbody></table></div>';
+    }catch(e){
+      console.error('Lỗi tải hội viên:',e);
+      box.innerHTML='<div class="notice error"><strong>Không tải được danh sách hội viên.</strong><br>Lỗi từ Supabase: '+esc(e.message)+'<br><br>Nếu lỗi nói về quyền truy cập thì cần kiểm tra RLS. Nếu lỗi nói về tên cột thì cần đối chiếu cấu trúc bảng.</div>';
+    }
   }
   async function loadReports(){
     const box=$('reportsContent');box.textContent='Đang tải báo cáo…';
@@ -249,7 +251,7 @@
   function showPage(name,btn){
     document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));$('page-'+name).classList.remove('hidden');
     document.querySelectorAll('.side button').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');
-    if(name==='members')loadMembers();if(name==='reports')loadReports();if(name==='news')loadNews();if(name==='profile')loadProfile();if(name==='admin'&&!currentRoles.includes('ADMIN')){message($('homeMessage'),'Tài khoản không có quyền ADMIN.',true);showPage('home',document.querySelector('[data-page=home]'));}
+    if(name==='members')loadMembers();if(name==='reports')loadReports();if(name==='news')loadNews();if(name==='profile')loadProfile();if(name==='admin')loadRoles();
   }
   async function logout(){await sb.auth.signOut();currentUser=null;currentProfile=null;$('appView').classList.add('hidden');$('authView').classList.remove('hidden');$('logoutBtn').classList.add('hidden');$('headerUser').textContent='';$('authPassword').value='';}
   function esc(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
