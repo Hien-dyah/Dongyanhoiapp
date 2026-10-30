@@ -1,1154 +1,208 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản Lý Hội Đông Y Phường An Hội</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-      @media print {
-        header, footer, #auth-screen, .no-print, button, input, select { display:none !important; }
-        body { background:#fff !important; }
-        main { max-width:100% !important; padding:0 !important; }
-        .content-tab { display:block !important; border:0 !important; box-shadow:none !important; }
-      }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#087653">
+  <title>Hội Đông y phường An Hội</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root{--green:#087653;--green2:#0b8f68;--bg:#f2f6f5;--ink:#17352c;--muted:#64756f;--line:#dce7e2;--white:#fff;--red:#b42318;--gold:#9a6700}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--ink)}
+    header{background:var(--green);color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;box-shadow:0 2px 8px #0001}
+    .brand{display:flex;align-items:center;gap:12px}.logo{width:42px;height:42px;border-radius:12px;background:#ffffff20;display:grid;place-items:center;font-size:23px}
+    h1{font-size:18px;margin:0 0 4px}header p{margin:0;font-size:12px;opacity:.88}.header-actions{display:flex;align-items:center;gap:10px}
+    button{border:0;border-radius:9px;padding:11px 15px;background:var(--green);color:#fff;font-weight:700;cursor:pointer}button:hover{filter:brightness(1.05)}button:disabled{opacity:.55;cursor:wait}
+    button.secondary{background:#e8f3ee;color:var(--green)}button.ghost{background:transparent;border:1px solid #ffffff66;color:white}button.danger{background:#b42318}
+    main{max-width:1150px;margin:24px auto;padding:0 16px 40px}.card{background:white;border:1px solid var(--line);border-radius:15px;padding:20px;box-shadow:0 4px 16px #163d2a08}
+    .login-wrap{max-width:440px;margin:42px auto}.login-wrap h2{margin-top:0}.muted{color:var(--muted);font-size:13px;line-height:1.5}.tabs{display:flex;background:#edf4f0;border-radius:10px;padding:4px;margin:18px 0}.tabs button{flex:1;background:transparent;color:var(--muted)}.tabs button.active{background:white;color:var(--green);box-shadow:0 1px 4px #0001}
+    label{display:block;font-size:13px;font-weight:700;margin:12px 0 6px}input,select,textarea{width:100%;padding:11px 12px;border:1px solid #ccd9d3;border-radius:9px;font:inherit;background:white;color:var(--ink)}textarea{min-height:90px;resize:vertical}
+    .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px}.full{grid-column:1/-1}.notice{padding:11px 13px;border-radius:9px;background:#edf7f2;color:#175a40;font-size:13px;margin:12px 0}.notice.error{background:#fff0ee;color:var(--red)}.hidden{display:none!important}
+    .layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:18px}.side{align-self:start}.side button{display:block;width:100%;text-align:left;margin:5px 0;background:transparent;color:var(--ink)}.side button.active,.side button:hover{background:#e7f4ed;color:var(--green)}
+    .welcome{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:18px}.welcome h2{margin:0 0 5px}.pill{display:inline-block;padding:5px 9px;border-radius:99px;background:#e8f3ee;color:var(--green);font-size:12px;font-weight:700}
+    .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}.stat strong{display:block;font-size:25px;margin-top:8px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.section-head h3{margin:0}.item{border:1px solid var(--line);padding:13px;border-radius:10px;margin:9px 0}.item h4{margin:0 0 6px}.item p{margin:5px 0}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line);vertical-align:top}th{background:#f5f8f6}
+    footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}.small{font-size:12px}.row-actions{display:flex;gap:7px;flex-wrap:wrap}
+    @media(max-width:760px){header{padding:12px}.layout{grid-template-columns:1fr}.side{display:flex;overflow:auto;gap:4px}.side button{white-space:nowrap;width:auto}.stats{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.full{grid-column:auto}.welcome{align-items:flex-start;flex-direction:column}.header-actions .ghost{display:none}}
+  </style>
 </head>
-<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col">
+<body>
+<header>
+  <div class="brand"><div class="logo">🌿</div><div><h1>Hội Đông y phường An Hội</h1><p>Hệ thống quản lý hội viên và báo cáo hoạt động</p></div></div>
+  <div class="header-actions"><span id="headerUser" class="small"></span><button id="logoutBtn" class="ghost hidden" onclick="logout()">Đăng xuất</button></div>
+</header>
+<main>
+  <section id="authView" class="login-wrap card">
+    <h2 id="authTitle">Đăng nhập hệ thống</h2>
+    <p class="muted">Đăng nhập bằng email và mật khẩu tài khoản đã đăng ký.</p>
+    <div class="tabs"><button id="loginTab" class="active" onclick="setAuthMode('login')">Đăng nhập</button><button id="registerTab" onclick="setAuthMode('register')">Đăng ký mới</button></div>
+    <form id="authForm">
+      <div id="registerFields" class="hidden">
+        <label>Họ và tên</label><input id="regName" autocomplete="name" placeholder="Nhập họ và tên">
+        <label>Số điện thoại</label><input id="regPhone" autocomplete="tel" placeholder="Nhập số điện thoại">
+        <label>Chi hội</label><select id="regBranch"><option value="">Đang tải danh sách chi hội…</option></select>
+      </div>
+      <label>Email</label><input id="authEmail" type="email" autocomplete="email" required placeholder="ten@example.com">
+      <label>Mật khẩu</label><input id="authPassword" type="password" minlength="6" autocomplete="current-password" required placeholder="Ít nhất 6 ký tự">
+      <button id="authSubmit" type="submit" style="width:100%;margin-top:18px">Đăng nhập</button>
+    </form>
+    <div id="authMessage" class="notice hidden" role="status"></div>
+    <p class="muted small">Tài khoản mới có thể cần xác nhận email. Quyền truy cập phụ thuộc vào vai trò được cấp trong cơ sở dữ liệu.</p>
+  </section>
 
-    <!-- HEADER -->
-    <header class="bg-emerald-800 text-white shadow-md">
-        <div class="max-w-5xl mx-auto p-4 flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <div class="bg-emerald-700 p-2.5 rounded-lg text-emerald-200">
-                    <i class="fa-solid fa-notes-medical text-xl"></i>
-                </div>
-                <div>
-                    <h1 class="text-base md:text-lg font-bold leading-tight">Hội Đông Y Phường An Hội</h1>
-                    <p class="text-xs text-emerald-200">Hệ thống Quản lý Hội viên & Phân quyền Chi tiết</p>
-                </div>
-            </div>
-            <div id="user-top-info" class="hidden flex items-center space-x-2">
-                <span id="display-user-badge" class="text-xs bg-emerald-900 px-3 py-1.5 rounded-full border border-emerald-600 font-medium"></span>
-                <button onclick="handleLogout()" class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded-lg transition">
-                    <i class="fa-solid fa-right-from-bracket mr-1"></i> Thoát
-                </button>
-            </div>
+  <section id="appView" class="hidden">
+    <div class="welcome"><div><h2 id="welcomeTitle">Bảng điều khiển</h2><div id="welcomeSub" class="muted"></div></div><span id="roleBadge" class="pill">Hội viên</span></div>
+    <div class="layout">
+      <nav class="side card">
+        <button class="active" data-page="home" onclick="showPage('home',this)">🏠 Tổng quan</button>
+        <button data-page="profile" onclick="showPage('profile',this)">👤 Hồ sơ của tôi</button>
+        <button data-page="members" onclick="showPage('members',this)">👥 Quản lý hội viên</button>
+        <button data-page="reports" onclick="showPage('reports',this)">📋 Báo cáo hoạt động</button>
+        <button data-page="news" onclick="showPage('news',this)">📰 Tin tức</button>
+      </nav>
+      <div>
+        <div id="page-home" class="page">
+          <div class="stats">
+            <div class="card stat"><span class="muted">Vai trò tài khoản</span><strong id="statRole">—</strong><span class="muted">Theo phân quyền Supabase</span></div>
+            <div class="card stat"><span class="muted">Hồ sơ hội viên</span><strong id="statMember">—</strong><span class="muted">Thông tin hồ sơ của bạn</span></div>
+            <div class="card stat"><span class="muted">Trạng thái kết nối</span><strong style="font-size:19px">Đã đăng nhập</strong><span class="muted">Supabase Auth</span></div>
+          </div>
+          <div class="card"><h3>Chào mừng đến với hệ thống</h3><p class="muted">Dùng menu bên trái để xem hồ sơ, gửi báo cáo và đọc tin tức. Các thao tác sẽ tuân theo chính sách phân quyền trong cơ sở dữ liệu.</p><div id="homeMessage" class="notice">Đang tải dữ liệu…</div></div>
         </div>
-    </header>
-
-    <!-- MAIN CONTAINER -->
-    <main class="flex-1 max-w-5xl w-full mx-auto p-4 space-y-4">
-
-        <!-- MÀN HÌNH ĐĂNG NHẬP / ĐĂNG KÝ -->
-        <section id="auth-screen" class="max-w-md mx-auto mt-6 bg-white p-6 rounded-2xl shadow-xl border border-slate-200">
-            <div class="text-center mb-6">
-                <div class="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl font-bold">
-                    <i class="fa-solid fa-hand-holding-medical"></i>
-                </div>
-                <h2 class="text-xl font-bold text-emerald-800">Cổng Thông Tin Hội Viên</h2>
-                <p class="text-xs text-slate-500 mt-1">Dành riêng cho hội viên Hội Đông y phường An Hội</p>
-            </div>
-
-            <div class="flex bg-slate-100 p-1 rounded-xl mb-6 text-sm font-semibold">
-                <button onclick="switchAuthTab('login')" id="tab-login-btn" class="flex-1 py-2 rounded-lg bg-white text-emerald-800 shadow-sm transition">Đăng Nhập</button>
-                <button onclick="switchAuthTab('register')" id="tab-reg-btn" class="flex-1 py-2 rounded-lg text-slate-500 transition">Đăng Ký Mới</button>
-            </div>
-
-            <!-- FORM ĐĂNG NHẬP -->
-            <div id="form-login" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Email đăng nhập</label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400"><i class="fa-solid fa-envelope"></i></span>
-                        <input type="email" id="login-email" class="w-full pl-10 p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Nhập email đã đăng ký" autocomplete="username">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Mật khẩu</label>
-                    <input type="password" id="login-password" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Nhập mật khẩu" autocomplete="current-password">
-                </div>
-                <button onclick="handleLogin()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold p-3 rounded-xl shadow-lg transition text-sm">
-                    Đăng Nhập Hệ Thống
-                </button>
-            </div>
-
-            <!-- FORM ĐĂNG KÝ MỚI -->
-            <div id="form-register" style="display: none;" class="space-y-3">
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Họ và tên <span class="text-red-500">*</span></label>
-                    <input type="text" id="reg-name" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="Nguyễn Văn A">
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Số điện thoại <span class="text-red-500">*</span></label>
-                        <input type="tel" id="reg-phone" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="090...">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Phái</label>
-                        <select id="reg-gender" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
-                            <option value="Nam">Nam</option>
-                            <option value="Nữ">Nữ</option>
-                        </select>
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Địa chỉ thường trú</label>
-                    <input type="text" id="reg-address" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="Số nhà, đường, ấp...">
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div><label class="block text-xs font-bold text-slate-600 uppercase mb-1">Năm sinh</label><input type="number" id="reg-birth-year" min="1900" max="2100" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="VD: 1975"></div>
-                    <div><label class="block text-xs font-bold text-slate-600 uppercase mb-1">Trình độ văn hóa</label><input type="text" id="reg-culture" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="VD: 12/12"></div>
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div><label class="block text-xs font-bold text-slate-600 uppercase mb-1">Trình độ chuyên môn</label><input type="text" id="reg-education" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="Lương y, bác sĩ..."></div>
-                    <div><label class="block text-xs font-bold text-slate-600 uppercase mb-1">Email <span class="text-red-500">*</span></label><input type="email" id="reg-email" required class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="Địa chỉ email"></div>
-                </div>
-                <div><label class="block text-xs font-bold text-slate-600 uppercase mb-1">Phân loại hội viên</label>
-                  <select id="reg-member-type" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
-                    <option value="Hội viên chính thức">Hội viên chính thức</option><option value="Hội viên danh dự">Hội viên danh dự</option><option value="Hội viên liên kết">Hội viên liên kết</option>
-                  </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Tạo mật khẩu <span class="text-red-500">*</span></label>
-                    <input type="password" id="reg-password" minlength="8" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="Ít nhất 8 ký tự" autocomplete="new-password">
-                </div>
-                <div><label class="block text-xs font-bold text-slate-600 uppercase mb-1">Ảnh hội viên (có thể bổ sung sau khi đăng ký)</label><input type="file" id="reg-avatar" accept="image/*" capture="user" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm"></div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Nhóm sinh hoạt</label>
-                    <select id="reg-group" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
-                        <option value="Nhóm An Hội">Nhóm An Hội</option>
-                        <option value="Nhóm Sơn Phú">Nhóm Sơn Phú</option>
-                        <option value="Nhóm Phú Nhuận">Nhóm Phú Nhuận</option>
-                        <option value="Nhóm Mỹ An">Nhóm Mỹ An</option>
-                    </select>
-                </div>
-                <button onclick="handleRegister()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold p-3 rounded-xl shadow-lg transition text-sm mt-2">
-                    Gửi Hồ Sơ Đăng Ký
-                </button>
-            </div>
-        </section>
-
-        <!-- MÀN HÌNH CHÍNH SAU KHI ĐĂNG NHẬP -->
-        <section id="app-screen" style="display: none;" class="space-y-4">
-            <div class="bg-gradient-to-r from-emerald-800 to-teal-700 text-white p-5 rounded-2xl shadow-md flex justify-between items-center">
-                <div>
-                    <h2 id="welcome-name" class="text-lg font-bold">Xin chào, ...</h2>
-                    <p id="welcome-role" class="text-emerald-200 text-xs">Chức vụ: ...</p>
-                    <p id="welcome-group" class="text-xs text-emerald-300 mt-0.5">Nhóm: ...</p>
-                </div>
-                <div class="bg-white/10 px-3 py-1.5 rounded-xl text-center border border-white/20">
-                    <span class="block text-[10px] text-emerald-200">Trạng thái</span>
-                    <span class="font-bold text-emerald-300 text-xs">Hoạt động</span>
-                </div>
-            </div>
-
-            <!-- THANH ĐIỀU HƯỚNG CÁC TAB CHỨC NĂNG -->
-            <div class="bg-white p-2 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap gap-1.5">
-                <button onclick="switchMainTab('tab-news')" id="btn-tab-news" class="flex-1 min-w-[90px] py-2.5 px-2 rounded-xl font-bold text-xs bg-emerald-700 text-white transition text-center shadow-sm">
-                    <i class="fa-solid fa-newspaper mr-1"></i> Bảng Tin
-                </button>
-                <button onclick="switchMainTab('tab-report')" id="btn-tab-report" class="flex-1 min-w-[90px] py-2.5 px-2 rounded-xl font-bold text-xs bg-slate-100 text-slate-700 hover:bg-slate-200 transition text-center">
-                    <i class="fa-solid fa-file-pen mr-1"></i> Báo Cáo
-                </button>
-                <button onclick="switchMainTab('tab-summary')" id="btn-tab-summary" class="flex-1 min-w-[90px] py-2.5 px-2 rounded-xl font-bold text-xs bg-slate-100 text-slate-700 hover:bg-slate-200 transition text-center" style="display: none;">
-                    <i class="fa-solid fa-chart-line mr-1"></i> Tổng Hợp
-                </button>
-                <button onclick="switchMainTab('tab-proposal')" id="btn-tab-proposal" class="flex-1 min-w-[90px] py-2.5 px-2 rounded-xl font-bold text-xs bg-slate-100 text-slate-700 hover:bg-slate-200 transition text-center" style="display: none;">
-                    <i class="fa-solid fa-comments mr-1"></i> Đề Xuất
-                </button>
-                <button onclick="switchMainTab('tab-members')" id="btn-tab-members" class="flex-1 min-w-[90px] py-2.5 px-2 rounded-xl font-bold text-xs bg-slate-100 text-slate-700 hover:bg-slate-200 transition text-center">
-                    <i class="fa-solid fa-user mr-1"></i> Hồ Sơ
-                </button>
-                <button onclick="switchMainTab('tab-admin')" id="btn-tab-admin" class="flex-1 min-w-[90px] py-2.5 px-2 rounded-xl font-bold text-xs bg-amber-600 text-white hover:bg-amber-700 transition text-center" style="display: none;">
-                    <i class="fa-solid fa-shield-halved mr-1"></i> Quản Trị <span id="pending-count-badge" class="bg-amber-200 text-amber-900 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
-                </button>
-            </div>
-
-            <!-- NỘI DUNG CÁC TAB -->
-
-            <!-- 1. TAB BẢNG TIN -->
-            <div id="tab-news" class="content-tab space-y-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-                <div id="admin-news-section" class="p-4 bg-indigo-50/50 border border-indigo-200 rounded-xl space-y-3" style="display: none;">
-                    <h4 class="font-bold text-indigo-900 text-xs uppercase"><i class="fa-solid fa-bullhorn mr-1"></i> Soạn & Đăng Thông Báo Mới</h4>
-                    <input type="text" id="news-title" class="w-full p-2 bg-white border rounded-lg text-xs" placeholder="Tiêu đề thông báo...">
-                    <textarea id="news-content" rows="2" class="w-full p-2 bg-white border rounded-lg text-xs" placeholder="Nội dung chi tiết..."></textarea>
-                    <button onclick="publishNews()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs">Đăng Tin</button>
-                </div>
-                <div>
-                    <h3 class="font-bold text-slate-800 text-base mb-3"><i class="fa-solid fa-newspaper text-emerald-700 mr-2"></i> Bảng Tin & Thông Báo Của Hội</h3>
-                    <div id="news-feed-container" class="space-y-3"></div>
-                </div>
-            </div>
-
-            <!-- 2. TAB BÁO CÁO SỐ LIỆU -->
-            <div id="tab-report" class="content-tab space-y-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-200" style="display: none;">
-                <h3 class="font-bold text-emerald-800 text-base flex items-center mb-3">
-                    <i class="fa-solid fa-file-pen mr-2 text-emerald-600"></i> Báo Cáo Số Liệu Chuyên Môn
-                </h3>
-                <div class="space-y-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Tháng / Năm báo cáo</label>
-                        <input type="month" id="rep-month" class="w-full md:w-1/3 p-2.5 border rounded-xl text-xs">
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 p-2 bg-slate-50 border rounded-xl">
-                        <div><label class="block text-[11px] font-bold text-emerald-700 uppercase">Khám bệnh miễn phí (lượt)</label><input type="number" min="0" id="rep-k-free" class="w-full p-2 bg-white border rounded-lg text-xs" value="0"></div>
-                        <div><label class="block text-[11px] font-bold text-emerald-700 uppercase">Khám bệnh có phí (lượt)</label><input type="number" min="0" id="rep-k-paid" class="w-full p-2 bg-white border rounded-lg text-xs" value="0"></div>
-                        <div><label class="block text-[11px] font-bold text-emerald-700 uppercase">Đơn giá khám (đồng/lượt)</label><input type="number" min="0" id="rep-k-price" class="w-full p-2 bg-white border rounded-lg text-xs" value="0"></div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 p-2 bg-slate-50 border rounded-xl">
-                        <div><label class="block text-[11px] font-bold text-emerald-700 uppercase">Thuốc Bắc miễn phí (lượt)</label><input type="number" min="0" id="rep-tb-free" class="w-full p-2 bg-white border rounded-lg text-xs" value="0"></div>
-                        <div><label class="block text-[11px] font-bold text-emerald-700 uppercase">Thuốc Bắc có phí (lượt)</label><input type="number" min="0" id="rep-tb-paid" class="w-full p-2 bg-white border rounded-lg text-xs" value="0"></div>
-                        <div><label class="block text-[11px] font-bold text-emerald-700 uppercase">Đơn giá thuốc Bắc (đồng/lượt)</label><input type="number" min="0" id="rep-tb-price" class="w-full p-2 bg-white border rounded-lg text-xs" value="0"></div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 p-2 bg-slate-50 border rounded-xl">
-                        <div><label class="block text-[11px] font-bold text-emerald-700 uppercase">Thuốc Nam miễn phí (lượt)</label><input type="number" min="0" id="rep-tn-free" class="w-full p-2 bg-white border rounded-lg text-xs" value="0"></div>
-                        <div><label class="block text-[11px] font-bold text-emerald-700 uppercase">Thuốc Nam có phí (lượt)</label><input type="number" min="0" id="rep-tn-paid" class="w-full p-2 bg-white border rounded-lg text-xs" value="0"></div>
-                        <div><label class="block text-[11px] font-bold text-emerald-700 uppercase">Đơn giá thuốc Nam (đồng/lượt)</label><input type="number" min="0" id="rep-tn-price" class="w-full p-2 bg-white border rounded-lg text-xs" value="0"></div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 p-2 bg-slate-50 border rounded-xl">
-                        <div><label class="block text-xs font-bold text-slate-600 uppercase mb-1">Châm cứu miễn phí (lượt)</label><input type="number" min="0" id="rep-cc-free" class="w-full p-2.5 border rounded-lg text-xs" value="0"></div>
-                        <div><label class="block text-xs font-bold text-slate-600 uppercase mb-1">Châm cứu có phí (lượt)</label><input type="number" min="0" id="rep-cc-paid" class="w-full p-2.5 border rounded-lg text-xs" value="0"></div>
-                        <div><label class="block text-xs font-bold text-slate-600 uppercase mb-1">Đơn giá châm cứu (đồng/lượt)</label><input type="number" min="0" id="rep-cc-price" class="w-full p-2.5 border rounded-lg text-xs" value="0"></div>
-                        <div><label class="block text-xs font-bold text-slate-600 uppercase mb-1">Từ thiện, phúc lợi xã hội</label><input type="text" id="rep-tu-thien" class="w-full p-2.5 border rounded-lg text-xs" placeholder="Ghi chú từ thiện..."></div>
-                    </div>
-                    <!-- Dược liệu đơn -->
-                    <div class="p-3 bg-slate-50 border rounded-xl space-y-2">
-                        <div class="flex justify-between items-center">
-                            <h4 class="font-bold text-xs text-slate-700 uppercase"><i class="fa-solid fa-leaf text-emerald-700 mr-1"></i> Dược Liệu Đơn</h4>
-                            <button onclick="addDuocLieuRow()" class="bg-emerald-600 text-white px-2.5 py-1 rounded text-xs font-bold"><i class="fa-solid fa-plus mr-1"></i> Thêm</button>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-xs">
-                                <thead class="bg-slate-200">
-                                    <tr>
-                                        <th class="p-1.5">Tên</th>
-                                        <th class="p-1.5 w-20">SL</th>
-                                        <th class="p-1.5 w-24">Đơn giá</th>
-                                        <th class="p-1.5 w-24">Thành tiền</th>
-                                        <th class="p-1.5 w-10">Xóa</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="duoc-lieu-table-body" class="divide-y"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <button onclick="submitReport()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold p-3 rounded-xl text-xs">Gửi Báo Cáo</button>
-                </div>
-            </div>
-
-            <!-- 3. TAB TỔNG HỢP BÁO CÁO (Chi hội trưởng, BCH, BTV, Admin được xem) -->
-            <div id="tab-summary" class="content-tab space-y-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-200" style="display: none;">
-                <h3 class="font-bold text-slate-800 text-base mb-3"><i class="fa-solid fa-chart-line text-emerald-700 mr-2"></i> Tổng Hợp Báo Cáo Chuyên Môn Các Nhóm</h3>
-                <div class="no-print flex flex-wrap items-end gap-2 mb-3">
-                    <div><label class="block text-xs font-bold mb-1">Lọc theo tháng</label><input id="summary-month-filter" type="month" class="p-2 border rounded-lg text-xs" onchange="renderReportTable()"></div>
-                    <button onclick="clearReportFilter()" class="bg-slate-200 px-3 py-2 rounded-lg text-xs font-bold">Xóa lọc</button>
-                    <button onclick="exportReportsCSV()" class="bg-green-700 text-white px-3 py-2 rounded-lg text-xs font-bold"><i class="fa-solid fa-file-excel mr-1"></i> Xuất Excel/CSV</button>
-                    <button onclick="window.print()" class="bg-red-600 text-white px-3 py-2 rounded-lg text-xs font-bold"><i class="fa-solid fa-file-pdf mr-1"></i> In / Lưu PDF</button>
-                </div>
-                <div id="revenue-summary" class="grid grid-cols-1 md:grid-cols-4 gap-2 mb-3"></div>
-                <div id="revenue-chart" class="p-3 border rounded-xl mb-3 space-y-2"></div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs">
-                        <thead class="bg-slate-100 uppercase">
-                            <tr>
-                                <th class="p-2">Người báo cáo</th>
-                                <th class="p-2">Thời gian</th>
-                                <th class="p-2">Khám (Miễn/Có phí)</th>
-                                <th class="p-2">Thuốc Bắc</th>
-                                <th class="p-2">Thuốc Nam</th>
-                                <th class="p-2">Châm cứu</th>
-                                <th class="p-2">Dược liệu</th>
-                                <th class="p-2">Doanh thu</th>
-                                <th class="p-2">Từ thiện</th>
-                            </tr>
-                        </thead>
-                        <tbody id="report-table-body" class="divide-y"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- 4. TAB ĐỀ XUẤT / KIẾN NGHỊ (Chi hội trưởng gửi, BCH/BTV xem và trả lời) -->
-            <div id="tab-proposal" class="content-tab space-y-4 bg-white p-5 rounded-2xl shadow-sm border border-purple-200" style="display: none;">
-                <h3 class="font-bold text-purple-900 text-base mb-3 flex items-center">
-                    <i class="fa-solid fa-comments mr-2 text-purple-600"></i> Hòm Thư Đề Xuất & Kiến Nghị Với Ban Chấp Hành & Ban Thường Vụ
-                </h3>
-                <!-- Khung gửi đề xuất -->
-                <div id="proposal-input-section" class="space-y-2">
-                    <textarea id="prop-content" rows="2" class="w-full p-2.5 border rounded-xl text-xs" placeholder="Nhập nội dung đề xuất, kiến nghị gửi Ban Chấp hành & Ban Thường vụ..."></textarea>
-                    <button onclick="submitProposal()" class="bg-purple-700 hover:bg-purple-800 text-white font-bold px-4 py-2 rounded-xl text-xs">Gửi Kiến Nghị</button>
-                </div>
-                <!-- Khung danh sách đề xuất & trả lời -->
-                <div id="proposal-list-wrapper" style="display: none;" class="pt-4 border-t space-y-3">
-                    <h4 class="font-bold text-xs text-purple-900 uppercase">Danh sách Đề xuất & Câu trả lời từ Cấp trên:</h4>
-                    <div id="proposal-feed-container" class="space-y-3"></div>
-                </div>
-            </div>
-
-            <!-- 5. TAB HỘI VIÊN (Chi hội trưởng xem được toàn bộ hội viên; Hội viên thường chỉ thấy thông tin cá nhân) -->
-            <div id="tab-members" class="content-tab space-y-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-200" style="display: none;">
-                <div id="my-profile-wrapper" style="display: none;" class="space-y-3">
-                    <h3 class="font-bold text-slate-800 text-base mb-2"><i class="fa-solid fa-user text-emerald-700 mr-2"></i> Thông Tin Cá Nhân Của Bạn</h3>
-                    <div id="my-profile-content" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs bg-slate-50 p-4 rounded-xl border"></div>
-                </div>
-                <div id="member-list-wrapper" style="display: none;" class="space-y-3">
-                    <div class="flex justify-between items-center mb-2">
-                        <h3 class="font-bold text-slate-800 text-base"><i class="fa-solid fa-users text-emerald-700 mr-2"></i> Danh Sách Hội Viên Phường An Hội</h3>
-                        <button onclick="exportToExcel()" class="bg-green-600 text-white text-xs px-3 py-1.5 rounded-lg font-bold"><i class="fa-solid fa-file-excel mr-1"></i> Xuất Excel</button>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs">
-                            <thead class="bg-slate-100 uppercase">
-                                <tr>
-                                    <th class="p-2">Họ tên</th>
-                                    <th class="p-2">Chi tiết</th>
-                                    <th class="p-2">SĐT</th>
-                                    <th class="p-2">Trình độ</th>
-                                    <th class="p-2">Nhóm</th>
-                                    <th class="p-2">Chức vụ</th>
-                                    <th id="admin-action-header" class="p-2 text-right" style="display: none;">Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody id="member-table-body" class="divide-y"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 6. TAB QUẢN TRỊ (Chỉ BTV & Admin) -->
-            <div id="tab-admin" class="content-tab space-y-4 bg-white p-5 rounded-2xl shadow-sm border border-amber-200" style="display: none;">
-                <div class="space-y-5">
-                    <div class="p-3 rounded-xl bg-amber-50 border border-amber-300 text-xs text-amber-900"><b>Lưu ý:</b> Đăng nhập và hồ sơ hội viên đang dùng Supabase. Các chức năng báo cáo, tin tức, kiến nghị và thao tác quản trị vẫn cần được chuyển tiếp sang cơ sở dữ liệu trước khi dùng chính thức; không dùng dữ liệu giả trong trình duyệt làm dữ liệu thật.</div>
-                    <div>
-                        <h3 class="font-bold text-amber-900 text-sm mb-3 flex items-center">
-                            <i class="fa-solid fa-shield-halved mr-2 text-amber-600"></i> Phê Duyệt Hội Viên Mới (Ban Thường Vụ & Admin)
-                        </h3>
-                        <div id="admin-approval-list" class="space-y-3"></div>
-                    </div>
-
-                    <div id="change-admin-section" class="pt-4 border-t" style="display: none;">
-                        <h3 class="font-bold text-red-900 text-sm mb-2 flex items-center">
-                            <i class="fa-solid fa-user-shield mr-2 text-red-600"></i> Cài Đặt / Thay Đổi Tài Khoản Admin Bằng Số Điện Thoại
-                        </h3>
-                        <p class="text-xs text-slate-500 mb-3">Chọn tài khoản hội viên đang hoạt động để chuyển quyền quản trị hệ thống. Tài khoản quản trị cũ sẽ mất quyền Admin.</p>
-                        <div class="flex gap-2 max-w-md">
-                            <input type="tel" id="new-admin-phone" class="flex-1 p-2 border rounded-xl text-xs" placeholder="Nhập SĐT hội viên mới làm Admin...">
-                            <button onclick="handleChangeAdmin()" class="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-xl text-xs whitespace-nowrap">Đổi Quyền Admin</button>
-                        </div>
-                    </div>
-
-                    <div id="role-management-section" class="pt-4 border-t" style="display: none;">
-                        <h3 class="font-bold text-blue-900 text-sm mb-3 flex items-center">
-                            <i class="fa-solid fa-user-gear mr-2 text-blue-600"></i> Quản Lý & Cấp Quyền Chức Vụ (Chỉ Admin)
-                        </h3>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-xs">
-                                <thead class="bg-blue-100 text-blue-900">
-                                    <tr>
-                                        <th class="p-2">Họ tên</th>
-                                        <th class="p-2">Nhóm</th>
-                                        <th class="p-2">Chức vụ</th>
-                                        <th class="p-2 text-right">Đổi</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="role-management-table" class="divide-y"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </section>
-
-    </main>
-
-    <!-- MODAL CHI TIẾT HỘI VIÊN -->
-    <div id="member-detail-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div class="bg-white p-6 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto space-y-3 shadow-2xl">
-        <div class="flex justify-between items-center"><h3 class="font-bold text-base text-emerald-800">Chi tiết hồ sơ hội viên</h3><button onclick="closeMemberDetails()" class="text-slate-500 text-xl" aria-label="Đóng">&times;</button></div>
-        <div id="member-detail-content" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm"></div>
-        <div class="flex gap-2"><button id="detail-edit-button" onclick="editMemberFromDetails()" class="hidden flex-1 bg-blue-600 text-white font-bold py-2 rounded-lg text-xs">Chỉnh sửa hồ sơ (Admin)</button><button onclick="closeMemberDetails()" class="flex-1 bg-slate-200 text-slate-700 font-bold py-2 rounded-lg text-xs">Đóng</button></div>
+        <div id="page-profile" class="page hidden">
+          <div class="card"><div class="section-head"><h3>Hồ sơ của tôi</h3><button onclick="loadProfile()">Tải lại</button></div><div id="profileContent" class="muted">Đang tải hồ sơ…</div></div>
+        </div>
+        <div id="page-members" class="page hidden">
+          <div class="card"><div class="section-head"><h3>Quản lý hội viên</h3><button onclick="loadMembers()">Tải danh sách</button></div><p class="muted">Danh sách hiển thị theo quyền RLS hiện được cấu hình trong Supabase.</p><div id="membersContent" class="muted">Chưa tải dữ liệu.</div></div>
+        </div>
+        <div id="page-reports" class="page hidden">
+          <div class="card"><div class="section-head"><h3>Báo cáo hoạt động</h3><button onclick="loadReports()">Tải báo cáo</button></div>
+            <form id="reportForm">
+              <div class="form-grid">
+                <div class="full"><label>Tiêu đề báo cáo</label><input id="reportTitle" required placeholder="Ví dụ: Báo cáo hoạt động tháng 10"></div>
+                <div><label>Loại báo cáo</label><select id="reportType"><option value="monthly">Báo cáo tháng</option><option value="quarterly">Báo cáo quý</option><option value="annual">Báo cáo năm</option><option value="other">Khác</option></select></div>
+                <div><label>Kỳ bắt đầu</label><input id="periodStart" type="date" required></div>
+                <div><label>Kỳ kết thúc</label><input id="periodEnd" type="date" required></div>
+                <div class="full"><label>Tóm tắt hoạt động / kiến nghị</label><textarea id="reportSummary" placeholder="Nội dung hoạt động, dược liệu, từ thiện, kiến nghị…"></textarea></div>
+              </div>
+              <div class="notice">Bản đầu tiên lưu phần thông tin chung của báo cáo. Các chỉ tiêu chi tiết (khám có phí/miễn phí, thuốc bắc, thuốc nam, dược liệu, từ thiện) cần được ánh xạ chính xác với cấu trúc report_items của dự án trước khi nhập dữ liệu.</div>
+              <button type="submit">Lưu bản nháp báo cáo</button>
+            </form>
+            <hr style="border:0;border-top:1px solid var(--line);margin:20px 0"><div id="reportsContent" class="muted">Chưa tải báo cáo.</div>
+          </div>
+        </div>
+        <div id="page-news" class="page hidden"><div class="card"><div class="section-head"><h3>Tin tức Hội và y học cổ truyền</h3><button onclick="loadNews()">Tải tin tức</button></div><div id="newsContent" class="muted">Đang tải tin tức…</div></div></div>
       </div>
     </div>
+  </section>
+</main>
+<footer>Hội Đông y phường An Hội · Hệ thống quản lý hội viên</footer>
+<script>
+  // Publishable key dùng ở trình duyệt; không đặt service_role/secret key trong HTML.
+  const SUPABASE_URL = 'https://bsbipobamdbatcdhmsmy.supabase.co';
+  const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_Qj9ZACCvFJrwWdMEsRUl8w_TTh4XPR_';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+  let authMode = 'login', currentUser = null, currentProfile = null, currentRoles = [], branches = [];
 
-    <!-- MODAL SỬA HỘI VIÊN (ADMIN) -->
-    <div id="edit-member-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white p-6 rounded-2xl max-w-md w-full space-y-3 shadow-2xl">
-            <h3 class="font-bold text-base text-emerald-800">Chỉnh Sửa Hội Viên</h3>
-            <input type="hidden" id="edit-id">
-            <input type="text" id="edit-name" class="w-full p-2 border rounded-lg text-xs" placeholder="Họ và tên">
-            <input type="tel" id="edit-phone" class="w-full p-2 border rounded-lg text-xs" placeholder="Số điện thoại">
-            <input type="text" id="edit-address" class="w-full p-2 border rounded-lg text-xs" placeholder="Địa chỉ">
-            <input type="text" id="edit-education" class="w-full p-2 border rounded-lg text-xs" placeholder="Trình độ chuyên môn">
-            <input type="number" id="edit-birth-year" class="w-full p-2 border rounded-lg text-xs" placeholder="Năm sinh">
-            <select id="edit-gender" class="w-full p-2 border rounded-lg text-xs"><option>Nam</option><option>Nữ</option><option>Khác</option></select>
-            <input type="text" id="edit-culture" class="w-full p-2 border rounded-lg text-xs" placeholder="Trình độ văn hóa">
-            <input type="email" id="edit-email" class="w-full p-2 border rounded-lg text-xs" placeholder="Email">
-            <input type="text" id="edit-member-type" class="w-full p-2 border rounded-lg text-xs" placeholder="Phân loại hội viên">
-            <label class="block text-xs font-bold">Ảnh hội viên</label><input type="file" id="edit-avatar" accept="image/*" capture="user" class="w-full p-2 border rounded-lg text-xs">
-            <select id="edit-group" class="w-full p-2 border rounded-lg text-xs">
-                <option value="Nhóm An Hội">Nhóm An Hội</option>
-                <option value="Nhóm Sơn Phú">Nhóm Sơn Phú</option>
-                <option value="Nhóm Phú Nhuận">Nhóm Phú Nhuận</option>
-                <option value="Nhóm Mỹ An">Nhóm Mỹ An</option>
-            </select>
-            <div class="flex space-x-2 pt-2">
-                <button onclick="saveEditedMember()" class="flex-1 bg-emerald-700 text-white font-bold py-2 rounded-lg text-xs">Lưu</button>
-                <button onclick="closeEditModal()" class="flex-1 bg-slate-200 text-slate-700 font-bold py-2 rounded-lg text-xs">Hủy</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- FOOTER -->
-    <footer class="mt-auto bg-slate-100 border-t border-slate-200 py-4 text-center text-xs text-slate-500">
-        Phần mềm Quản lý Hội Đông Y Phường An Hội &copy; 2026
-    </footer>
-
-    <!-- SCRIPT -->
-    <script>
-        // Supabase project configuration. Publishable key is intended for browser use; never put service_role/secret keys here.
-        const SUPABASE_URL = 'https://bsbipobamdbatcdhmsmy.supabase.co';
-        const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_Qj9ZACCvFJrwWdMEsRUl8w_TTh4XPR_';
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
-        let activeAuthUser = null;
-        const ROLE_LABELS = { ADMIN: 'Admin', EXECUTIVE: 'Ban thường vụ', COMMITTEE: 'Ban chấp hành', BRANCH_HEAD: 'Chi hội trưởng', MEMBER: 'Hội viên' };
-        const BRANCH_LABELS = { AN_HOI: 'Nhóm An Hội', PHU_NHUAN: 'Nhóm Phú Nhuận', MY_AN: 'Nhóm Mỹ An', SON_PHU: 'Nhóm Sơn Phú' };
-
-        function showAuthError(error, fallback) {
-            console.error(fallback, error);
-            const msg = error?.message || fallback;
-            alert(fallback + '\n\nChi tiết: ' + msg);
-        }
-
-        async function fetchSignedInMember(authUser) {
-            const { data: member, error: memberError } = await supabaseClient
-                .from('members').select('*').eq('user_id', authUser.id).maybeSingle();
-            if (memberError) throw memberError;
-            if (!member) throw new Error('Tài khoản đã đăng nhập nhưng chưa có hồ sơ hội viên. Vui lòng liên hệ Ban quản trị.');
-
-            let role = 'Hội viên';
-            const { data: roleRows, error: roleError } = await supabaseClient
-                .from('user_roles').select('branch_id, roles(code)').eq('user_id', authUser.id);
-            if (roleError) throw roleError;
-            const codes = (roleRows || []).map(x => x.roles?.code).filter(Boolean);
-            const priority = ['ADMIN','EXECUTIVE','COMMITTEE','BRANCH_HEAD','MEMBER'];
-            const chosen = priority.find(code => codes.includes(code));
-            if (chosen) role = ROLE_LABELS[chosen];
-
-            const branchId = member.branch_id ?? roleRows?.find(x => x.branch_id)?.branch_id;
-            let branchCode = '';
-            if (branchId) {
-                const { data: branch, error: branchError } = await supabaseClient.from('branches').select('code,name').eq('id', branchId).maybeSingle();
-                if (!branchError && branch) branchCode = branch.code || '';
-            }
-            const normalized = {
-                id: member.id, dbId: member.id, authUserId: authUser.id,
-                name: member.full_name || member.name || authUser.user_metadata?.full_name || '',
-                phone: member.phone || '', email: member.email || authUser.email || '',
-                gender: member.gender || '', birthYear: member.date_of_birth ? String(member.date_of_birth).slice(0,4) : '',
-                address: member.address || '', culture: member.education_level || '',
-                education: member.qualification || member.professional_title || '',
-                group: BRANCH_LABELS[branchCode] || 'Toàn hội', role,
-                status: member.status || 'pending', avatar: member.avatar_url || '', branch_id: branchId
-            };
-            if (normalized.status !== 'approved' && !['Admin','Ban thường vụ'].includes(normalized.role)) {
-                throw new Error('Hồ sơ của bạn chưa được Ban Thường vụ phê duyệt.');
-            }
-            const { data: allMembers, error: allError } = await supabaseClient.from('members').select('*');
-            if (!allError && allMembers) {
-                const cache = allMembers.map(m => ({
-                    id: m.id, dbId: m.id, authUserId: m.user_id, name: m.full_name || '', phone: m.phone || '', email: m.email || '',
-                    gender: m.gender || '', birthYear: m.date_of_birth ? String(m.date_of_birth).slice(0,4) : '',
-                    address: m.address || '', culture: m.education_level || '', education: m.qualification || m.professional_title || '',
-                    group: BRANCH_LABELS[branchCode] || 'Toàn hội', role: 'Hội viên', status: m.status || 'pending', avatar: m.avatar_url || '', branch_id: m.branch_id
-                }));
-                const own = cache.find(m => String(m.id) === String(member.id));
-                if (own) Object.assign(own, normalized);
-                localStorage.setItem('hoiVienList', JSON.stringify(cache));
-            }
-            localStorage.setItem('currentUser', JSON.stringify(normalized));
-            return normalized;
-        }
-
-        async function startSignedInApp(authUser) {
-            activeAuthUser = authUser;
-            const user = await fetchSignedInMember(authUser);
-            loadAppUI();
-            return user;
-        }
-
-        async function initializeSupabaseSession() {
-            try {
-                const { data: { session }, error } = await supabaseClient.auth.getSession();
-                if (error) throw error;
-                if (session?.user) await startSignedInApp(session.user);
-            } catch (e) {
-                console.error('Không khôi phục được phiên Supabase:', e);
-                localStorage.removeItem('currentUser');
-                document.getElementById('auth-screen').style.display = 'block';
-            }
-        }
-        window.addEventListener('DOMContentLoaded', initializeSupabaseSession);
-
-        function switchMainTab(tabId) {
-            let tabs = document.querySelectorAll('.content-tab');
-            tabs.forEach(t => t.style.display = 'none');
-            document.getElementById(tabId).style.display = 'block';
-
-            let buttons = document.querySelectorAll('[id^="btn-tab-"]');
-            buttons.forEach(b => {
-                b.className = "flex-1 min-w-[90px] py-2.5 px-2 rounded-xl font-bold text-xs bg-slate-100 text-slate-700 hover:bg-slate-200 transition text-center";
-            });
-            let activeBtn = document.getElementById('btn-' + tabId);
-            if (activeBtn) {
-                if (tabId === 'tab-admin') {
-                    activeBtn.className = "flex-1 min-w-[90px] py-2.5 px-2 rounded-xl font-bold text-xs bg-amber-600 text-white shadow-sm text-center";
-                } else {
-                    activeBtn.className = "flex-1 min-w-[90px] py-2.5 px-2 rounded-xl font-bold text-xs bg-emerald-700 text-white shadow-sm text-center";
-                }
-            }
-        }
-
-        function getMemberList() {
-            // Dữ liệu thật được tải từ Supabase sau khi đăng nhập; không tự tạo tài khoản giả trong trình duyệt.
-            try { return JSON.parse(localStorage.getItem('hoiVienList') || '[]'); }
-            catch (_) { return []; }
-        }
-
-        function getReportList() { return JSON.parse(localStorage.getItem('reportList') || '[]'); }
-        function getNewsList() { 
-            let data = localStorage.getItem('newsList');
-            if (!data) {
-                const def = [{ id: 1, title: "Chào mừng đến với Cổng thông tin Hội Đông Y Phường An Hội", content: "Hệ thống quản lý trực tuyến.", date: "26/10/2026", author: "Ban Thường Vụ" }];
-                localStorage.setItem('newsList', JSON.stringify(def));
-                return def;
-            }
-            return JSON.parse(data);
-        }
-        function getProposalList() { return JSON.parse(localStorage.getItem('proposalList') || '[]'); }
-
-        function switchAuthTab(type) {
-            if (type === 'login') {
-                document.getElementById('form-login').style.display = 'block';
-                document.getElementById('form-register').style.display = 'none';
-                document.getElementById('tab-login-btn').className = "flex-1 py-2 rounded-lg bg-white text-emerald-800 shadow-sm transition";
-                document.getElementById('tab-reg-btn').className = "flex-1 py-2 rounded-lg text-slate-500 transition";
-            } else {
-                const accepted = confirm("THÔNG BÁO TRƯỚC KHI ĐĂNG KÝ\\n\\nĐây là ứng dụng nội bộ, chỉ dành cho hội viên Hội Đông y phường An Hội. Người đăng ký có trách nhiệm cung cấp thông tin chính xác và chịu trách nhiệm trước pháp luật về hành động, nội dung do mình thực hiện trên hệ thống. Ban quản trị có thể từ chối hồ sơ không phù hợp.\\n\\nBạn có đồng ý và muốn tiếp tục đăng ký không?");
-                if (!accepted) {
-                    document.getElementById('form-login').style.display = 'block';
-                    document.getElementById('form-register').style.display = 'none';
-                    document.getElementById('tab-login-btn').className = "flex-1 py-2 rounded-lg bg-white text-emerald-800 shadow-sm transition";
-                    document.getElementById('tab-reg-btn').className = "flex-1 py-2 rounded-lg text-slate-500 transition";
-                    return;
-                }
-                document.getElementById('form-login').style.display = 'none';
-                document.getElementById('form-register').style.display = 'block';
-                document.getElementById('tab-reg-btn').className = "flex-1 py-2 rounded-lg bg-white text-blue-700 shadow-sm transition";
-                document.getElementById('tab-login-btn').className = "flex-1 py-2 rounded-lg text-slate-500 transition";
-            }
-        }
-
-        function imageFileToDataURL(file, maxSize=640) {
-            return new Promise((resolve, reject) => {
-                if (!file) return resolve("");
-                if (!file.type.startsWith('image/')) return reject(new Error('Vui lòng chọn tệp hình ảnh.'));
-                const reader = new FileReader();
-                reader.onerror = () => reject(new Error('Không đọc được ảnh.'));
-                reader.onload = () => {
-                    const img = new Image();
-                    img.onerror = () => reject(new Error('Ảnh không hợp lệ.'));
-                    img.onload = () => {
-                        const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
-                        const canvas = document.createElement('canvas');
-                        canvas.width = Math.max(1, Math.round(img.width * scale));
-                        canvas.height = Math.max(1, Math.round(img.height * scale));
-                        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-                        resolve(canvas.toDataURL('image/jpeg', 0.78));
-                    };
-                    img.src = reader.result;
-                };
-                reader.readAsDataURL(file);
-            });
-        }
-
-        async function handleRegister() {
-            const name = document.getElementById('reg-name').value.trim();
-            const phone = document.getElementById('reg-phone').value.trim();
-            const email = document.getElementById('reg-email').value.trim().toLowerCase();
-            const password = document.getElementById('reg-password').value;
-            if (!name || !phone || !email || !password) { alert('Vui lòng nhập họ tên, số điện thoại, email và mật khẩu.'); return; }
-            if (password.length < 8) { alert('Mật khẩu phải có ít nhất 8 ký tự.'); return; }
-            const branchMap = { 'Nhóm An Hội':'AN_HOI', 'Nhóm Phú Nhuận':'PHU_NHUAN', 'Nhóm Mỹ An':'MY_AN', 'Nhóm Sơn Phú':'SON_PHU' };
-            const branchCode = branchMap[document.getElementById('reg-group').value];
-            try {
-                // Hồ sơ được tạo bằng trigger bảo mật ở Supabase, không cho trình duyệt tự gán role.
-                const { data: signUpData, error: signUpError } = await supabaseClient.auth.signUp({
-                    email, password,
-                    options: { data: { full_name: name, phone, branch_code: branchCode, gender: document.getElementById('reg-gender').value, birth_year: document.getElementById('reg-birth-year').value.trim(), address: document.getElementById('reg-address').value.trim(), professional_title: document.getElementById('reg-education').value.trim(), qualification: document.getElementById('reg-culture').value.trim() } }
-                });
-                if (signUpError) throw signUpError;
-                if (!signUpData.user) throw new Error('Supabase chưa tạo được tài khoản.');
-                if (!signUpData.session) {
-                    alert('Tài khoản đã được tạo. Hãy mở email để xác nhận. Hồ sơ hội viên sẽ được tạo tự động bởi cấu hình Supabase; sau khi xác nhận email, bạn có thể đăng nhập.');
-                    return;
-                }
-                alert('Tài khoản đã được tạo trên Supabase. Hồ sơ đang chờ Ban Thường vụ phê duyệt.');
-                await startSignedInApp(signUpData.user);
-            } catch (e) {
-                showAuthError(e, 'Chưa đăng ký được. Có thể chính sách RLS chưa cho phép hội viên tự tạo hồ sơ hoặc tên cột trong bảng members khác với cấu hình.');
-            }
-        }
-
-        async function handleLogin() {
-            const email = document.getElementById('login-email').value.trim().toLowerCase();
-            const password = document.getElementById('login-password').value;
-            if (!email || !password) { alert('Vui lòng nhập email và mật khẩu.'); return; }
-            try {
-                const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-                if (error) throw error;
-                await startSignedInApp(data.user);
-            } catch (e) {
-                showAuthError(e, 'Đăng nhập chưa thành công. Kiểm tra email, mật khẩu và trạng thái hồ sơ hội viên.');
-                await supabaseClient.auth.signOut();
-            }
-        }
-
-        async function handleLogout() {
-            try { await supabaseClient.auth.signOut(); }
-            catch (e) { console.error('Lỗi đăng xuất Supabase:', e); }
-            activeAuthUser = null;
-            localStorage.removeItem('currentUser');
-            location.reload();
-        }
-
-        function loadAppUI() {
-            let user = JSON.parse(localStorage.getItem('currentUser'));
-            if (!user) return;
-
-            let list = getMemberList();
-            let freshUser = list.find(m => m.phone === user.phone);
-            if (freshUser) {
-                user = freshUser;
-                localStorage.setItem('currentUser', JSON.stringify(user));
-            }
-
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('app-screen').style.display = 'block';
-            document.getElementById('user-top-info').style.display = 'flex';
-            document.getElementById('welcome-name').innerText = user.name;
-            document.getElementById('welcome-role').innerText = `Chức vụ: ${user.role}`;
-            document.getElementById('welcome-group').innerText = `Nhóm: ${user.group}`;
-            document.getElementById('display-user-badge').innerText = `${user.name} (${user.role})`;
-
-            let isBCH_BTV_Admin = ['Admin', 'Ban thường vụ', 'Ban chấp hành', 'Chi hội trưởng'].includes(user.role);
-            let isBTV_Admin = ['Admin', 'Ban thường vụ'].includes(user.role);
-            let isAdmin = user.role === 'Admin';
-            let isManagerRole = ['Admin', 'Ban thường vụ', 'Ban chấp hành', 'Chi hội trưởng'].includes(user.role);
-
-            // 1. Phân quyền hiển thị Tab Tổng hợp báo cáo & Danh sách hội viên (BCH, BTV, Admin, Chi hội trưởng được xem)
-            document.getElementById('my-profile-wrapper').style.display = 'block';
-            renderMyProfile(user);
-            if (isBCH_BTV_Admin) {
-                document.getElementById('btn-tab-summary').style.display = 'block';
-                document.getElementById('member-list-wrapper').style.display = 'block';
-                renderReportTable();
-                renderMemberList();
-            }
-
-            // 2. Phân quyền Tab Đề xuất: Chi hội trưởng được gửi đề xuất, BCH/BTV/Admin được xem và trả lời
-            document.getElementById('btn-tab-proposal').style.display = 'block';
-            if (isManagerRole) {
-                document.getElementById('proposal-list-wrapper').style.display = 'block';
-                renderProposalFeed();
-            }
-
-            // 3. Ban Thường Vụ và Admin duyệt hội viên mới
-            if (isBTV_Admin) {
-                document.getElementById('btn-tab-admin').style.display = 'block';
-                renderPendingList();
-            }
-
-            // 4. Riêng Admin
-            if (isAdmin) {
-                document.getElementById('admin-news-section').style.display = 'block';
-                document.getElementById('admin-action-header').style.display = 'table-cell';
-                document.getElementById('change-admin-section').style.display = 'block';
-                document.getElementById('role-management-section').style.display = 'block';
-                renderRoleManagementTable();
-            }
-
-            renderNewsFeed();
-            addDuocLieuRow();
-            switchMainTab('tab-news');
-        }
-
-        function renderMyProfile(user) {
-            document.getElementById('my-profile-content').innerHTML = `
-                ${user.avatar ? `<div class="md:col-span-2"><img src="${user.avatar}" class="w-24 h-24 object-cover rounded-full border mb-2"><label class="block font-bold mb-1">Cập nhật ảnh của bạn</label><input type="file" accept="image/*" capture="user" onchange="updateMyAvatar(this)" class="p-2 border rounded-lg"></div>` : `<div class="md:col-span-2"><label class="block font-bold mb-1">Ảnh hội viên</label><input type="file" accept="image/*" capture="user" onchange="updateMyAvatar(this)" class="p-2 border rounded-lg"></div>`}
-                <div><b>Họ và tên:</b> ${user.name}</div>
-                <div><b>Số điện thoại:</b> ${user.phone}</div>
-                <div><b>Giới tính:</b> ${user.gender || 'Chưa cập nhật'}</div>
-                <div><b>Năm sinh:</b> ${user.birthYear || 'Chưa cập nhật'}</div>
-                <div><b>Địa chỉ thường trú:</b> ${user.address || 'Chưa cập nhật'}</div>
-                <div><b>Trình độ văn hóa:</b> ${user.culture || 'Chưa cập nhật'}</div>
-                <div><b>Trình độ chuyên môn:</b> ${user.education || 'Chưa cập nhật'}</div>
-                <div><b>Phân loại hội viên:</b> ${user.memberType || 'Hội viên chính thức'}</div>
-                <div><b>Nhóm sinh hoạt:</b> ${user.group}</div>
-                <div><b>Chức vụ:</b> <span class="text-emerald-700 font-bold">${user.role}</span></div>
-                <div><b>Email:</b> ${user.email || 'Chưa cập nhật'}</div>
-            `;
-        }
-
-        async function updateMyAvatar(input) {
-            const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-            if (!user.phone || !input.files || !input.files[0]) return;
-            try {
-                const avatar = await imageFileToDataURL(input.files[0]);
-                const list = getMemberList();
-                const m = list.find(x => x.phone === user.phone);
-                if (!m) return;
-                m.avatar = avatar;
-                localStorage.setItem('hoiVienList', JSON.stringify(list));
-                localStorage.setItem('currentUser', JSON.stringify(m));
-                alert('Đã cập nhật ảnh hồ sơ.');
-                renderMyProfile(m);
-            } catch(e) { alert(e.message || 'Không cập nhật được ảnh.'); }
-        }
-
-        function addDuocLieuRow() {
-            let tbody = document.getElementById('duoc-lieu-table-body');
-            let row = document.createElement('tr');
-            row.innerHTML = `
-                <td class="p-1"><input type="text" class="w-full p-1 border rounded text-xs dl-name" placeholder="Tên..."></td>
-                <td class="p-1"><input type="number" class="w-full p-1 border rounded text-xs dl-qty" value="0" oninput="calcRow(this)"></td>
-                <td class="p-1"><input type="number" class="w-full p-1 border rounded text-xs dl-price" value="0" oninput="calcRow(this)"></td>
-                <td class="p-1 text-xs font-bold text-emerald-700 dl-total">0 đ</td>
-                <td class="p-1 text-center"><button onclick="this.closest('tr').remove()" class="text-red-500"><i class="fa-solid fa-trash"></i></button></td>
-            `;
-            tbody.appendChild(row);
-        }
-
-        function calcRow(input) {
-            let tr = input.closest('tr');
-            let q = parseFloat(tr.querySelector('.dl-qty').value) || 0;
-            let p = parseFloat(tr.querySelector('.dl-price').value) || 0;
-            tr.querySelector('.dl-total').innerText = (q * p).toLocaleString('vi-VN') + ' đ';
-        }
-
-        function publishNews() {
-            let user = JSON.parse(localStorage.getItem('currentUser'));
-            let title = document.getElementById('news-title').value.trim();
-            let content = document.getElementById('news-content').value.trim();
-            if (!title || !content) { alert("Nhập đủ thông tin!"); return; }
-            let list = getNewsList();
-            list.unshift({ id: Date.now(), title, content, date: new Date().toLocaleDateString('vi-VN'), author: `${user.name} (${user.role})` });
-            localStorage.setItem('newsList', JSON.stringify(list));
-            alert("Đăng tin thành công!");
-            document.getElementById('news-title').value = ""; document.getElementById('news-content').value = "";
-            renderNewsFeed();
-        }
-
-        function deleteNews(id) {
-            if (confirm("Xóa thông báo này?")) {
-                let list = getNewsList().filter(n => n.id !== id);
-                localStorage.setItem('newsList', JSON.stringify(list));
-                renderNewsFeed();
-            }
-        }
-
-        function renderNewsFeed() {
-            let user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-            let isAdmin = user.role === 'Admin';
-            let html = "";
-            getNewsList().forEach(n => {
-                html += `
-                    <div class='p-3 bg-slate-50 border rounded-xl space-y-1 text-xs'>
-                        <div class='flex justify-between font-bold text-emerald-700'>
-                            <span><i class='fa-solid fa-circle-info mr-1'></i> ${n.author}</span>
-                            <div class="flex items-center space-x-2">
-                                <span class="text-slate-400">${n.date}</span>
-                                ${isAdmin ? `<button onclick="deleteNews(${n.id})" class="text-red-500 font-bold"><i class="fa-solid fa-trash-can"></i></button>` : ''}
-                            </div>
-                        </div>
-                        <h4 class='font-bold text-slate-800 text-sm'>${n.title}</h4>
-                        <p class='text-slate-600'>${n.content}</p>
-                    </div>
-                `;
-            });
-            document.getElementById('news-feed-container').innerHTML = html;
-        }
-
-        function submitProposal() {
-            let user = JSON.parse(localStorage.getItem('currentUser'));
-            let content = document.getElementById('prop-content').value.trim();
-            if (!content) { alert("Nhập nội dung đề xuất!"); return; }
-            let list = getProposalList();
-            list.unshift({ id: Date.now(), senderName: user.name, senderRole: user.role, senderGroup: user.group, content, reply: "", date: new Date().toLocaleDateString('vi-VN') });
-            localStorage.setItem('proposalList', JSON.stringify(list));
-            alert("Đã gửi kiến nghị lên Ban Chấp hành & Ban Thường Vụ thành công!");
-            document.getElementById('prop-content').value = "";
-            renderProposalFeed();
-        }
-
-        function replyProposal(id) {
-            let user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-            let canReply = ['Admin', 'Ban thường vụ', 'Ban chấp hành'].includes(user.role);
-            if (!canReply) { alert("Bạn không có quyền trả lời kiến nghị này!"); return; }
-
-            let replyText = document.getElementById('reply-input-' + id).value.trim();
-            if (!replyText) { alert("Vui lòng nhập nội dung trả lời!"); return; }
-            let list = getProposalList();
-            let p = list.find(x => x.id === id);
-            if (p) {
-                p.reply = `${replyText} (${user.name} - ${user.role})`;
-                localStorage.setItem('proposalList', JSON.stringify(list));
-                alert("Đã gửi câu trả lời thành công!");
-                renderProposalFeed();
-            }
-        }
-
-        function renderProposalFeed() {
-            let user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-            let canReply = ['Admin', 'Ban thường vụ', 'Ban chấp hành'].includes(user.role);
-            let html = "";
-            getProposalList().forEach(p => {
-                html += `
-                    <div class='p-3 bg-purple-50 border rounded-xl text-xs space-y-2'>
-                        <div class='flex justify-between font-bold text-purple-900'>
-                            <span>${p.senderName} (${p.senderRole} - ${p.senderGroup})</span>
-                            <span class='text-slate-400 font-normal'>${p.date}</span>
-                        </div>
-                        <p class='text-slate-700'><b>Nội dung:</b> ${p.content}</p>
-                        ${p.reply ? `<div class='p-2 bg-white border rounded-lg text-emerald-800'><b>Phản hồi từ Cấp trên (BCH / BTV):</b> ${p.reply}</div>` : ''}
-                        ${canReply ? `
-                            <div class='pt-2 border-t flex gap-2'>
-                                <input type='text' id='reply-input-${p.id}' class='flex-1 p-1.5 bg-white border rounded text-xs' placeholder='Nhập câu trả lời kiến nghị...'>
-                                <button onclick='replyProposal(${p.id})' class='bg-purple-700 text-white px-3 py-1.5 rounded font-bold hover:bg-purple-800 whitespace-nowrap'>Trả Lời</button>
-                            </div>
-                        ` : ''}
-                    </div>
-                `;
-            });
-            document.getElementById('proposal-feed-container').innerHTML = html || '<p class="text-xs text-slate-400 italic">Chưa có ý kiến đề xuất nào.</p>';
-        }
-
-        function renderPendingList() {
-            const current = JSON.parse(localStorage.getItem('currentUser') || '{}');
-            if (!['Admin', 'Ban thường vụ'].includes(current.role)) {
-                document.getElementById('admin-approval-list').innerHTML = '<p class="text-xs text-red-600">Bạn không có quyền duyệt hội viên.</p>';
-                return;
-            }
-            let list = getMemberList().filter(m => m.status === 'pending');
-            document.getElementById('pending-count-badge').innerText = list.length;
-            let html = "";
-            list.forEach(m => {
-                html += `
-                    <div class='p-3 bg-white border border-amber-200 rounded-xl flex justify-between items-center text-xs'>
-                        <div><b>${m.name}</b> (${m.gender})<br>SĐT: ${m.phone} | Nhóm: ${m.group}</div>
-                        <div class='space-x-1'>
-                            <button onclick='approveMember(${m.id}, "approved")' class='bg-emerald-600 text-white px-2 py-1 rounded font-bold'>Duyệt</button>
-                            <button onclick='approveMember(${m.id}, "rejected")' class='bg-red-500 text-white px-2 py-1 rounded font-bold'>Từ chối</button>
-                        </div>
-                    </div>
-                `;
-            });
-            document.getElementById('admin-approval-list').innerHTML = html || '<p class="text-xs text-slate-400 italic">Không có hồ sơ chờ duyệt.</p>';
-        }
-
-        function approveMember(id, status) {
-            const current = JSON.parse(localStorage.getItem('currentUser') || '{}');
-            if (!['Admin', 'Ban thường vụ'].includes(current.role)) { alert("Chỉ Admin hoặc Ban Thường vụ mới được duyệt hội viên."); return; }
-            let list = getMemberList();
-            let m = list.find(x => x.id === id);
-            if (m) { m.status = status; localStorage.setItem('hoiVienList', JSON.stringify(list)); renderPendingList(); renderMemberList(); }
-        }
-
-        function renderRoleManagementTable() {
-            let html = "";
-            getMemberList().filter(m => m.status === 'approved').forEach(m => {
-                html += `
-                    <tr class='text-xs'>
-                        <td class='p-2 font-medium'>${m.name}</td>
-                        <td class='p-2'>${m.group}</td>
-                        <td class='p-2 font-bold'>${m.role}</td>
-                        <td class='p-2 text-right'>
-                            <select onchange="updateRole(${m.id}, this.value)" class="p-1 border rounded text-xs bg-white">
-                                <option value="Hội viên" ${m.role === 'Hội viên' ? 'selected' : ''}>Hội viên</option>
-                                <option value="Chi hội trưởng" ${m.role === 'Chi hội trưởng' ? 'selected' : ''}>Chi hội trưởng</option>
-                                <option value="Ban chấp hành" ${m.role === 'Ban chấp hành' ? 'selected' : ''}>Ban chấp hành</option>
-                                <option value="Ban thường vụ" ${m.role === 'Ban thường vụ' ? 'selected' : ''}>Ban thường vụ</option>
-                                <option value="Admin" ${m.role === 'Admin' ? 'selected' : ''}>Admin</option>
-                            </select>
-                        </td>
-                    </tr>
-                `;
-            });
-            document.getElementById('role-management-table').innerHTML = html;
-        }
-
-        function updateRole(id, role) {
-            const current = JSON.parse(localStorage.getItem('currentUser') || '{}');
-            if (current.role !== 'Admin') { alert("Chỉ Admin được phân quyền."); loadAppUI(); return; }
-            let list = getMemberList();
-            let m = list.find(x => x.id === id);
-            if (m) { m.role = role; localStorage.setItem('hoiVienList', JSON.stringify(list)); alert("Đã cập nhật chức vụ!"); }
-        }
-
-        function handleChangeAdmin() {
-            const current = JSON.parse(localStorage.getItem('currentUser') || '{}');
-            if (current.role !== 'Admin') { alert("Chỉ Admin hiện tại mới được chuyển quyền quản trị."); return; }
-            let newPhone = document.getElementById('new-admin-phone').value.trim();
-            if (!newPhone) { alert("Vui lòng nhập số điện thoại hội viên mới!"); return; }
-
-            let list = getMemberList();
-            let targetUser = list.find(m => m.phone === newPhone);
-            if (!targetUser) { alert("Không tìm thấy hội viên có số điện thoại này trong hệ thống!"); return; }
-            if (targetUser.status !== 'approved') { alert("Hội viên này chưa được phê duyệt hoạt động!"); return; }
-
-            list.forEach(m => { if (m.role === 'Admin') m.role = 'Hội viên'; });
-            targetUser.role = 'Admin';
-            localStorage.setItem('hoiVienList', JSON.stringify(list));
-
-            alert(`Đã chuyển quyền Admin thành công cho ${targetUser.name} (${targetUser.phone})! SĐT Admin cũ đã bị thu hồi.`);
-            location.reload();
-        }
-
-        function money(value) { return (Number(value) || 0).toLocaleString('vi-VN') + ' đ'; }
-        function reportMonthKey(value) {
-            if (!value) return '';
-            const raw = String(value).trim();
-            if (/^\\d{4}-\\d{2}$/.test(raw)) return raw;
-            const match = raw.match(/(?:Tháng\\s*)?(\\d{1,2})\\s*[\\/.-]\\s*(\\d{4})/i);
-            return match ? `${match[2]}-${String(match[1]).padStart(2,'0')}` : '';
-        }
-        function clearReportFilter() {
-            document.getElementById('summary-month-filter').value = '';
-            renderReportTable();
-        }
-        function submitReport() {
-            let user = JSON.parse(localStorage.getItem('currentUser'));
-            let month = document.getElementById('rep-month').value.trim();
-            if (!month) { alert("Vui lòng chọn tháng báo cáo!"); return; }
-            const num = id => Math.max(0, Number(document.getElementById(id).value) || 0);
-            let dl = [];
-            document.querySelectorAll('#duoc-lieu-table-body tr').forEach(tr => {
-                let name = tr.querySelector('.dl-name').value.trim();
-                let qty = Math.max(0, parseFloat(tr.querySelector('.dl-qty').value) || 0);
-                let price = Math.max(0, parseFloat(tr.querySelector('.dl-price').value) || 0);
-                if (name && qty > 0) dl.push({ name, qty, price, total: qty * price });
-            });
-            const kFree=num('rep-k-free'), kPaid=num('rep-k-paid'), kPrice=num('rep-k-price');
-            const tbFree=num('rep-tb-free'), tbPaid=num('rep-tb-paid'), tbPrice=num('rep-tb-price');
-            const tnFree=num('rep-tn-free'), tnPaid=num('rep-tn-paid'), tnPrice=num('rep-tn-price');
-            const ccFree=num('rep-cc-free'), ccPaid=num('rep-cc-paid'), ccPrice=num('rep-cc-price');
-            const revenue = kPaid*kPrice + tbPaid*tbPrice + tnPaid*tnPrice + ccPaid*ccPrice + dl.reduce((sum,d)=>sum+d.total,0);
-            let reports = getReportList();
-            reports.push({ id: Date.now(), senderName: user.name, senderRole: user.role, senderGroup: user.group, month,
-                kFree, kPaid, kPrice, kRevenue:kPaid*kPrice,
-                tbFree, tbPaid, tbPrice, tbRevenue:tbPaid*tbPrice,
-                tnFree, tnPaid, tnPrice, tnRevenue:tnPaid*tnPrice,
-                ccFree, ccPaid, ccPrice, ccRevenue:ccPaid*ccPrice,
-                chamCuu:ccFree+ccPaid, tuThien:document.getElementById('rep-tu-thien').value.trim(),
-                duocLieuList:dl, duocLieuRevenue:dl.reduce((sum,d)=>sum+d.total,0), totalRevenue:revenue });
-            try { localStorage.setItem('reportList', JSON.stringify(reports)); }
-            catch(e) { alert("Không thể lưu báo cáo vào trình duyệt. Dữ liệu có thể vượt quá dung lượng."); return; }
-            alert("Gửi báo cáo thành công! Tổng doanh thu ghi nhận: " + money(revenue));
-            renderReportTable();
-            switchMainTab('tab-summary');
-        }
-
-        function renderReportTable() {
-            const filter = document.getElementById('summary-month-filter')?.value || '';
-            const all = getReportList();
-            const reports = all.filter(r => !filter || reportMonthKey(r.month) === filter);
-            const sum = (key) => reports.reduce((total,r)=>total+(Number(r[key])||0),0);
-            const totalRevenue = reports.reduce((total,r)=>total+(Number(r.totalRevenue) || ((Number(r.kPaid)||0)*(Number(r.kPrice)||0)+(Number(r.tbPaid)||0)*(Number(r.tbPrice)||0)+(Number(r.tnPaid)||0)*(Number(r.tnPrice)||0)+(Number(r.ccPaid)||0)*(Number(r.ccPrice)||0)+(r.duocLieuList||[]).reduce((a,d)=>a+(Number(d.total)||0),0))),0);
-            document.getElementById('revenue-summary').innerHTML = `
-              <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200"><div class="text-xs text-slate-600">Tổng doanh thu</div><div class="text-lg font-bold text-emerald-800">${money(totalRevenue)}</div></div>
-              <div class="p-3 rounded-xl bg-blue-50 border border-blue-200"><div class="text-xs text-slate-600">Lượt khám có phí</div><div class="text-lg font-bold">${sum('kPaid')}</div></div>
-              <div class="p-3 rounded-xl bg-amber-50 border border-amber-200"><div class="text-xs text-slate-600">Lượt châm cứu có phí</div><div class="text-lg font-bold">${sum('ccPaid')}</div></div>
-              <div class="p-3 rounded-xl bg-slate-50 border"><div class="text-xs text-slate-600">Số báo cáo</div><div class="text-lg font-bold">${reports.length}</div></div>`;
-            const categories = [
-              ['Khám bệnh', reports.reduce((a,r)=>a+(Number(r.kRevenue)||((Number(r.kPaid)||0)*(Number(r.kPrice)||0))),0)],
-              ['Thuốc Bắc', reports.reduce((a,r)=>a+(Number(r.tbRevenue)||((Number(r.tbPaid)||0)*(Number(r.tbPrice)||0))),0)],
-              ['Thuốc Nam', reports.reduce((a,r)=>a+(Number(r.tnRevenue)||((Number(r.tnPaid)||0)*(Number(r.tnPrice)||0))),0)],
-              ['Châm cứu', reports.reduce((a,r)=>a+(Number(r.ccRevenue)||((Number(r.ccPaid)||0)*(Number(r.ccPrice)||0))),0)],
-              ['Dược liệu', reports.reduce((a,r)=>a+(Number(r.duocLieuRevenue)||((r.duocLieuList||[]).reduce((x,d)=>x+(Number(d.total)||0),0))),0)]
-            ];
-            const max = Math.max(1, ...categories.map(x=>x[1]));
-            document.getElementById('revenue-chart').innerHTML = '<h4 class="font-bold text-xs mb-2">Biểu đồ doanh thu theo nhóm (đồng)</h4>' + categories.map(([label,val]) => `
-              <div><div class="flex justify-between text-xs mb-1"><span>${label}</span><b>${money(val)}</b></div>
-              <div class="h-3 bg-slate-100 rounded-full overflow-hidden"><div class="h-3 bg-emerald-600 rounded-full" style="width:${Math.max(0,val/max*100)}%"></div></div></div>`).join('');
-            let html = "";
-            reports.forEach(r => {
-                const dl = (r.duocLieuList || []).map(d => `${d.name}: ${d.qty} x ${money(d.price)} = <b>${money(d.total)}</b>`).join('<br>') || 'Không';
-                const revenue = Number(r.totalRevenue) || ((Number(r.kPaid)||0)*(Number(r.kPrice)||0)+(Number(r.tbPaid)||0)*(Number(r.tbPrice)||0)+(Number(r.tnPaid)||0)*(Number(r.tnPrice)||0)+(Number(r.ccPaid)||0)*(Number(r.ccPrice)||0)+(r.duocLieuList||[]).reduce((a,d)=>a+(Number(d.total)||0),0));
-                html += `<tr class="text-xs">
-                  <td class="p-2 font-medium">${r.senderName} (${r.senderRole})<br><span class="text-emerald-700 font-semibold">${r.senderGroup}</span></td>
-                  <td class="p-2 font-bold">${r.month}</td>
-                  <td class="p-2">Miễn: <b>${r.kFree||0}</b><br>Có phí: <b>${r.kPaid||0}</b><br>Doanh thu: ${money(r.kRevenue ?? ((r.kPaid||0)*(r.kPrice||0)))}</td>
-                  <td class="p-2">Miễn: <b>${r.tbFree||0}</b><br>Có phí: <b>${r.tbPaid||0}</b><br>Doanh thu: ${money(r.tbRevenue ?? ((r.tbPaid||0)*(r.tbPrice||0)))}</td>
-                  <td class="p-2">Miễn: <b>${r.tnFree||0}</b><br>Có phí: <b>${r.tnPaid||0}</b><br>Doanh thu: ${money(r.tnRevenue ?? ((r.tnPaid||0)*(r.tnPrice||0)))}</td>
-                  <td class="p-2">Miễn: <b>${r.ccFree||0}</b><br>Có phí: <b>${r.ccPaid ?? r.chamCuu ?? 0}</b><br>Doanh thu: ${money(r.ccRevenue ?? ((r.ccPaid||0)*(r.ccPrice||0)))}</td>
-                  <td class="p-2">${dl}<br><b>Tổng dược liệu: ${money(r.duocLieuRevenue ?? (r.duocLieuList||[]).reduce((a,d)=>a+(Number(d.total)||0),0))}</b></td>
-                  <td class="p-2 font-bold text-emerald-800">${money(revenue)}</td>
-                  <td class="p-2">${r.tuThien || 'Không'}</td>
-                </tr>`;
-            });
-            document.getElementById('report-table-body').innerHTML = html || '<tr><td colspan="9" class="p-3 text-center text-slate-400">Không có báo cáo trong thời gian đã chọn.</td></tr>';
-        }
-        function exportReportsCSV() {
-            const filter = document.getElementById('summary-month-filter')?.value || '';
-            const rows = getReportList().filter(r => !filter || reportMonthKey(r.month) === filter);
-            const esc = v => '"' + String(v ?? '').replace(/"/g,'""') + '"';
-            let csv = '\\uFEFF' + ['Người báo cáo','Nhóm','Tháng','Khám miễn phí','Khám có phí','Doanh thu khám','Thuốc Bắc miễn phí','Thuốc Bắc có phí','Doanh thu thuốc Bắc','Thuốc Nam miễn phí','Thuốc Nam có phí','Doanh thu thuốc Nam','Châm cứu miễn phí','Châm cứu có phí','Doanh thu châm cứu','Doanh thu dược liệu','Tổng doanh thu','Từ thiện'].map(esc).join(',') + '\\n';
-            rows.forEach(r => {
-                const dl = Number(r.duocLieuRevenue) || (r.duocLieuList||[]).reduce((a,d)=>a+(Number(d.total)||0),0);
-                const total = Number(r.totalRevenue) || ((r.kPaid||0)*(r.kPrice||0)+(r.tbPaid||0)*(r.tbPrice||0)+(r.tnPaid||0)*(r.tnPrice||0)+(r.ccPaid||0)*(r.ccPrice||0)+dl);
-                csv += [r.senderName,r.senderGroup,r.month,r.kFree,r.kPaid,r.kRevenue ?? ((r.kPaid||0)*(r.kPrice||0)),r.tbFree,r.tbPaid,r.tbRevenue ?? ((r.tbPaid||0)*(r.tbPrice||0)),r.tnFree,r.tnPaid,r.tnRevenue ?? ((r.tnPaid||0)*(r.tnPrice||0)),r.ccFree,r.ccPaid ?? r.chamCuu,r.ccRevenue ?? ((r.ccPaid||0)*(r.ccPrice||0)),dl,total,r.tuThien].map(esc).join(',') + '\\n';
-            });
-            const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-            const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`BaoCaoHoiDongY_${filter||'tat-ca'}.csv`; a.click(); URL.revokeObjectURL(a.href);
-        }
-
-        let detailMemberId = null;
-        function openMemberDetails(id) {
-            const m = getMemberList().find(x => String(x.id) === String(id));
-            if (!m) return;
-            detailMemberId = m.id;
-            const current = JSON.parse(localStorage.getItem('currentUser') || '{}');
-            const photo = m.avatar ? `<img src="${m.avatar}" alt="Ảnh hội viên" class="w-24 h-24 object-cover rounded-full border mx-auto mb-2">` : `<div class="w-24 h-24 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-2 text-slate-400"><i class="fa-solid fa-user text-3xl"></i></div>`;
-            const fields = [
-              ['Họ và tên',m.name],['Giới tính',m.gender],['Năm sinh',m.birthYear],['Địa chỉ thường trú',m.address],
-              ['Trình độ văn hóa',m.culture],['Trình độ chuyên môn',m.education],['Email',m.email],
-              ['Phân loại hội viên',m.memberType || 'Hội viên chính thức'],['Nhóm sinh hoạt',m.group],['Chức vụ',m.role],['Trạng thái',m.status === 'approved' ? 'Đã duyệt' : m.status === 'rejected' ? 'Từ chối' : 'Chờ duyệt']
-            ];
-            document.getElementById('member-detail-content').innerHTML = `<div class="sm:col-span-2 text-center">${photo}</div>` + fields.map(([label,value])=>`<div class="p-2 bg-slate-50 rounded-lg"><b>${label}:</b><br>${value || 'Chưa cập nhật'}</div>`).join('');
-            document.getElementById('detail-edit-button').classList.toggle('hidden', current.role !== 'Admin');
-            document.getElementById('member-detail-modal').style.display = 'flex';
-            document.getElementById('member-detail-modal').classList.remove('hidden');
-        }
-        function closeMemberDetails() {
-            document.getElementById('member-detail-modal').style.display = 'none';
-            document.getElementById('member-detail-modal').classList.add('hidden');
-        }
-        function editMemberFromDetails() {
-            const current = JSON.parse(localStorage.getItem('currentUser') || '{}');
-            if (current.role !== 'Admin') { alert('Chỉ Admin được chỉnh sửa hồ sơ.'); return; }
-            const id = detailMemberId;
-            closeMemberDetails();
-            openEditModal(id);
-        }
-
-        function openEditModal(id) {
-            const current = JSON.parse(localStorage.getItem('currentUser') || '{}');
-            if (current.role !== 'Admin') { alert("Chỉ Admin được chỉnh sửa hồ sơ hội viên."); return; }
-            let m = getMemberList().find(x => String(x.id) === String(id));
-            if (m) {
-                document.getElementById('edit-id').value = m.id;
-                document.getElementById('edit-name').value = m.name;
-                document.getElementById('edit-phone').value = m.phone;
-                document.getElementById('edit-address').value = m.address || '';
-                document.getElementById('edit-education').value = m.education || '';
-                document.getElementById('edit-birth-year').value = m.birthYear || '';
-                document.getElementById('edit-gender').value = m.gender || 'Nam';
-                document.getElementById('edit-culture').value = m.culture || '';
-                document.getElementById('edit-email').value = m.email || '';
-                document.getElementById('edit-member-type').value = m.memberType || 'Hội viên chính thức';
-                document.getElementById('edit-avatar').value = '';
-                document.getElementById('edit-group').value = m.group;
-                document.getElementById('edit-member-modal').style.display = 'flex';
-            }
-        }
-        function closeEditModal() { document.getElementById('edit-member-modal').style.display = 'none'; }
-        async function saveEditedMember() {
-            const current = JSON.parse(localStorage.getItem('currentUser') || '{}');
-            if (current.role !== 'Admin') { alert("Chỉ Admin được chỉnh sửa hồ sơ hội viên."); return; }
-            let id = document.getElementById('edit-id').value;
-            let list = getMemberList();
-            let m = list.find(x => x.id == id);
-            if (m) {
-                m.name = document.getElementById('edit-name').value.trim();
-                m.phone = document.getElementById('edit-phone').value.trim();
-                m.address = document.getElementById('edit-address').value.trim();
-                m.education = document.getElementById('edit-education').value.trim();
-                m.birthYear = document.getElementById('edit-birth-year').value.trim();
-                m.gender = document.getElementById('edit-gender').value;
-                m.culture = document.getElementById('edit-culture').value.trim();
-                m.email = document.getElementById('edit-email').value.trim();
-                m.memberType = document.getElementById('edit-member-type').value.trim() || 'Hội viên chính thức';
-                try {
-                    const newAvatar = await imageFileToDataURL(document.getElementById('edit-avatar').files[0]);
-                    if (newAvatar) m.avatar = newAvatar;
-                    localStorage.setItem('hoiVienList', JSON.stringify(list));
-                } catch(e) { alert(e.message); return; }
-                alert("Cập nhật thành công!");
-                closeEditModal();
-                renderMemberList();
-            }
-        }
-        function deleteMember(id) {
-            const current = JSON.parse(localStorage.getItem('currentUser') || '{}');
-            if (current.role !== 'Admin') { alert("Chỉ Admin được xóa hồ sơ hội viên."); return; }
-            if (confirm("Xóa hội viên này?")) {
-                let list = getMemberList().filter(x => x.id !== id);
-                localStorage.setItem('hoiVienList', JSON.stringify(list));
-                renderMemberList();
-            }
-        }
-
-        function renderMemberList() {
-            let user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-            let isAdmin = user.role === 'Admin';
-            let html = "";
-            getMemberList().filter(m => m.status === 'approved').forEach(m => {
-                const shownPhone = m.role === 'Admin' && !isAdmin ? 'Ẩn thông tin' : (m.phone || '');
-                html += `
-                    <tr class='text-xs'>
-                        <td class='p-2 font-medium'>${m.name}<br><span class='text-slate-400'>${m.address || ''}</span></td>
-                        <td class='p-2'><button onclick='openMemberDetails(${m.id})' class='bg-emerald-700 text-white px-2 py-1 rounded'>Xem chi tiết</button></td>
-                        <td class='p-2'>${shownPhone}<br>${m.gender || ''}</td>
-                        <td class='p-2'>${m.education || ''}</td>
-                        <td class='p-2 text-emerald-700 font-semibold'>${m.group || ''}<br><span class="text-slate-500">${m.memberType || 'Hội viên chính thức'}</span></td>
-                        <td class='p-2 font-bold'>${m.role}</td>
-                        ${isAdmin ? `<td class='p-2 text-right space-x-1'>
-                            <button onclick='openEditModal(${m.id})' class='bg-blue-600 text-white px-2 py-1 rounded' title="Chỉnh sửa"><i class='fa-solid fa-pen'></i></button>
-                            <button onclick='deleteMember(${m.id})' class='bg-red-500 text-white px-2 py-1 rounded' title="Xóa"><i class='fa-solid fa-trash'></i></button>
-                        </td>` : ''}
-                    </tr>`;
-            });
-            document.getElementById('member-table-body').innerHTML = html || '<tr><td colspan="7" class="p-3 text-center text-slate-400">Chưa có hội viên.</td></tr>';
-        }
-
-        function exportToExcel() {
-            const current = JSON.parse(localStorage.getItem('currentUser') || '{}');
-            const esc = v => '"' + String(v ?? '').replace(/"/g,'""') + '"';
-            let csv = '\\uFEFF' + ['STT','Họ tên','Số điện thoại','Giới tính','Năm sinh','Địa chỉ thường trú','Trình độ văn hóa','Trình độ chuyên môn','Email','Phân loại hội viên','Nhóm','Chức vụ'].map(esc).join(',') + '\\n';
-            getMemberList().filter(m => m.status === 'approved').forEach((m, i) => {
-                const phone = m.role === 'Admin' && current.role !== 'Admin' ? 'Ẩn thông tin' : (m.phone || '');
-                csv += [i+1,m.name,phone,m.gender,m.birthYear,m.address,m.culture,m.education,m.email,m.memberType || 'Hội viên chính thức',m.group,m.role].map(esc).join(',') + '\\n';
-            });
-            let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            let a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-            a.download = `DanhSachHoiVien_${new Date().toISOString().slice(0,10)}.csv`;
-            a.click(); URL.revokeObjectURL(a.href);
-        }
-
-        window.onload = function() {
-            if (!localStorage.getItem('hoiVienList')) {
-                const initial = [
-                    { id: 1, name: "Quản Trị Viên Toàn Hội", phone: "0915421158", gender: "Nam", address: "Phường An Hội", education: "Lương y / Quản trị", email: "admin@gmail.com", avatar: "", group: "Toàn hội", role: "Admin", status: "approved" },
-                    { id: 2, name: "Lương y Trần Văn An", phone: "0902222222", gender: "Nam", address: "Sơn Phú", education: "Lương y cấp hội", email: "tranvana@gmail.com", avatar: "", group: "Nhóm Sơn Phú", role: "Ban thường vụ", status: "approved" },
-                    { id: 3, name: "Lương y Nguyễn Văn Chi Hội", phone: "0903333333", gender: "Nam", address: "An Hội", education: "Lương y", email: "chihoitruong@gmail.com", avatar: "", group: "Nhóm An Hội", role: "Chi hội trưởng", status: "approved" }
-                ];
-                localStorage.setItem('hoiVienList', JSON.stringify(initial));
-            }
-            if (localStorage.getItem('currentUser')) loadAppUI();
-        };
-    </script>
+  const $ = id => document.getElementById(id);
+  function message(el, text, error=false){el.textContent=text;el.classList.remove('hidden','error');if(error)el.classList.add('error');}
+  function setAuthMode(mode){
+    authMode=mode; $('loginTab').classList.toggle('active',mode==='login');$('registerTab').classList.toggle('active',mode==='register');
+    $('registerFields').classList.toggle('hidden',mode!=='register');$('authTitle').textContent=mode==='login'?'Đăng nhập hệ thống':'Đăng ký tài khoản hội viên';
+    $('authSubmit').textContent=mode==='login'?'Đăng nhập':'Đăng ký tài khoản';$('authPassword').autocomplete=mode==='login'?'current-password':'new-password';$('authMessage').classList.add('hidden');
+    $('regName').required=mode==='register';$('regPhone').required=mode==='register';$('regBranch').required=mode==='register';
+  }
+  async function loadBranches(){
+    const sel=$('regBranch');
+    try{const {data,error}=await sb.from('branches').select('id,code,name').eq('active',true).order('name');if(error)throw error;branches=data||[];
+      sel.innerHTML='<option value="">Chọn chi hội</option>'+branches.map(b=>`<option value="${esc(b.id)}">${esc(b.name||b.code)}</option>`).join('');
+    }catch(e){sel.innerHTML='<option value="">Không tải được chi hội</option>';console.warn('branches',e.message);}
+  }
+  $('authForm').addEventListener('submit',async e=>{
+    e.preventDefault();const btn=$('authSubmit');btn.disabled=true;
+    try{
+      const email=$('authEmail').value.trim(),password=$('authPassword').value;
+      if(authMode==='login'){
+        const {data,error}=await sb.auth.signInWithPassword({email,password});if(error)throw error;
+        currentUser=data.user;await openApp();
+      }else{
+        const name=$('regName').value.trim(),phone=$('regPhone').value.trim(),branchId=$('regBranch').value;
+        const {data,error}=await sb.auth.signUp({email,password,options:{data:{full_name:name,phone:phone,branch_id:branchId}}});if(error)throw error;
+        if(data.session){currentUser=data.user;await openApp();}
+        else message($('authMessage'),'Đã gửi đăng ký. Hãy kiểm tra email để xác nhận tài khoản nếu Supabase yêu cầu.');
+      }
+    }catch(err){message($('authMessage'),friendlyError(err),true);}
+    finally{btn.disabled=false;}
+  });
+  function friendlyError(e){const m=e?.message||'Có lỗi xảy ra.';if(/Invalid login credentials/i.test(m))return 'Email hoặc mật khẩu chưa đúng.';if(/Email not confirmed/i.test(m))return 'Tài khoản chưa xác nhận email. Hãy kiểm tra hộp thư.';return m;}
+  async function openApp(){
+    if(!currentUser){const {data}=await sb.auth.getUser();currentUser=data.user;}if(!currentUser)return;
+    $('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('logoutBtn').classList.remove('hidden');
+    $('headerUser').textContent=currentUser.email||'';$('welcomeTitle').textContent='Xin chào';$('welcomeSub').textContent=currentUser.email||'Tài khoản đã đăng nhập';
+    await loadRoles();await loadProfile();await loadNews();$('homeMessage').textContent='Đăng nhập thành công. Dữ liệu được đọc theo quyền của tài khoản.';
+  }
+  async function loadRoles(){
+    currentRoles=[];
+    try{const {data,error}=await sb.from('user_roles').select('roles(code,name)').eq('user_id',currentUser.id);if(error)throw error;
+      currentRoles=(data||[]).map(x=>x.roles?.code).filter(Boolean);
+    }catch(e){console.warn('Không đọc được user_roles:',e.message);}
+    const role=currentRoles.join(', ')||'Chưa cấp vai trò';$('roleBadge').textContent=role;$('statRole').textContent=role;
+  }
+  async function loadProfile(){
+    const box=$('profileContent');box.textContent='Đang tải hồ sơ…';
+    try{
+      const {data,error}=await sb.from('profiles').select('*').eq('id',currentUser.id).maybeSingle();if(error)throw error;currentProfile=data;
+      $('statMember').textContent=data?'Đã có hồ sơ':'Chưa có hồ sơ';
+      if(!data){box.innerHTML='<p>Chưa tìm thấy hồ sơ trong bảng <code>profiles</code>.</p>';return;}
+      const rows=Object.entries(data).filter(([k,v])=>!['id'].includes(k)&&v!==null&&v!=='').map(([k,v])=>`<div class="item"><strong>${esc(labelFor(k))}</strong><p>${esc(String(v))}</p></div>`).join('');
+      box.innerHTML=rows||'<p>Hồ sơ đã tồn tại, chưa có trường thông tin bổ sung.</p>';
+    }catch(e){$('statMember').textContent='—';box.textContent='Không đọc được hồ sơ: '+e.message;}
+  }
+  function labelFor(k){return ({full_name:'Họ và tên',phone:'Số điện thoại',email:'Email',branch_id:'Mã chi hội',role:'Vai trò',created_at:'Ngày tạo'})[k]||k;}
+  async function loadMembers(){
+    const box=$('membersContent');box.textContent='Đang tải…';
+    try{const {data,error}=await sb.from('members').select('id,member_code,full_name,phone,email,branch_id,status,qualification,workplace').order('full_name').limit(300);if(error)throw error;
+      if(!data?.length){box.innerHTML='<p>Chưa có hội viên hoặc tài khoản không có quyền xem danh sách.</p>';return;}
+      box.innerHTML='<div class="table-wrap"><table><thead><tr><th>Mã hội viên</th><th>Họ tên</th><th>Điện thoại</th><th>Email</th><th>Trạng thái</th><th>Chi hội ID</th></tr></thead><tbody>'+data.map(m=>`<tr><td>${esc(m.member_code||'—')}</td><td>${esc(m.full_name||'—')}</td><td>${esc(m.phone||'—')}</td><td>${esc(m.email||'—')}</td><td>${esc(m.status||'—')}</td><td>${esc(m.branch_id??'—')}</td></tr>`).join('')+'</tbody></table></div>';
+    }catch(e){box.textContent='Không tải được danh sách hội viên. Có thể tài khoản chưa có quyền hoặc cấu trúc bảng khác: '+e.message;}
+  }
+  async function loadReports(){
+    const box=$('reportsContent');box.textContent='Đang tải báo cáo…';
+    try{const {data,error}=await sb.from('reports').select('id,report_code,title,report_type,period_start,period_end,status,summary,created_at').order('created_at',{ascending:false}).limit(100);if(error)throw error;
+      if(!data?.length){box.innerHTML='<p>Chưa có báo cáo hoặc tài khoản không có quyền xem.</p>';return;}
+      box.innerHTML=data.map(r=>`<div class="item"><h4>${esc(r.title||r.report_code||'Báo cáo')}</h4><p class="muted">${esc(r.report_type||'')} · ${esc(r.period_start||'')} – ${esc(r.period_end||'')} · Trạng thái: ${esc(r.status||'')}</p><p>${esc(r.summary||'')}</p></div>`).join('');
+    }catch(e){box.textContent='Không tải được báo cáo: '+e.message;}
+  }
+  $('reportForm').addEventListener('submit',async e=>{
+    e.preventDefault();const btn=e.submitter;btn.disabled=true;
+    try{
+      const {data:mem,error:memErr}=await sb.from('members').select('id,branch_id,status').eq('user_id',currentUser.id).maybeSingle();
+      if(memErr)throw memErr;if(!mem)throw new Error('Chưa liên kết tài khoản với hồ sơ trong bảng members. Chi hội trưởng hoặc quản trị viên cần liên kết hồ sơ trước khi gửi báo cáo.');
+      const payload={member_id:mem.id,branch_id:mem.branch_id,title:$('reportTitle').value.trim(),report_type:$('reportType').value,period_type:$('reportType').value,period_start:$('periodStart').value,period_end:$('periodEnd').value,summary:$('reportSummary').value.trim(),status:'draft',created_by:currentUser.id};
+      const {error}=await sb.from('reports').insert(payload);if(error)throw error;
+      message($('homeMessage'),'Đã lưu bản nháp báo cáo.');$('reportTitle').value='';$('reportSummary').value='';await loadReports();
+    }catch(err){alert('Chưa lưu được báo cáo: '+err.message);}
+    finally{btn.disabled=false;}
+  });
+  async function loadNews(){
+    const box=$('newsContent');if(!box)return;box.textContent='Đang tải tin tức…';
+    try{const {data,error}=await sb.from('news').select('*').eq('status','published').order('created_at',{ascending:false}).limit(50);if(error)throw error;
+      if(!data?.length){box.innerHTML='<p>Chưa có tin tức đã xuất bản.</p>';return;}
+      box.innerHTML=data.map(n=>`<article class="item"><h4>${esc(n.title||'Tin tức')}</h4><p class="muted">${esc(n.created_at||'')}</p><p>${esc(n.summary||n.content||n.body||'')}</p></article>`).join('');
+    }catch(e){box.textContent='Không tải được tin tức. Kiểm tra tên cột và quyền đọc của bảng news: '+e.message;}
+  }
+  function showPage(name,btn){
+    document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));$('page-'+name).classList.remove('hidden');
+    document.querySelectorAll('.side button').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');
+    if(name==='members')loadMembers();if(name==='reports')loadReports();if(name==='news')loadNews();if(name==='profile')loadProfile();
+  }
+  async function logout(){await sb.auth.signOut();currentUser=null;currentProfile=null;$('appView').classList.add('hidden');$('authView').classList.remove('hidden');$('logoutBtn').classList.add('hidden');$('headerUser').textContent='';$('authPassword').value='';}
+  function esc(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  async function init(){
+    await loadBranches();
+    const {data:{session}}=await sb.auth.getSession();if(session){currentUser=session.user;await openApp();}
+    sb.auth.onAuthStateChange(async(event,session)=>{if(event==='SIGNED_IN'&&session&&!currentUser){currentUser=session.user;setTimeout(openApp,0);}if(event==='SIGNED_OUT'){currentUser=null;}});
+  }
+  init();
+</script>
 </body>
 </html>
