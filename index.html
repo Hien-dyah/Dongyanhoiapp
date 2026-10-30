@@ -45,6 +45,17 @@
       <label>Mật khẩu</label><input id="authPassword" type="password" minlength="6" autocomplete="current-password" required placeholder="Ít nhất 6 ký tự">
       <button id="authSubmit" type="submit" style="width:100%;margin-top:18px">Đăng nhập</button>
     </form>
+    <div id="forgotPasswordRow" style="text-align:right;margin-top:10px"><button type="button" class="ghost" onclick="sendPasswordRecovery()" style="padding:4px 0;background:transparent;color:var(--green);border:0;text-decoration:underline">Quên mật khẩu?</button></div>
+    <section id="recoveryPanel" class="notice hidden" style="margin-top:14px">
+      <h3 id="recoveryTitle" style="margin:0 0 8px">Đặt mật khẩu mới</h3>
+      <p id="recoveryHelp" class="small">Nhập mật khẩu mới cho tài khoản của bạn.</p>
+      <form id="recoveryForm">
+        <label for="newPassword">Mật khẩu mới</label><input id="newPassword" type="password" minlength="8" autocomplete="new-password" required placeholder="Ít nhất 8 ký tự">
+        <label for="confirmNewPassword">Nhập lại mật khẩu mới</label><input id="confirmNewPassword" type="password" minlength="8" autocomplete="new-password" required placeholder="Nhập lại mật khẩu mới">
+        <button id="saveNewPassword" type="submit" style="width:100%;margin-top:12px">Lưu mật khẩu mới</button>
+      </form>
+      <div id="recoveryMessage" class="small" role="status" style="margin-top:8px"></div>
+    </section>
     <div id="authMessage" class="notice hidden" role="status"></div>
     <p class="muted small">Tài khoản mới có thể cần xác nhận email. Quyền truy cập phụ thuộc vào vai trò được cấp trong cơ sở dữ liệu.</p>
   </section>
@@ -101,13 +112,15 @@
   const SUPABASE_URL = 'https://bsbipobamdbatcdhmsmy.supabase.co';
   const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_Qj9ZACCvFJrwWdMEsRUl8w_TTh4XPR_';
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
-  let authMode = 'login', currentUser = null, currentProfile = null, currentRoles = [], branches = [];
+  let authMode = 'login', currentUser = null, currentProfile = null, currentRoles = [], branches = [], recoverySession = false;
+  const APP_URL = 'https://hien-dyah.github.io/hoidongyanapp/';
 
   const $ = id => document.getElementById(id);
   function message(el, text, error=false){el.textContent=text;el.classList.remove('hidden','error');if(error)el.classList.add('error');}
   function setAuthMode(mode){
     authMode=mode; $('loginTab').classList.toggle('active',mode==='login');$('registerTab').classList.toggle('active',mode==='register');
     $('registerFields').classList.toggle('hidden',mode!=='register');$('authTitle').textContent=mode==='login'?'Đăng nhập hệ thống':'Đăng ký tài khoản hội viên';
+    $('forgotPasswordRow').classList.toggle('hidden',mode!=='login');
     $('authSubmit').textContent=mode==='login'?'Đăng nhập':'Đăng ký tài khoản';$('authPassword').autocomplete=mode==='login'?'current-password':'new-password';$('authMessage').classList.add('hidden');
     $('regName').required=mode==='register';$('regPhone').required=mode==='register';$('regBranch').required=mode==='register';
   }
@@ -117,6 +130,35 @@
       sel.innerHTML='<option value="">Chọn chi hội</option>'+branches.map(b=>`<option value="${esc(b.id)}">${esc(b.name||b.code)}</option>`).join('');
     }catch(e){sel.innerHTML='<option value="">Không tải được chi hội</option>';console.warn('branches',e.message);}
   }
+
+  async function sendPasswordRecovery(){
+    const email=$('authEmail').value.trim();
+    if(!email){message($('authMessage'),'Vui lòng nhập email đăng nhập trước, rồi nhấn “Quên mật khẩu?”.',true);$('authEmail').focus();return;}
+    const btn=$('forgotPasswordRow').querySelector('button');btn.disabled=true;
+    try{
+      const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:APP_URL});
+      if(error)throw error;
+      message($('authMessage'),'Nếu email này đã đăng ký, Supabase sẽ gửi liên kết đặt lại mật khẩu. Hãy kiểm tra Hộp thư đến và Spam. Nếu vừa gửi nhiều lần, hãy chờ trước khi thử lại.');
+    }catch(err){
+      let msg=err?.message||'Không gửi được email khôi phục.';
+      if(/rate limit|email rate limit exceeded/i.test(msg))msg='Supabase đang giới hạn gửi email do có quá nhiều yêu cầu. Hãy chờ rồi thử lại, không nhấn gửi liên tục.';
+      message($('authMessage'),msg,true);
+    }finally{btn.disabled=false;}
+  }
+  $('recoveryForm').addEventListener('submit',async e=>{
+    e.preventDefault();const btn=$('saveNewPassword');btn.disabled=true;
+    try{
+      const password=$('newPassword').value,confirm=$('confirmNewPassword').value;
+      if(password.length<8)throw new Error('Mật khẩu cần ít nhất 8 ký tự.');
+      if(password!==confirm)throw new Error('Hai mật khẩu chưa khớp nhau.');
+      const {error}=await sb.auth.updateUser({password});if(error)throw error;
+      $('recoveryMessage').textContent='Đã đổi mật khẩu thành công. Bạn có thể quay lại đăng nhập bằng mật khẩu mới.';
+      $('newPassword').value='';$('confirmNewPassword').value='';
+      setTimeout(()=>{ $('recoveryPanel').classList.add('hidden');$('authView').classList.remove('hidden');setAuthMode('login'); },1800);
+    }catch(err){$('recoveryMessage').textContent=err?.message||'Không đổi được mật khẩu.';}
+    finally{btn.disabled=false;}
+  });
+
   $('authForm').addEventListener('submit',async e=>{
     e.preventDefault();const btn=$('authSubmit');btn.disabled=true;
     try{
@@ -199,8 +241,15 @@
   function esc(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
   async function init(){
     await loadBranches();
-    const {data:{session}}=await sb.auth.getSession();if(session){currentUser=session.user;await openApp();}
-    sb.auth.onAuthStateChange(async(event,session)=>{if(event==='SIGNED_IN'&&session&&!currentUser){currentUser=session.user;setTimeout(openApp,0);}if(event==='SIGNED_OUT'){currentUser=null;}});
+    sb.auth.onAuthStateChange(async(event,session)=>{
+      if(event==='PASSWORD_RECOVERY'){
+        recoverySession=true;$('appView').classList.add('hidden');$('authView').classList.remove('hidden');$('authForm').classList.add('hidden');$('forgotPasswordRow').classList.add('hidden');$('registerFields').classList.add('hidden');$('authTitle').textContent='Đặt lại mật khẩu';$('recoveryPanel').classList.remove('hidden');$('recoveryMessage').textContent='';
+      }
+      if(event==='SIGNED_IN'&&session&&!recoverySession&&!currentUser){currentUser=session.user;setTimeout(openApp,0);}
+      if(event==='SIGNED_OUT'){currentUser=null;}
+    });
+    const {data:{session}}=await sb.auth.getSession();if(session&&!recoverySession){currentUser=session.user;await openApp();}
+    // Recovery links may carry tokens in the URL; Supabase processes them and emits PASSWORD_RECOVERY.
   }
   init();
 </script>
