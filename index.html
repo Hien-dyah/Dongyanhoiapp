@@ -69,9 +69,12 @@
         <button data-page="members" onclick="showPage('members',this)">👥 Quản lý hội viên</button>
         <button data-page="reports" onclick="showPage('reports',this)">📋 Báo cáo hoạt động</button>
         <button data-page="news" onclick="showPage('news',this)">📰 Tin tức</button>
-        <button id="adminMenuBtn" class="hidden" data-page="admin" onclick="showPage('admin',this)">🛡️ Quản trị hệ thống</button>
+        <button id="adminMenuBtn" data-page="admin" class="hidden" onclick="showPage('admin',this)">🛡️ Quản trị hệ thống</button>
       </nav>
       <div>
+        <div id="page-admin" class="page hidden">
+          <div class="card"><h3>Quản trị hệ thống</h3><p id="adminStatus" class="notice">Đang kiểm tra quyền quản trị…</p><p class="muted">Tài khoản ADMIN có thể xem bảng điều khiển. Thao tác dữ liệu vẫn phụ thuộc vào chính sách bảo mật RLS trong Supabase.</p></div>
+        </div>
         <div id="page-home" class="page">
           <div class="stats">
             <div class="card stat"><span class="muted">Vai trò tài khoản</span><strong id="statRole">—</strong><span class="muted">Theo phân quyền Supabase</span></div>
@@ -84,7 +87,27 @@
           <div class="card"><div class="section-head"><h3>Hồ sơ của tôi</h3><button onclick="loadProfile()">Tải lại</button></div><div id="profileContent" class="muted">Đang tải hồ sơ…</div></div>
         </div>
         <div id="page-members" class="page hidden">
-          <div class="card"><div class="section-head"><h3>Quản lý hội viên</h3><button onclick="loadMembers()">Tải danh sách</button></div><p class="muted">Danh sách hiển thị theo quyền RLS hiện được cấu hình trong Supabase.</p><div id="membersContent" class="muted">Chưa tải dữ liệu.</div></div>
+          <div class="card"><div class="section-head"><h3>Quản lý hội viên</h3><button onclick="loadMembers()">Tải lại danh sách</button></div>
+            <p class="muted">Thông tin được đọc từ bảng members. Nếu bảng chưa có dữ liệu, hãy thêm hội viên ở biểu mẫu bên dưới.</p>
+            <div id="membersContent" class="muted">Chưa tải dữ liệu.</div>
+          </div>
+          <div id="memberAddCard" class="card" style="margin-top:14px">
+            <h3>Thêm hội viên</h3><p class="muted">Chỉ lưu hồ sơ hội viên; không tự tạo tài khoản đăng nhập. Nếu Supabase từ chối, cần điều chỉnh chính sách RLS.</p>
+            <form id="memberForm"><div class="form-grid">
+              <div><label for="newMemberCode">Mã hội viên</label><input id="newMemberCode" placeholder="Ví dụ: AH001"></div>
+              <div><label for="newMemberName">Họ và tên *</label><input id="newMemberName" required placeholder="Nhập họ và tên"></div>
+              <div><label for="newMemberBranch">Chi hội *</label><select id="newMemberBranch" required><option value="">Chọn chi hội</option></select></div>
+              <div><label for="newMemberGender">Giới tính</label><select id="newMemberGender"><option value="">Chưa chọn</option><option value="Nam">Nam</option><option value="Nữ">Nữ</option><option value="Khác">Khác</option></select></div>
+              <div><label for="newMemberBirthYear">Năm sinh</label><input id="newMemberBirthYear" type="number" min="1900" max="2100" placeholder="Ví dụ: 1975"></div>
+              <div><label for="newMemberPhone">Số điện thoại</label><input id="newMemberPhone" type="tel"></div>
+              <div><label for="newMemberEmail">Email</label><input id="newMemberEmail" type="email"></div>
+              <div><label for="newMemberType">Loại hội viên</label><select id="newMemberType"><option value="official">Chính thức</option><option value="honorary">Danh dự</option><option value="associate">Liên kết</option></select></div>
+              <div class="full"><label for="newMemberAddress">Địa chỉ thường trú</label><input id="newMemberAddress"></div>
+              <div><label for="newMemberEducation">Trình độ văn hóa</label><input id="newMemberEducation"></div>
+              <div><label for="newMemberQualification">Văn bằng chuyên môn</label><input id="newMemberQualification"></div>
+              <div class="full"><label for="newMemberWorkplace">Nơi hành nghề</label><input id="newMemberWorkplace"></div>
+            </div><div id="memberFormMessage" class="notice hidden" role="status"></div><button type="submit" style="margin-top:12px">Lưu hội viên</button></form>
+          </div>
         </div>
         <div id="page-reports" class="page hidden">
           <div class="card"><div class="section-head"><h3>Báo cáo hoạt động</h3><button onclick="loadReports()">Tải báo cáo</button></div>
@@ -103,7 +126,6 @@
           </div>
         </div>
         <div id="page-news" class="page hidden"><div class="card"><div class="section-head"><h3>Tin tức Hội và y học cổ truyền</h3><button onclick="loadNews()">Tải tin tức</button></div><div id="newsContent" class="muted">Đang tải tin tức…</div></div></div>
-        <div id="page-admin" class="page hidden"><div class="card"><h3>Quản trị hệ thống</h3><p id="adminStatus" class="notice">Đang kiểm tra vai trò…</p><p class="muted">Tài khoản ADMIN có thể xem khu vực quản trị. Việc xem hoặc thêm dữ liệu vẫn phải được cho phép bởi chính sách bảo mật (RLS) trong Supabase.</p><button onclick="showPage('members',document.querySelector('[data-page=members]'))">Mở quản lý hội viên</button></div></div>
       </div>
     </div>
   </section>
@@ -129,8 +151,9 @@
   async function loadBranches(){
     const sel=$('regBranch');
     try{const {data,error}=await sb.from('branches').select('id,code,name').eq('active',true).order('name');if(error)throw error;branches=data||[];
-      sel.innerHTML='<option value="">Chọn chi hội</option>'+branches.map(b=>`<option value="${esc(b.id)}">${esc(b.name||b.code)}</option>`).join('');
-    }catch(e){sel.innerHTML='<option value="">Không tải được chi hội</option>';console.warn('branches',e.message);}
+      const opts='<option value="">Chọn chi hội</option>'+branches.map(b=>`<option value="${esc(b.id)}">${esc(b.name||b.code)}</option>`).join('');
+      sel.innerHTML=opts; if($('newMemberBranch'))$('newMemberBranch').innerHTML=opts;
+    }catch(e){sel.innerHTML='<option value="">Không tải được chi hội</option>';if($('newMemberBranch'))$('newMemberBranch').innerHTML='<option value="">Không tải được chi hội</option>';console.warn('branches',e.message);}
   }
 
   async function sendPasswordRecovery(){
@@ -185,18 +208,16 @@
     await loadRoles();await loadProfile();await loadNews();$('homeMessage').textContent='Đăng nhập thành công. Dữ liệu được đọc theo quyền của tài khoản.';
   }
   async function loadRoles(){
-    currentRoles=[]; let roleError='';
-    try{
-      const {data,error}=await sb.from('user_roles').select('roles(code,name)').eq('user_id',currentUser.id);
-      if(error)throw error;
+    currentRoles=[]; let roleError=null;
+    try{const {data,error}=await sb.from('user_roles').select('roles(code,name)').eq('user_id',currentUser.id);if(error)throw error;
       currentRoles=(data||[]).map(x=>x.roles?.code).filter(Boolean);
-    }catch(e){roleError=e.message;console.warn('Không đọc được user_roles:',e.message);}
-    const isAdmin=currentRoles.includes('ADMIN')||currentRoles.includes('EXECUTIVE');
+    }catch(e){roleError=e;console.warn('Không đọc được user_roles:',e.message);}
     const role=currentRoles.join(', ')||(roleError?'Không đọc được vai trò':'Chưa cấp vai trò');
     $('roleBadge').textContent=role;$('statRole').textContent=role;
+    const isAdmin=currentRoles.includes('ADMIN')||currentRoles.includes('EXECUTIVE');
     $('adminMenuBtn').classList.toggle('hidden',!isAdmin);
-    $('welcomeTitle').textContent=currentRoles.includes('ADMIN')?'Bảng điều khiển quản trị':(currentRoles.includes('EXECUTIVE')?'Bảng điều khiển Ban Thường vụ':'Bảng điều khiển');
-    if($('adminStatus'))$('adminStatus').textContent=isAdmin?'Đã nhận diện quyền quản trị cho tài khoản '+(currentUser.email||'')+'.':(roleError?'Không đọc được vai trò: '+roleError:'Tài khoản hiện chưa có vai trò quản trị.');
+    $('welcomeTitle').textContent=isAdmin?'Bảng điều khiển quản trị':'Bảng điều khiển';
+    if($('adminStatus'))$('adminStatus').textContent=roleError?'Không đọc được vai trò: '+roleError.message:(isAdmin?'Đã nhận diện quyền quản trị cho tài khoản '+(currentUser.email||'')+'.':'Tài khoản hiện có vai trò: '+role+'.');
   }
   async function loadProfile(){
     const box=$('profileContent');box.textContent='Đang tải hồ sơ…';
@@ -215,14 +236,32 @@
       const cols='id,user_id,branch_id,member_code,full_name,gender,birth_year,phone,email,address,education_level,professional_qualification,workplace,member_type,status';
       const {data,error}=await sb.from('members').select(cols).order('full_name').limit(500);
       if(error)throw error;
-      if(!data||data.length===0){box.innerHTML='<div class="notice">Bảng hội viên hiện chưa có bản ghi nào. Đây không phải lỗi hiển thị: cần thêm hồ sơ hội viên vào bảng <code>members</code> trước khi danh sách xuất hiện.</div>';return;}
-      const branchNames={1:'Chi hội An Hội',2:'Chi hội Phú Nhuận',3:'Chi hội Mỹ An',4:'Chi hội Sơn Phú'};
-      box.innerHTML='<p class="muted">Có '+data.length+' hội viên được trả về từ Supabase.</p><div class="table-wrap"><table><thead><tr><th>Mã hội viên</th><th>Họ tên</th><th>Giới tính</th><th>Năm sinh</th><th>Điện thoại</th><th>Email</th><th>Chi hội</th><th>Trình độ văn hóa</th><th>Văn bằng chuyên môn</th><th>Nơi hành nghề</th><th>Trạng thái</th></tr></thead><tbody>'+data.map(m=>`<tr><td>${esc(m.member_code||'—')}</td><td>${esc(m.full_name||'—')}</td><td>${esc(m.gender||'—')}</td><td>${esc(m.birth_year??'—')}</td><td>${esc(m.phone||'—')}</td><td>${esc(m.email||'—')}</td><td>${esc(branchNames[m.branch_id]||m.branch_id||'—')}</td><td>${esc(m.education_level||'—')}</td><td>${esc(m.professional_qualification||'—')}</td><td>${esc(m.workplace||'—')}</td><td>${esc(m.status||'—')}</td></tr>`).join('')+'</tbody></table></div>';
+      if(!data||data.length===0){box.innerHTML='<div class="notice">Bảng members hiện chưa có hội viên nào. Bạn có thể thêm hồ sơ ở biểu mẫu bên dưới.</div>';return;}
+      box.innerHTML='<div class="table-wrap"><table><thead><tr><th>Mã hội viên</th><th>Họ tên</th><th>Chi hội</th><th>Giới tính</th><th>Năm sinh</th><th>Điện thoại</th><th>Email</th><th>Trạng thái</th></tr></thead><tbody>'+data.map(m=>{const b=branches.find(x=>String(x.id)===String(m.branch_id));return `<tr><td>${esc(m.member_code||'—')}</td><td>${esc(m.full_name||'—')}</td><td>${esc(b?.name||m.branch_id||'—')}</td><td>${esc(m.gender||'—')}</td><td>${esc(m.birth_year??'—')}</td><td>${esc(m.phone||'—')}</td><td>${esc(m.email||'—')}</td><td>${esc(m.status||'—')}</td></tr>`}).join('')+'</tbody></table></div>';
     }catch(e){
-      console.error('Lỗi tải hội viên:',e);
-      box.innerHTML='<div class="notice error"><strong>Không tải được danh sách hội viên.</strong><br>Lỗi từ Supabase: '+esc(e.message)+'<br><br>Nếu lỗi nói về quyền truy cập thì cần kiểm tra RLS. Nếu lỗi nói về tên cột thì cần đối chiếu cấu trúc bảng.</div>';
+      console.error('loadMembers',e);
+      let detail=e.message||String(e);
+      if(/permission denied|row-level security|42501/i.test(detail))detail='Supabase đang chặn quyền đọc bảng members theo RLS. Cần cấp quyền SELECT cho ADMIN trong Supabase.';
+      else if(/column .* does not exist|42703/i.test(detail))detail='Tên cột trong ứng dụng chưa khớp với bảng members: '+detail;
+      box.innerHTML='<div class="notice error"><strong>Không tải được danh sách hội viên.</strong><br>'+esc(detail)+'</div>';
     }
   }
+  $('memberForm').addEventListener('submit',async e=>{
+    e.preventDefault();const btn=e.submitter;btn.disabled=true;const msg=$('memberFormMessage');msg.classList.add('hidden');
+    try{
+      if(!currentUser)throw new Error('Bạn cần đăng nhập lại.');
+      const full_name=$('newMemberName').value.trim();if(!full_name)throw new Error('Vui lòng nhập họ và tên.');
+      const payload={member_code:$('newMemberCode').value.trim()||null,full_name,branch_id:Number($('newMemberBranch').value),gender:$('newMemberGender').value||null,birth_year:$('newMemberBirthYear').value?Number($('newMemberBirthYear').value):null,phone:$('newMemberPhone').value.trim()||null,email:$('newMemberEmail').value.trim()||null,member_type:$('newMemberType').value, address:$('newMemberAddress').value.trim()||null,education_level:$('newMemberEducation').value.trim()||null,professional_qualification:$('newMemberQualification').value.trim()||null,workplace:$('newMemberWorkplace').value.trim()||null,status:'pending',created_by:currentUser.id};
+      if(!payload.branch_id)throw new Error('Vui lòng chọn chi hội.');
+      const {error}=await sb.from('members').insert(payload);if(error)throw error;
+      message(msg,'Đã lưu hồ sơ hội viên thành công.');
+      $('memberForm').reset();await loadMembers();
+    }catch(err){
+      let detail=err.message||String(err);
+      if(/row-level security|permission denied|42501/i.test(detail))detail='Supabase đang chặn quyền thêm hội viên theo RLS. Dữ liệu chưa được lưu; cần cấp quyền INSERT cho tài khoản quản trị.';
+      message(msg,'Chưa lưu được hội viên: '+detail,true);
+    }finally{btn.disabled=false;}
+  });
   async function loadReports(){
     const box=$('reportsContent');box.textContent='Đang tải báo cáo…';
     try{const {data,error}=await sb.from('reports').select('id,report_code,title,report_type,period_start,period_end,status,summary,created_at').order('created_at',{ascending:false}).limit(100);if(error)throw error;
@@ -251,7 +290,7 @@
   function showPage(name,btn){
     document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));$('page-'+name).classList.remove('hidden');
     document.querySelectorAll('.side button').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');
-    if(name==='members')loadMembers();if(name==='reports')loadReports();if(name==='news')loadNews();if(name==='profile')loadProfile();if(name==='admin')loadRoles();
+    if(name==='members')loadMembers();if(name==='reports')loadReports();if(name==='news')loadNews();if(name==='profile')loadProfile();if(name==='admin'&&$('adminStatus'))loadRoles();
   }
   async function logout(){await sb.auth.signOut();currentUser=null;currentProfile=null;$('appView').classList.add('hidden');$('authView').classList.remove('hidden');$('logoutBtn').classList.add('hidden');$('headerUser').textContent='';$('authPassword').value='';}
   function esc(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
