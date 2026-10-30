@@ -73,7 +73,13 @@
       </nav>
       <div>
         <div id="page-admin" class="page hidden">
-          <div class="card"><h3>Quản trị hệ thống</h3><p id="adminStatus" class="notice">Đang kiểm tra quyền quản trị…</p><p class="muted">Tài khoản ADMIN có thể xem bảng điều khiển. Thao tác dữ liệu vẫn phụ thuộc vào chính sách bảo mật RLS trong Supabase.</p></div>
+          <div class="card"><div class="section-head"><h3>Quản trị hệ thống</h3><button onclick="loadAdminPanel()">Làm mới</button></div><p id="adminStatus" class="notice">Đang kiểm tra quyền quản trị…</p>
+            <h4>Duyệt đăng ký hội viên</h4><p class="muted">ADMIN có thể duyệt hoặc từ chối đăng ký. Ban Thường vụ có quyền quyết định cuối cùng; Chi hội trưởng chỉ kiểm tra hồ sơ thuộc chi hội mình.</p><div id="adminPendingMembers" class="muted">Đang tải…</div>
+            <hr style="border:0;border-top:1px solid var(--line);margin:20px 0">
+            <h4>Cấp và thay đổi chức vụ</h4><p class="muted">Chọn tài khoản đã đăng nhập/đã có hồ sơ. Việc cấp quyền chỉ thành công nếu chính sách bảo mật Supabase cho phép.</p><div id="adminRoleManager" class="muted">Đang tải…</div>
+            <hr style="border:0;border-top:1px solid var(--line);margin:20px 0">
+            <h4>Tài khoản và hồ sơ</h4><div id="adminMembersOverview" class="muted">Đang tải…</div>
+          </div>
         </div>
         <div id="page-home" class="page">
           <div class="stats">
@@ -88,11 +94,11 @@
         </div>
         <div id="page-members" class="page hidden">
           <div class="card"><div class="section-head"><h3>Quản lý hội viên</h3><button onclick="loadMembers()">Tải lại danh sách</button></div>
-            <p class="muted">Thông tin được đọc từ bảng members. Nếu bảng chưa có dữ liệu, hãy thêm hội viên ở biểu mẫu bên dưới.</p>
+            <p class="muted">ADMIN/Ban Thường vụ xem toàn hội; Chi hội trưởng quản lý chi hội mình; hội viên chỉ xem hồ sơ theo quyền được cấp.</p>
             <div id="membersContent" class="muted">Chưa tải dữ liệu.</div>
           </div>
           <div id="memberAddCard" class="card" style="margin-top:14px">
-            <h3>Thêm hội viên</h3><p class="muted">Chỉ lưu hồ sơ hội viên; không tự tạo tài khoản đăng nhập. Nếu Supabase từ chối, cần điều chỉnh chính sách RLS.</p>
+            <h3>Thêm hồ sơ hội viên</h3><p class="muted">Dành cho ADMIN, Ban Thường vụ và Chi hội trưởng theo phạm vi được cấp. Hồ sơ mới sẽ ở trạng thái chờ duyệt.</p>
             <form id="memberForm"><div class="form-grid">
               <div><label for="newMemberCode">Mã hội viên</label><input id="newMemberCode" placeholder="Ví dụ: AH001"></div>
               <div><label for="newMemberName">Họ và tên *</label><input id="newMemberName" required placeholder="Nhập họ và tên"></div>
@@ -201,11 +207,33 @@
     finally{btn.disabled=false;}
   });
   function friendlyError(e){const m=e?.message||'Có lỗi xảy ra.';if(/Invalid login credentials/i.test(m))return 'Email hoặc mật khẩu chưa đúng.';if(/Email not confirmed/i.test(m))return 'Tài khoản chưa xác nhận email. Hãy kiểm tra hộp thư.';return m;}
+  async function ensureProfileAndRegistration(){
+    if(!currentUser)return;
+    const meta=currentUser.user_metadata||{};
+    // Keep the account profile in sync so ADMIN can manage accounts that have logged in.
+    try{
+      const {error}=await sb.from('profiles').upsert({id:currentUser.id,full_name:meta.full_name||null,phone:meta.phone||null,email:currentUser.email||null},{onConflict:'id'});
+      if(error)console.warn('Không tự cập nhật profiles; kiểm tra RLS:',error.message);
+    }catch(e){console.warn('profiles upsert:',e.message);}
+    // A self-registered account starts as a pending member; it never receives a role automatically.
+    const branchId=meta.branch_id?Number(meta.branch_id):null;
+    if(branchId&&meta.full_name){
+      try{
+        const {data:existing,error:findErr}=await sb.from('members').select('id').eq('user_id',currentUser.id).maybeSingle();
+        if(findErr)throw findErr;
+        if(!existing){
+          const {error}=await sb.from('members').insert({user_id:currentUser.id,branch_id:branchId,full_name:meta.full_name,phone:meta.phone||null,email:currentUser.email||null,member_type:'official',status:'pending',created_by:currentUser.id});
+          if(error)console.warn('Chưa tạo được hồ sơ chờ duyệt:',error.message);
+        }
+      }catch(e){console.warn('Tạo hồ sơ hội viên chờ duyệt:',e.message);}
+    }
+  }
+
   async function openApp(){
     if(!currentUser){const {data}=await sb.auth.getUser();currentUser=data.user;}if(!currentUser)return;
     $('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('logoutBtn').classList.remove('hidden');
     $('headerUser').textContent=currentUser.email||'';$('welcomeSub').textContent=currentUser.email||'Tài khoản đã đăng nhập';
-    await loadRoles();await loadProfile();await loadNews();$('homeMessage').textContent='Đăng nhập thành công. Dữ liệu được đọc theo quyền của tài khoản.';
+    await ensureProfileAndRegistration();await loadRoles();await loadProfile();await loadNews();if(isAdmin()||isExecutive())await loadAdminPanel();$('homeMessage').textContent='Đăng nhập thành công. Dữ liệu được đọc theo quyền của tài khoản.';
   }
   async function loadRoles(){
     currentRoles=[]; let roleError=null;
@@ -214,11 +242,94 @@
     }catch(e){roleError=e;console.warn('Không đọc được user_roles:',e.message);}
     const role=currentRoles.join(', ')||(roleError?'Không đọc được vai trò':'Chưa cấp vai trò');
     $('roleBadge').textContent=role;$('statRole').textContent=role;
-    const isAdmin=currentRoles.includes('ADMIN')||currentRoles.includes('EXECUTIVE');
-    $('adminMenuBtn').classList.toggle('hidden',!isAdmin);
-    $('welcomeTitle').textContent=isAdmin?'Bảng điều khiển quản trị':'Bảng điều khiển';
-    if($('adminStatus'))$('adminStatus').textContent=roleError?'Không đọc được vai trò: '+roleError.message:(isAdmin?'Đã nhận diện quyền quản trị cho tài khoản '+(currentUser.email||'')+'.':'Tài khoản hiện có vai trò: '+role+'.');
+    const isAdminRole=hasRole('ADMIN','EXECUTIVE');
+    $('adminMenuBtn').classList.toggle('hidden',!isAdminRole);
+    $('welcomeTitle').textContent=isAdminRole?'Bảng điều khiển quản trị':'Bảng điều khiển';
+    setMemberPermissions();
+    if($('adminStatus'))$('adminStatus').textContent=roleError?'Không đọc được vai trò: '+roleError.message:(isAdminRole?'Đã nhận diện quyền quản trị cho tài khoản '+(currentUser.email||'')+'.':'Tài khoản hiện có vai trò: '+role+'.');
   }
+  const ROLE_LABELS={ADMIN:'Quản trị hệ thống',EXECUTIVE:'Ban Thường vụ',COMMITTEE:'Ban Chấp hành',BRANCH_HEAD:'Chi hội trưởng',MEMBER:'Hội viên'};
+  function hasRole(...codes){return codes.some(c=>currentRoles.includes(c));}
+  function isAdmin(){return hasRole('ADMIN');}
+  function isExecutive(){return hasRole('EXECUTIVE');}
+  function canManageAll(){return hasRole('ADMIN','EXECUTIVE');}
+  function canManageMembers(){return hasRole('ADMIN','EXECUTIVE','BRANCH_HEAD');}
+  function roleLabel(code){return ROLE_LABELS[code]||code||'Chưa cấp vai trò';}
+  function roleOptions(selected='MEMBER'){return Object.entries(ROLE_LABELS).map(([c,n])=>`<option value="${c}" ${c===selected?'selected':''}>${esc(n)} (${c})</option>`).join('');}
+  function setMemberPermissions(){
+    const allowed=canManageMembers();
+    if($('memberAddCard'))$('memberAddCard').classList.toggle('hidden',!allowed);
+    const nav=document.querySelector('[data-page="members"]'); if(nav)nav.classList.toggle('hidden',!currentRoles.length);
+    const reportNav=document.querySelector('[data-page="reports"]'); if(reportNav)reportNav.classList.toggle('hidden',!currentRoles.length);
+  }
+  async function loadAdminPanel(){
+    if(!isAdmin()&&!isExecutive()) { if($('adminStatus'))message($('adminStatus'),'Bạn không có quyền vào quản trị hệ thống.',true); return; }
+    $('adminStatus').textContent='Đang tải dữ liệu quản trị…';
+    await Promise.all([loadPendingMembers(),loadAdminRoleManager(),loadAdminMembersOverview()]);
+    $('adminStatus').textContent=isAdmin()?'Đã đăng nhập với quyền ADMIN. Bạn có thể quản lý hội viên và phân quyền tài khoản.':'Đã đăng nhập với quyền Ban Thường vụ. Bạn có thể xem và duyệt hồ sơ theo quyền được cấp.';
+  }
+  async function loadPendingMembers(){
+    const box=$('adminPendingMembers'); if(!box)return; box.textContent='Đang tải hồ sơ chờ duyệt…';
+    try{
+      let q=sb.from('members').select('id,user_id,branch_id,member_code,full_name,phone,email,status,created_at').in('status',['pending','submitted','branch_checked']).order('created_at',{ascending:false}).limit(200);
+      const {data,error}=await q; if(error)throw error;
+      if(!data?.length){box.innerHTML='<p>Không có hồ sơ chờ duyệt.</p>';return;}
+      box.innerHTML='<div class="table-wrap"><table><thead><tr><th>Họ tên</th><th>Chi hội</th><th>Liên hệ</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>'+data.map(m=>{
+        const b=branches.find(x=>String(x.id)===String(m.branch_id));
+        let actions='';
+        if(isAdmin()||isExecutive()) actions=`<button onclick="decideMember(${Number(m.id)},'approved')">Duyệt cuối</button> <button class="danger" onclick="decideMember(${Number(m.id)},'rejected')">Từ chối</button>`;
+        else if(hasRole('BRANCH_HEAD')) actions=`<button onclick="decideMember(${Number(m.id)},'branch_checked')">Xác nhận chi hội</button>`;
+        return `<tr><td>${esc(m.full_name||'—')}<div class="muted small">${esc(m.member_code||'Chưa có mã')}</div></td><td>${esc(b?.name||m.branch_id||'—')}</td><td>${esc(m.phone||'—')}<br>${esc(m.email||'—')}</td><td>${esc(m.status||'—')}</td><td><div class="row-actions">${actions||'Chỉ xem'}</div></td></tr>`;
+      }).join('')+'</tbody></table></div>';
+    }catch(e){box.innerHTML='<div class="notice error">Không tải được hồ sơ chờ duyệt: '+esc(e.message)+'. Cần kiểm tra quyền SELECT của bảng members trong Supabase.</div>';}
+  }
+  async function decideMember(id,status){
+    if(status==='approved'&&!canManageAll()){alert('Chỉ ADMIN hoặc Ban Thường vụ mới được duyệt cuối.');return;}
+    if(status==='rejected'&&!canManageAll()){alert('Chỉ ADMIN hoặc Ban Thường vụ mới được từ chối hồ sơ.');return;}
+    if(!confirm(status==='approved'?'Xác nhận duyệt hội viên này?':status==='rejected'?'Xác nhận từ chối hồ sơ này?':'Xác nhận đã kiểm tra hồ sơ tại chi hội?'))return;
+    try{
+      const patch={status,updated_at:new Date().toISOString()};
+      if(status==='branch_checked'){patch.branch_checked_by=currentUser.id;patch.branch_checked_at=new Date().toISOString();}
+      else {patch.executive_decided_by=currentUser.id;patch.executive_decided_at=new Date().toISOString();}
+      const {error}=await sb.from('members').update(patch).eq('id',id);if(error)throw error;
+      await loadPendingMembers();await loadMembers();alert('Đã cập nhật trạng thái hồ sơ.');
+    }catch(e){alert('Không cập nhật được: '+e.message+'\nNếu Supabase chặn RLS, cần cài chính sách bảo mật tương ứng.');}
+  }
+  async function loadAdminRoleManager(){
+    const box=$('adminRoleManager');if(!box)return;box.textContent='Đang tải tài khoản và vai trò…';
+    try{
+      const [{data:profiles,error:pErr},{data:roles,error:rErr},{data:userRoles,error:uErr}]=await Promise.all([
+        sb.from('profiles').select('id,full_name,email,phone').limit(500),
+        sb.from('roles').select('id,code,name').order('id'),
+        sb.from('user_roles').select('user_id,role_id,roles(code,name)').limit(1000)
+      ]);
+      if(pErr)throw pErr;if(rErr)throw rErr;if(uErr)throw uErr;
+      if(!profiles?.length){box.innerHTML='<p>Chưa có hồ sơ tài khoản trong bảng profiles. Người dùng phải đăng ký và xác nhận email trước.</p>';return;}
+      const roleRows=roles||[];const mapping=new Map();(userRoles||[]).forEach(x=>{if(!mapping.has(x.user_id))mapping.set(x.user_id,[]);mapping.get(x.user_id).push(x.role_id);});
+      box.innerHTML='<div class="table-wrap"><table><thead><tr><th>Tài khoản</th><th>Vai trò hiện tại</th><th>Gán vai trò chính</th><th>Thao tác</th></tr></thead><tbody>'+profiles.map(p=>{
+        const ids=mapping.get(p.id)||[];const current=roleRows.find(r=>ids.includes(r.id));
+        const opts=roleRows.map(r=>`<option value="${esc(r.id)}" ${current&&current.id===r.id?'selected':''}>${esc(r.name||ROLE_LABELS[r.code]||r.code)} (${esc(r.code)})</option>`).join('');
+        return `<tr><td>${esc(p.full_name||'(Chưa có họ tên)')}<div class="muted small">${esc(p.email||p.id)}</div></td><td>${esc(ids.map(id=>{const r=roleRows.find(x=>x.id===id);return r?roleLabel(r.code):String(id)}).join(', ')||'Chưa cấp')}</td><td><select id="role-select-${esc(p.id)}">${opts}</select></td><td><button onclick="assignRole('${esc(p.id)}')">Lưu vai trò</button></td></tr>`;
+      }).join('')+'</tbody></table></div><p class="muted small">Lưu ý: danh sách này chỉ gồm tài khoản có hồ sơ trong profiles. Để tạo tài khoản mới, người đó cần đăng ký qua màn hình đăng nhập.</p>';
+    }catch(e){box.innerHTML='<div class="notice error">Không tải được danh sách phân quyền: '+esc(e.message)+'. Hãy kiểm tra quyền đọc profiles, roles và user_roles.</div>';}
+  }
+  async function assignRole(userId){
+    if(!isAdmin()){alert('Chỉ ADMIN được thay đổi vai trò tài khoản.');return;}
+    const select=$('role-select-'+userId);if(!select)return;
+    const roleId=Number(select.value);if(!roleId){alert('Hãy chọn vai trò.');return;}
+    try{
+      const {error:delErr}=await sb.from('user_roles').delete().eq('user_id',userId);if(delErr)throw delErr;
+      const {error:insErr}=await sb.from('user_roles').insert({user_id:userId,role_id:roleId});if(insErr)throw insErr;
+      alert('Đã cập nhật vai trò. Nếu tài khoản đó đang đăng nhập, hãy đăng xuất rồi đăng nhập lại để tải quyền mới.');await loadAdminRoleManager();
+    }catch(e){alert('Không thể cập nhật vai trò: '+e.message+'\nChưa thay đổi quyền nếu thao tác bị Supabase từ chối. Cần chính sách RLS chỉ cho ADMIN sửa user_roles.');}
+  }
+  async function loadAdminMembersOverview(){
+    const box=$('adminMembersOverview');if(!box)return;
+    try{const {data,error}=await sb.from('members').select('id,full_name,member_code,status,branch_id,user_id').order('full_name').limit(500);if(error)throw error;
+      box.innerHTML=!data?.length?'<p>Bảng members hiện chưa có hồ sơ hội viên.</p>':'<p>Tổng hồ sơ: <strong>'+data.length+'</strong></p><div class="table-wrap"><table><thead><tr><th>Mã</th><th>Họ tên</th><th>Chi hội</th><th>Trạng thái</th><th>Tài khoản liên kết</th></tr></thead><tbody>'+data.map(m=>{const b=branches.find(x=>String(x.id)===String(m.branch_id));return `<tr><td>${esc(m.member_code||'—')}</td><td>${esc(m.full_name||'—')}</td><td>${esc(b?.name||'—')}</td><td>${esc(m.status||'—')}</td><td>${esc(m.user_id||'Chưa liên kết')}</td></tr>`}).join('')+'</tbody></table></div>';
+    }catch(e){box.innerHTML='<div class="notice error">Không tải được tổng quan hội viên: '+esc(e.message)+'</div>';}
+  }
+
   async function loadProfile(){
     const box=$('profileContent');box.textContent='Đang tải hồ sơ…';
     try{
@@ -290,7 +401,7 @@
   function showPage(name,btn){
     document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));$('page-'+name).classList.remove('hidden');
     document.querySelectorAll('.side button').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');
-    if(name==='members')loadMembers();if(name==='reports')loadReports();if(name==='news')loadNews();if(name==='profile')loadProfile();if(name==='admin'&&$('adminStatus'))loadRoles();
+    if(name==='members')loadMembers();if(name==='reports')loadReports();if(name==='news')loadNews();if(name==='profile')loadProfile();if(name==='admin'&&$('adminStatus'))loadAdminPanel();
   }
   async function logout(){await sb.auth.signOut();currentUser=null;currentProfile=null;$('appView').classList.add('hidden');$('authView').classList.remove('hidden');$('logoutBtn').classList.add('hidden');$('headerUser').textContent='';$('authPassword').value='';}
   function esc(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
