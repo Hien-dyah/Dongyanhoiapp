@@ -103,7 +103,7 @@
           </div>
         </div>
         <div id="page-news" class="page hidden"><div class="card"><div class="section-head"><h3>Tin tức Hội và y học cổ truyền</h3><button onclick="loadNews()">Tải tin tức</button></div><div id="newsContent" class="muted">Đang tải tin tức…</div></div></div>
-        <div id="page-admin" class="page hidden"><div class="card"><h3>Quản trị hệ thống</h3><p class="muted">Trang tổng quan dành cho tài khoản có vai trò ADMIN. Dùng các mục bên trái để xem hội viên, báo cáo và tin tức.</p><div class="notice">Lưu ý: việc hiển thị trang quản trị không tự cấp quyền đọc/sửa dữ liệu. Các thao tác vẫn phải được cho phép bởi chính sách RLS trong Supabase.</div><div id="adminStatus" class="item">Đang kiểm tra quyền quản trị…</div><div class="section-head"><h3>Đăng ký hội viên chờ duyệt</h3><button onclick="loadPendingMembers()">Tải danh sách</button></div><div id="pendingMembersContent" class="muted">Chưa tải danh sách đăng ký.</div></div></div>
+        <div id="page-admin" class="page hidden"><div class="card"><h3>Quản trị hệ thống</h3><p class="muted">Trang tổng quan dành cho tài khoản có vai trò ADMIN. Dùng các mục bên trái để xem hội viên, báo cáo và tin tức.</p><div class="notice">Lưu ý: việc hiển thị trang quản trị không tự cấp quyền đọc/sửa dữ liệu. Các thao tác vẫn phải được cho phép bởi chính sách RLS trong Supabase.</div><div id="adminStatus" class="item">Đang kiểm tra quyền quản trị…</div><div class="section-head"><h3>Hồ sơ hội viên cần xử lý</h3><button onclick="loadPendingMembers()">Tải danh sách</button></div><div id="pendingMembersContent" class="muted">Chưa tải danh sách đăng ký.</div></div></div>
       </div>
     </div>
   </section>
@@ -230,33 +230,61 @@
     }catch(e){box.textContent='Không tải được danh sách hội viên. Có thể tài khoản chưa có quyền hoặc cấu trúc bảng khác: '+e.message;}
   }
   async function loadPendingMembers(){
-    const box=$('pendingMembersContent'); if(!box)return; box.textContent='Đang tải đăng ký chờ duyệt…';
-    if(!currentRoles.includes('ADMIN')){box.textContent='Chỉ ADMIN mới được duyệt đăng ký tại màn hình này.';return;}
+    const box=$('pendingMembersContent'); if(!box)return; box.textContent='Đang tải hồ sơ cần xử lý…';
+    const canManage=currentRoles.includes('ADMIN')||currentRoles.includes('BRANCH_HEAD')||currentRoles.includes('EXECUTIVE');
+    if(!canManage){box.textContent='Bạn không có quyền xử lý đăng ký hội viên.';return;}
     try{
-      const {data,error}=await sb.from('members').select('id,user_id,member_code,full_name,phone,email,branch_id,status,created_at').eq('status','pending').order('created_at',{ascending:true}).limit(300);
+      let q=sb.from('members').select('id,user_id,member_code,full_name,phone,email,branch_id,status,created_at,branch_checked_by,branch_checked_at').in('status',['pending','branch_checked']).order('created_at',{ascending:true}).limit(300);
+      if(currentRoles.includes('BRANCH_HEAD')&&!currentRoles.includes('ADMIN')&&!currentRoles.includes('EXECUTIVE')){
+        const {data:links,error:le}=await sb.from('user_roles').select('branch_id').eq('user_id',currentUser.id).not('branch_id','is',null);
+        if(le)throw le;
+        const ids=(links||[]).map(x=>Number(x.branch_id)).filter(Number.isFinite);
+        if(!ids.length){box.textContent='Tài khoản Chi hội trưởng chưa được gắn chi hội trong user_roles.';return;}
+        q=q.in('branch_id',ids);
+      }
+      const {data,error}=await q;if(error)throw error;
+      if(!data?.length){box.innerHTML='<p>Hiện không có hồ sơ cần xử lý.</p>';return;}
+      const isExecutive=currentRoles.includes('EXECUTIVE');
+      const isBranchHead=currentRoles.includes('BRANCH_HEAD');
+      const isAdmin=currentRoles.includes('ADMIN');
+      const rows=data.map(m=>{
+        let action='—';
+        if(m.status==='pending'&&isBranchHead&&!isExecutive&&!isAdmin) action=`<button onclick="checkMember(${Number(m.id)})">Xác nhận đã kiểm tra</button>`;
+        else if(m.status==='branch_checked'&&isExecutive) action=`<button onclick="approveMember(${Number(m.id)})">Duyệt cuối</button> <button class="danger" onclick="rejectMember(${Number(m.id)})">Từ chối</button>`;
+        else if(isAdmin) action='Đang chờ Chi hội trưởng kiểm tra';
+        else if(isBranchHead&&m.status==='branch_checked') action='Đã chuyển Ban Thường vụ';
+        return `<tr><td>${esc(m.full_name||'—')}</td><td>${esc(m.phone||'—')}</td><td>${esc(m.email||'—')}</td><td>${esc(branches.find(b=>String(b.id)===String(m.branch_id))?.name||m.branch_id||'—')}</td><td>${esc(m.status==='pending'?'Chờ Chi hội trưởng kiểm tra':'Chờ Ban Thường vụ duyệt')}</td><td>${esc(m.created_at?new Date(m.created_at).toLocaleDateString('vi-VN'):'—')}</td><td><div class="row-actions">${action}</div></td></tr>`;
+      }).join('');
+      box.innerHTML='<div class="notice">Quy trình: Hội viên đăng ký → Chi hội trưởng kiểm tra → Ban Thường vụ quyết định cuối cùng. ADMIN theo dõi và quản lý hệ thống, không thay quyết định duyệt cuối.</div><div class="table-wrap"><table><thead><tr><th>Họ tên</th><th>Điện thoại</th><th>Email</th><th>Chi hội</th><th>Trạng thái</th><th>Ngày đăng ký</th><th>Thao tác</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+    }catch(e){box.textContent='Không tải được hồ sơ cần xử lý: '+e.message;}
+  }
+  async function checkMember(memberId){
+    if(!currentRoles.includes('BRANCH_HEAD')||currentRoles.includes('ADMIN')||currentRoles.includes('EXECUTIVE'))return alert('Chỉ Chi hội trưởng thực hiện bước kiểm tra chi hội.');
+    if(!confirm('Xác nhận đã kiểm tra hồ sơ này và chuyển Ban Thường vụ xem xét?'))return;
+    try{
+      const {error}=await sb.from('members').update({status:'branch_checked',branch_checked_by:currentUser.id,branch_checked_at:new Date().toISOString()}).eq('id',memberId).eq('status','pending');
       if(error)throw error;
-      if(!data?.length){box.innerHTML='<p>Hiện không có đăng ký nào đang chờ duyệt.</p>';return;}
-      box.innerHTML='<div class="table-wrap"><table><thead><tr><th>Họ tên</th><th>Điện thoại</th><th>Email</th><th>Chi hội</th><th>Ngày đăng ký</th><th>Thao tác</th></tr></thead><tbody>'+data.map(m=>`<tr><td>${esc(m.full_name||'—')}</td><td>${esc(m.phone||'—')}</td><td>${esc(m.email||'—')}</td><td>${esc(branches.find(b=>String(b.id)===String(m.branch_id))?.name||m.branch_id||'—')}</td><td>${esc(m.created_at?new Date(m.created_at).toLocaleDateString('vi-VN'):'—')}</td><td><div class="row-actions"><button onclick="approveMember(${Number(m.id)})">Duyệt</button><button class="danger" onclick="rejectMember(${Number(m.id)})">Từ chối</button></div></td></tr>`).join('')+'</tbody></table></div>';
-    }catch(e){box.textContent='Không tải được đăng ký chờ duyệt: '+e.message+'. Cần quyền SELECT cho ADMIN trên bảng members.';}
+      alert('Đã chuyển hồ sơ sang Ban Thường vụ.');await loadPendingMembers();await loadMembers();
+    }catch(e){alert('Chưa chuyển được hồ sơ: '+e.message+'. Cần chính sách RLS cho Chi hội trưởng cập nhật đúng chi hội.');}
   }
   async function approveMember(memberId){
-    if(!currentRoles.includes('ADMIN'))return alert('Chỉ ADMIN mới được duyệt.');
-    if(!confirm('Xác nhận duyệt hồ sơ hội viên này?'))return;
+    if(!currentRoles.includes('EXECUTIVE'))return alert('Chỉ Ban Thường vụ mới được quyết định duyệt cuối cùng.');
+    if(!confirm('Xác nhận Ban Thường vụ duyệt chính thức hồ sơ hội viên này?'))return;
     try{
-      const {data:mem,error:readError}=await sb.from('members').select('id,user_id').eq('id',memberId).single();if(readError)throw readError;
-      const {error:updateError}=await sb.from('members').update({status:'approved',executive_decided_by:currentUser.id,executive_decided_at:new Date().toISOString()}).eq('id',memberId);if(updateError)throw updateError;
+      const {data:mem,error:readError}=await sb.from('members').select('id,user_id,status').eq('id',memberId).eq('status','branch_checked').single();if(readError)throw readError;
+      const {error:updateError}=await sb.from('members').update({status:'approved',executive_decided_by:currentUser.id,executive_decided_at:new Date().toISOString()}).eq('id',memberId).eq('status','branch_checked');if(updateError)throw updateError;
       if(mem.user_id){
         const {data:roleRows,error:roleError}=await sb.from('roles').select('id').eq('code','MEMBER').limit(1);if(roleError)throw roleError;
         if(roleRows?.length){const {error:linkError}=await sb.from('user_roles').upsert({user_id:mem.user_id,role_id:roleRows[0].id},{onConflict:'user_id,role_id',ignoreDuplicates:true});if(linkError)throw linkError;}
       }
-      alert('Đã duyệt hồ sơ hội viên.');await loadPendingMembers();await loadMembers();
-    }catch(e){alert('Chưa duyệt được: '+e.message+'. Kiểm tra chính sách RLS UPDATE trên members và quyền quản lý user_roles cho ADMIN.');}
+      alert('Ban Thường vụ đã duyệt chính thức hồ sơ hội viên.');await loadPendingMembers();await loadMembers();
+    }catch(e){alert('Chưa duyệt được: '+e.message+'. Cần chính sách RLS UPDATE cho Ban Thường vụ và quyền gán vai trò MEMBER.');}
   }
   async function rejectMember(memberId){
-    if(!currentRoles.includes('ADMIN'))return alert('Chỉ ADMIN mới được từ chối.');
+    if(!currentRoles.includes('EXECUTIVE'))return alert('Chỉ Ban Thường vụ mới được quyết định từ chối cuối cùng.');
     const note=prompt('Lý do từ chối (có thể để trống):');if(note===null)return;
-    try{const {error}=await sb.from('members').update({status:'rejected',decision_note:note,executive_decided_by:currentUser.id,executive_decided_at:new Date().toISOString()}).eq('id',memberId);if(error)throw error;await loadPendingMembers();}
-    catch(e){alert('Chưa cập nhật được hồ sơ: '+e.message+'. Kiểm tra chính sách RLS UPDATE trên members cho ADMIN.');}
+    try{const {error}=await sb.from('members').update({status:'rejected',decision_note:note,executive_decided_by:currentUser.id,executive_decided_at:new Date().toISOString()}).eq('id',memberId).eq('status','branch_checked');if(error)throw error;alert('Đã ghi nhận quyết định từ chối.');await loadPendingMembers();}
+    catch(e){alert('Chưa cập nhật được hồ sơ: '+e.message+'. Cần chính sách RLS UPDATE cho Ban Thường vụ.');}
   }
 
   async function loadReports(){
