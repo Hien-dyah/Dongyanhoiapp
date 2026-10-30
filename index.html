@@ -6,6 +6,7 @@
     <title>Quản Lý Hội Đông Y Phường An Hội</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
       @media print {
@@ -60,11 +61,15 @@
             <!-- FORM ĐĂNG NHẬP -->
             <div id="form-login" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Số điện thoại liên lạc</label>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Email đăng nhập</label>
                     <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400"><i class="fa-solid fa-phone"></i></span>
-                        <input type="tel" id="login-phone" class="w-full pl-10 p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Nhập số điện thoại đã đăng ký" autocomplete="username">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400"><i class="fa-solid fa-envelope"></i></span>
+                        <input type="email" id="login-email" class="w-full pl-10 p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Nhập email đã đăng ký" autocomplete="username">
                     </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Mật khẩu</label>
+                    <input type="password" id="login-password" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Nhập mật khẩu" autocomplete="current-password">
                 </div>
                 <button onclick="handleLogin()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold p-3 rounded-xl shadow-lg transition text-sm">
                     Đăng Nhập Hệ Thống
@@ -100,12 +105,16 @@
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div><label class="block text-xs font-bold text-slate-600 uppercase mb-1">Trình độ chuyên môn</label><input type="text" id="reg-education" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="Lương y, bác sĩ..."></div>
-                    <div><label class="block text-xs font-bold text-slate-600 uppercase mb-1">Email</label><input type="email" id="reg-email" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="Địa chỉ email"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 uppercase mb-1">Email <span class="text-red-500">*</span></label><input type="email" id="reg-email" required class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="Địa chỉ email"></div>
                 </div>
                 <div><label class="block text-xs font-bold text-slate-600 uppercase mb-1">Phân loại hội viên</label>
                   <select id="reg-member-type" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
                     <option value="Hội viên chính thức">Hội viên chính thức</option><option value="Hội viên danh dự">Hội viên danh dự</option><option value="Hội viên liên kết">Hội viên liên kết</option>
                   </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Tạo mật khẩu <span class="text-red-500">*</span></label>
+                    <input type="password" id="reg-password" minlength="8" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="Ít nhất 8 ký tự" autocomplete="new-password">
                 </div>
                 <div><label class="block text-xs font-bold text-slate-600 uppercase mb-1">Ảnh hội viên (có thể bổ sung sau khi đăng ký)</label><input type="file" id="reg-avatar" accept="image/*" capture="user" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm"></div>
                 <div>
@@ -312,7 +321,7 @@
             <!-- 6. TAB QUẢN TRỊ (Chỉ BTV & Admin) -->
             <div id="tab-admin" class="content-tab space-y-4 bg-white p-5 rounded-2xl shadow-sm border border-amber-200" style="display: none;">
                 <div class="space-y-5">
-                    <div class="p-3 rounded-xl bg-amber-50 border border-amber-300 text-xs text-amber-900"><b>Lưu ý:</b> Phiên bản HTML này lưu dữ liệu trong trình duyệt hiện tại. Phân quyền trong giao diện chưa thay thế được xác thực máy chủ; trước khi dùng dữ liệu thật của Hội, cần kết nối Supabase và áp dụng chính sách bảo mật ở cơ sở dữ liệu.</div>
+                    <div class="p-3 rounded-xl bg-amber-50 border border-amber-300 text-xs text-amber-900"><b>Lưu ý:</b> Đăng nhập và hồ sơ hội viên đang dùng Supabase. Các chức năng báo cáo, tin tức, kiến nghị và thao tác quản trị vẫn cần được chuyển tiếp sang cơ sở dữ liệu trước khi dùng chính thức; không dùng dữ liệu giả trong trình duyệt làm dữ liệu thật.</div>
                     <div>
                         <h3 class="font-bold text-amber-900 text-sm mb-3 flex items-center">
                             <i class="fa-solid fa-shield-halved mr-2 text-amber-600"></i> Phê Duyệt Hội Viên Mới (Ban Thường Vụ & Admin)
@@ -400,6 +409,90 @@
 
     <!-- SCRIPT -->
     <script>
+        // Supabase project configuration. Publishable key is intended for browser use; never put service_role/secret keys here.
+        const SUPABASE_URL = 'https://bsbipobamdbatcdhmsmy.supabase.co';
+        const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_Qj9ZACCvFJrwWdMEsRUl8w_TTh4XPR_';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+        let activeAuthUser = null;
+        const ROLE_LABELS = { ADMIN: 'Admin', EXECUTIVE: 'Ban thường vụ', COMMITTEE: 'Ban chấp hành', BRANCH_HEAD: 'Chi hội trưởng', MEMBER: 'Hội viên' };
+        const BRANCH_LABELS = { AN_HOI: 'Nhóm An Hội', PHU_NHUAN: 'Nhóm Phú Nhuận', MY_AN: 'Nhóm Mỹ An', SON_PHU: 'Nhóm Sơn Phú' };
+
+        function showAuthError(error, fallback) {
+            console.error(fallback, error);
+            const msg = error?.message || fallback;
+            alert(fallback + '\n\nChi tiết: ' + msg);
+        }
+
+        async function fetchSignedInMember(authUser) {
+            const { data: member, error: memberError } = await supabaseClient
+                .from('members').select('*').eq('user_id', authUser.id).maybeSingle();
+            if (memberError) throw memberError;
+            if (!member) throw new Error('Tài khoản đã đăng nhập nhưng chưa có hồ sơ hội viên. Vui lòng liên hệ Ban quản trị.');
+
+            let role = 'Hội viên';
+            const { data: roleRows, error: roleError } = await supabaseClient
+                .from('user_roles').select('branch_id, roles(code)').eq('user_id', authUser.id);
+            if (roleError) throw roleError;
+            const codes = (roleRows || []).map(x => x.roles?.code).filter(Boolean);
+            const priority = ['ADMIN','EXECUTIVE','COMMITTEE','BRANCH_HEAD','MEMBER'];
+            const chosen = priority.find(code => codes.includes(code));
+            if (chosen) role = ROLE_LABELS[chosen];
+
+            const branchId = member.branch_id ?? roleRows?.find(x => x.branch_id)?.branch_id;
+            let branchCode = '';
+            if (branchId) {
+                const { data: branch, error: branchError } = await supabaseClient.from('branches').select('code,name').eq('id', branchId).maybeSingle();
+                if (!branchError && branch) branchCode = branch.code || '';
+            }
+            const normalized = {
+                id: member.id, dbId: member.id, authUserId: authUser.id,
+                name: member.full_name || member.name || authUser.user_metadata?.full_name || '',
+                phone: member.phone || '', email: member.email || authUser.email || '',
+                gender: member.gender || '', birthYear: member.date_of_birth ? String(member.date_of_birth).slice(0,4) : '',
+                address: member.address || '', culture: member.education_level || '',
+                education: member.qualification || member.professional_title || '',
+                group: BRANCH_LABELS[branchCode] || 'Toàn hội', role,
+                status: member.status || 'pending', avatar: member.avatar_url || '', branch_id: branchId
+            };
+            if (normalized.status !== 'approved' && !['Admin','Ban thường vụ'].includes(normalized.role)) {
+                throw new Error('Hồ sơ của bạn chưa được Ban Thường vụ phê duyệt.');
+            }
+            const { data: allMembers, error: allError } = await supabaseClient.from('members').select('*');
+            if (!allError && allMembers) {
+                const cache = allMembers.map(m => ({
+                    id: m.id, dbId: m.id, authUserId: m.user_id, name: m.full_name || '', phone: m.phone || '', email: m.email || '',
+                    gender: m.gender || '', birthYear: m.date_of_birth ? String(m.date_of_birth).slice(0,4) : '',
+                    address: m.address || '', culture: m.education_level || '', education: m.qualification || m.professional_title || '',
+                    group: BRANCH_LABELS[branchCode] || 'Toàn hội', role: 'Hội viên', status: m.status || 'pending', avatar: m.avatar_url || '', branch_id: m.branch_id
+                }));
+                const own = cache.find(m => String(m.id) === String(member.id));
+                if (own) Object.assign(own, normalized);
+                localStorage.setItem('hoiVienList', JSON.stringify(cache));
+            }
+            localStorage.setItem('currentUser', JSON.stringify(normalized));
+            return normalized;
+        }
+
+        async function startSignedInApp(authUser) {
+            activeAuthUser = authUser;
+            const user = await fetchSignedInMember(authUser);
+            loadAppUI();
+            return user;
+        }
+
+        async function initializeSupabaseSession() {
+            try {
+                const { data: { session }, error } = await supabaseClient.auth.getSession();
+                if (error) throw error;
+                if (session?.user) await startSignedInApp(session.user);
+            } catch (e) {
+                console.error('Không khôi phục được phiên Supabase:', e);
+                localStorage.removeItem('currentUser');
+                document.getElementById('auth-screen').style.display = 'block';
+            }
+        }
+        window.addEventListener('DOMContentLoaded', initializeSupabaseSession);
+
         function switchMainTab(tabId) {
             let tabs = document.querySelectorAll('.content-tab');
             tabs.forEach(t => t.style.display = 'none');
@@ -420,17 +513,9 @@
         }
 
         function getMemberList() {
-            let data = localStorage.getItem('hoiVienList');
-            if (!data) {
-                const initial = [
-                    { id: 1, name: "Quản Trị Viên Toàn Hội", phone: "0915421158", gender: "Nam", address: "Phường An Hội", education: "Lương y / Quản trị", email: "admin@gmail.com", avatar: "", group: "Toàn hội", role: "Admin", status: "approved" },
-                    { id: 2, name: "Lương y Trần Văn An", phone: "0902222222", gender: "Nam", address: "Sơn Phú", education: "Lương y cấp hội", email: "tranvana@gmail.com", avatar: "", group: "Nhóm Sơn Phú", role: "Ban thường vụ", status: "approved" },
-                    { id: 3, name: "Lương y Nguyễn Văn Chi Hội", phone: "0903333333", gender: "Nam", address: "An Hội", education: "Lương y", email: "chihoitruong@gmail.com", avatar: "", group: "Nhóm An Hội", role: "Chi hội trưởng", status: "approved" }
-                ];
-                localStorage.setItem('hoiVienList', JSON.stringify(initial));
-                return initial;
-            }
-            return JSON.parse(data);
+            // Dữ liệu thật được tải từ Supabase sau khi đăng nhập; không tự tạo tài khoản giả trong trình duyệt.
+            try { return JSON.parse(localStorage.getItem('hoiVienList') || '[]'); }
+            catch (_) { return []; }
         }
 
         function getReportList() { return JSON.parse(localStorage.getItem('reportList') || '[]'); }
@@ -493,38 +578,52 @@
         async function handleRegister() {
             const name = document.getElementById('reg-name').value.trim();
             const phone = document.getElementById('reg-phone').value.trim();
-            if (!name || !phone) { alert("Vui lòng nhập Họ tên và SĐT!"); return; }
-            let list = getMemberList();
-            if (list.some(m => m.phone === phone)) { alert("SĐT đã tồn tại!"); return; }
-            let avatar = "";
-            try { avatar = await imageFileToDataURL(document.getElementById('reg-avatar').files[0]); }
-            catch (e) { alert(e.message); return; }
-            list.push({ id: Date.now(), name, phone, gender: document.getElementById('reg-gender').value,
-                birthYear: document.getElementById('reg-birth-year').value.trim(),
-                address: document.getElementById('reg-address').value.trim(),
-                culture: document.getElementById('reg-culture').value.trim(),
-                education: document.getElementById('reg-education').value.trim(),
-                email: document.getElementById('reg-email').value.trim(), avatar,
-                memberType: document.getElementById('reg-member-type').value,
-                group: document.getElementById('reg-group').value, role: "Hội viên", status: "pending" });
-            try { localStorage.setItem('hoiVienList', JSON.stringify(list)); }
-            catch (e) { alert("Không lưu được hồ sơ (có thể ảnh quá lớn). Hãy chọn ảnh khác nhỏ hơn."); return; }
-            alert("Đăng ký thành công! Chờ Ban Thường Vụ / Admin duyệt.");
+            const email = document.getElementById('reg-email').value.trim().toLowerCase();
+            const password = document.getElementById('reg-password').value;
+            if (!name || !phone || !email || !password) { alert('Vui lòng nhập họ tên, số điện thoại, email và mật khẩu.'); return; }
+            if (password.length < 8) { alert('Mật khẩu phải có ít nhất 8 ký tự.'); return; }
+            const branchMap = { 'Nhóm An Hội':'AN_HOI', 'Nhóm Phú Nhuận':'PHU_NHUAN', 'Nhóm Mỹ An':'MY_AN', 'Nhóm Sơn Phú':'SON_PHU' };
+            const branchCode = branchMap[document.getElementById('reg-group').value];
+            try {
+                // Hồ sơ được tạo bằng trigger bảo mật ở Supabase, không cho trình duyệt tự gán role.
+                const { data: signUpData, error: signUpError } = await supabaseClient.auth.signUp({
+                    email, password,
+                    options: { data: { full_name: name, phone, branch_code: branchCode, gender: document.getElementById('reg-gender').value, birth_year: document.getElementById('reg-birth-year').value.trim(), address: document.getElementById('reg-address').value.trim(), professional_title: document.getElementById('reg-education').value.trim(), qualification: document.getElementById('reg-culture').value.trim() } }
+                });
+                if (signUpError) throw signUpError;
+                if (!signUpData.user) throw new Error('Supabase chưa tạo được tài khoản.');
+                if (!signUpData.session) {
+                    alert('Tài khoản đã được tạo. Hãy mở email để xác nhận. Hồ sơ hội viên sẽ được tạo tự động bởi cấu hình Supabase; sau khi xác nhận email, bạn có thể đăng nhập.');
+                    return;
+                }
+                alert('Tài khoản đã được tạo trên Supabase. Hồ sơ đang chờ Ban Thường vụ phê duyệt.');
+                await startSignedInApp(signUpData.user);
+            } catch (e) {
+                showAuthError(e, 'Chưa đăng ký được. Có thể chính sách RLS chưa cho phép hội viên tự tạo hồ sơ hoặc tên cột trong bảng members khác với cấu hình.');
+            }
+        }
+
+        async function handleLogin() {
+            const email = document.getElementById('login-email').value.trim().toLowerCase();
+            const password = document.getElementById('login-password').value;
+            if (!email || !password) { alert('Vui lòng nhập email và mật khẩu.'); return; }
+            try {
+                const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+                await startSignedInApp(data.user);
+            } catch (e) {
+                showAuthError(e, 'Đăng nhập chưa thành công. Kiểm tra email, mật khẩu và trạng thái hồ sơ hội viên.');
+                await supabaseClient.auth.signOut();
+            }
+        }
+
+        async function handleLogout() {
+            try { await supabaseClient.auth.signOut(); }
+            catch (e) { console.error('Lỗi đăng xuất Supabase:', e); }
+            activeAuthUser = null;
+            localStorage.removeItem('currentUser');
             location.reload();
         }
-
-        function handleLogin() {
-            let phone = document.getElementById('login-phone').value.trim();
-            if (!phone) { alert("Nhập số điện thoại!"); return; }
-            let list = getMemberList();
-            let user = list.find(m => m.phone === phone);
-            if (!user) { alert("SĐT chưa đăng ký!"); return; }
-            if (user.status === 'pending') { alert("Hồ sơ đang chờ duyệt!"); return; }
-            localStorage.setItem('currentUser', JSON.stringify(user));
-            loadAppUI();
-        }
-
-        function handleLogout() { localStorage.removeItem('currentUser'); location.reload(); }
 
         function loadAppUI() {
             let user = JSON.parse(localStorage.getItem('currentUser'));
