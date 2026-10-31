@@ -22,6 +22,9 @@
     .welcome{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:18px}.welcome h2{margin:0 0 5px}.pill{display:inline-block;padding:5px 9px;border-radius:99px;background:#e8f3ee;color:var(--green);font-size:12px;font-weight:700}
     .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}.stat strong{display:block;font-size:25px;margin-top:8px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.section-head h3{margin:0}.item{border:1px solid var(--line);padding:13px;border-radius:10px;margin:9px 0}.item h4{margin:0 0 6px}.item p{margin:5px 0}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line);vertical-align:top}th{background:#f5f8f6}
     footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}.small{font-size:12px}.row-actions{display:flex;gap:7px;flex-wrap:wrap}
+    .member-photo{width:64px;height:64px;object-fit:cover;border-radius:12px;border:1px solid var(--line);background:#edf4f0}
+    .photo-preview{display:flex;align-items:center;gap:12px;margin-top:8px;flex-wrap:wrap}
+    .photo-preview img{width:110px;height:110px;object-fit:cover;border-radius:12px;border:1px solid var(--line)}
     @media(max-width:760px){header{padding:12px}.layout{grid-template-columns:1fr}.side{display:flex;overflow:auto;gap:4px}.side button{white-space:nowrap;width:auto}.stats{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.full{grid-column:auto}.welcome{align-items:flex-start;flex-direction:column}.header-actions .ghost{display:none}}
   </style>
 </head>
@@ -52,6 +55,9 @@
         <label>Nơi hành nghề</label><input id="regWorkplace" placeholder="Tên cơ sở hoặc địa chỉ hành nghề">
         <label>Loại hội viên</label><select id="regMemberType"><option value="Chính thức">Chính thức</option><option value="Liên kết">Liên kết</option><option value="Danh dự">Danh dự</option></select>
         <label>Email (không bắt buộc)</label><input id="regContactEmail" type="email" autocomplete="email" placeholder="Địa chỉ email nếu có">
+        <label>Ảnh hội viên (không bắt buộc)</label>
+        <input id="regMemberPhoto" type="file" accept="image/*" capture="environment" onchange="previewMemberPhoto(this,'regPhotoPreview')">
+        <div id="regPhotoPreview" class="photo-preview muted small">Có thể chụp ảnh mới hoặc chọn ảnh có sẵn trong điện thoại/máy tính. Tối đa 5 MB.</div>
         <p class="muted small">Thông tin có dấu * là bắt buộc. Sau khi gửi, hồ sơ sẽ ở trạng thái chờ xét duyệt; hội viên chưa được tự cấp quyền chính thức.</p>
       </div>
       <div id="loginIdentityField"><label>Số điện thoại hoặc email tài khoản quản trị</label><input id="authEmail" type="text" inputmode="tel" autocomplete="username" required placeholder="Ví dụ: 0912345678"></div>
@@ -171,6 +177,33 @@
   const APP_URL = 'https://hien-dyah.github.io/hoidongyanapp/';
 
   const $ = id => document.getElementById(id);
+
+  function previewMemberPhoto(input,targetId){
+    const box=$(targetId), file=input.files&&input.files[0];
+    if(!file){box.textContent='Chưa chọn ảnh.';return;}
+    if(!file.type.startsWith('image/')){input.value='';box.textContent='Vui lòng chọn tệp hình ảnh.';return;}
+    if(file.size>5*1024*1024){input.value='';box.textContent='Ảnh không được vượt quá 5 MB.';return;}
+    const old=box.querySelector('img');if(old&&old.dataset.objectUrl)URL.revokeObjectURL(old.dataset.objectUrl);
+    const url=URL.createObjectURL(file);box.innerHTML='';
+    const img=document.createElement('img');img.src=url;img.alt='Ảnh xem trước';img.dataset.objectUrl=url;
+    const note=document.createElement('span');note.className='muted small';note.textContent='Ảnh xem trước';box.append(img,note);
+  }
+
+  async function uploadMemberPhoto(file,userId){
+    if(!file)return null;
+    if(!file.type.startsWith('image/'))throw new Error('Tệp tải lên phải là hình ảnh.');
+    if(file.size>5*1024*1024)throw new Error('Ảnh không được vượt quá 5 MB.');
+    const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
+    const path=`${userId}/${Date.now()}.${ext}`;
+    const {error}=await sb.storage.from('member-photos').upload(path,file,{upsert:false,contentType:file.type});
+    if(error)throw error;
+    const {data}=sb.storage.from('member-photos').getPublicUrl(path);return data.publicUrl;
+  }
+
+  function photoMarkup(url,alt='Ảnh hội viên'){
+    return url?`<img class="member-photo" src="${esc(url)}" alt="${esc(alt)}" loading="lazy">`:`<div class="member-photo" style="display:grid;place-items:center;color:#64756f">👤</div>`;
+  }
+
   function phoneToAuthEmail(value){
     const raw=String(value||'').trim();
     if(raw.includes('@')) return raw.toLowerCase(); // giữ đăng nhập email cho tài khoản quản trị hiện có
@@ -246,8 +279,11 @@
         if(data.user){
           currentUser=data.user;
           if(!data.session){message($('authMessage'),'Tài khoản đã tạo nhưng Supabase chưa cấp phiên đăng nhập. Cần tắt Confirm email trong Supabase. Hồ sơ hội viên chưa được gửi.',true);return;}
+           const photoFile=$('regMemberPhoto').files?.[0]||null;
+           const photoUrl=photoFile?await uploadMemberPhoto(photoFile,data.user.id):null;
           const memberPayload={
             user_id:data.user.id,branch_id:Number(branchId),full_name:name,phone:phone,
+             photo_url:photoUrl,
             email:$('regContactEmail').value.trim()||null,
             gender:$('regGender').value||null,birth_year:birthYear,
             address:$('regAddress').value.trim()||null,
@@ -260,7 +296,7 @@
           const {error:memberError}=await sb.from('members').insert(memberPayload);
           if(memberError){await sb.auth.signOut();currentUser=null;throw new Error('Tài khoản đã tạo nhưng chưa lưu được hồ sơ hội viên: '+memberError.message+'. Cần kiểm tra quyền INSERT cho phép người đăng ký tạo hồ sơ pending trong bảng members.');}
           message($('authMessage'),'Đã gửi đầy đủ hồ sơ đăng ký hội viên. Hồ sơ đang chờ Chi hội trưởng nhận xét và Ban Thường vụ/Admin quyết định duyệt hoặc từ chối.');
-          $('regPassword').value='';$('regPasswordConfirm').value='';['regName','regPhone','regBirthYear','regAddress','regEducation','regQualification','regWorkplace','regContactEmail'].forEach(id=>$(id).value='');$('regGender').value='';$('regMemberType').value='Chính thức';$('regBranch').value='';
+          $('regPassword').value='';$('regPasswordConfirm').value='';['regName','regPhone','regBirthYear','regAddress','regEducation','regQualification','regWorkplace','regContactEmail'].forEach(id=>$(id).value='');$('regGender').value='';$('regMemberType').value='Chính thức';$('regBranch').value='';$('regMemberPhoto').value='';$('regPhotoPreview').textContent='Có thể chụp ảnh mới hoặc chọn ảnh có sẵn trong điện thoại/máy tính. Tối đa 5 MB.';
           await sb.auth.signOut();currentUser=null;
           setAuthMode('login');
           $('authEmail').value=phone;
@@ -300,19 +336,26 @@
   async function loadProfile(){
     const box=$('profileContent');box.textContent='Đang tải hồ sơ…';
     try{
-      const {data,error}=await sb.from('profiles').select('*').eq('id',currentUser.id).maybeSingle();if(error)throw error;currentProfile=data;
-      $('statMember').textContent=data?'Đã có hồ sơ':'Chưa có hồ sơ';
-      if(!data){box.innerHTML='<p>Chưa tìm thấy hồ sơ trong bảng <code>profiles</code>.</p>';return;}
-      const rows=Object.entries(data).filter(([k,v])=>!['id'].includes(k)&&v!==null&&v!=='').map(([k,v])=>`<div class="item"><strong>${esc(labelFor(k))}</strong><p>${esc(String(v))}</p></div>`).join('');
-      box.innerHTML=rows||'<p>Hồ sơ đã tồn tại, chưa có trường thông tin bổ sung.</p>';
+      const {data,error}=await sb.from('members').select('*').eq('user_id',currentUser.id).maybeSingle();
+      if(error)throw error;currentProfile=data;$('statMember').textContent=data?'Đã có hồ sơ':'Chưa có hồ sơ';
+      if(!data){box.innerHTML='<p>Chưa tìm thấy hồ sơ hội viên trong bảng <code>members</code>. Nếu bạn vừa đăng ký, hồ sơ có thể đang chờ xử lý hoặc chưa được liên kết.</p>';return;}
+      const photo=data.photo_url?`<div class="item"><strong>Ảnh hội viên</strong><div class="photo-preview">${photoMarkup(data.photo_url,'Ảnh đại diện hội viên')}</div></div>`:'';
+      const rows=Object.entries(data).filter(([k,v])=>!['id','user_id','photo_url','created_by','branch_checked_by','executive_decided_by'].includes(k)&&v!==null&&v!=='').map(([k,v])=>`<div class="item"><strong>${esc(labelFor(k))}</strong><p>${esc(String(v))}</p></div>`).join('');
+      box.innerHTML=`${photo}<div class="item"><strong>Thay đổi ảnh đại diện</strong><label for="profilePhotoInput">Chụp ảnh mới hoặc chọn ảnh từ thiết bị</label><input id="profilePhotoInput" type="file" accept="image/*" capture="environment"><div class="muted small">Ảnh định dạng hình ảnh, tối đa 5 MB.</div><button type="button" class="secondary" id="saveProfilePhoto" style="margin-top:10px">Tải ảnh lên và lưu</button><div id="profilePhotoMessage" class="muted small" role="status"></div></div>${rows||'<p>Hồ sơ đã tồn tại, chưa có trường thông tin bổ sung.</p>'}`;
+      $('saveProfilePhoto').addEventListener('click',async()=>{
+        const btn=$('saveProfilePhoto'),file=$('profilePhotoInput').files?.[0],msg=$('profilePhotoMessage');
+        if(!file){msg.textContent='Bạn chưa chọn ảnh.';return;}btn.disabled=true;msg.textContent='Đang tải ảnh lên…';
+        try{const photoUrl=await uploadMemberPhoto(file,currentUser.id);const {error:updateError}=await sb.from('members').update({photo_url:photoUrl}).eq('id',data.id).eq('user_id',currentUser.id);if(updateError)throw updateError;msg.textContent='Đã cập nhật ảnh đại diện.';await loadProfile();}
+        catch(err){msg.textContent='Không cập nhật được ảnh: '+err.message;}finally{btn.disabled=false;}
+      });
     }catch(e){$('statMember').textContent='—';box.textContent='Không đọc được hồ sơ: '+e.message;}
   }
   function labelFor(k){return ({full_name:'Họ và tên',phone:'Số điện thoại',email:'Email',branch_id:'Mã chi hội',gender:'Giới tính',birth_year:'Năm sinh',address:'Địa chỉ thường trú',education_level:'Trình độ văn hóa',professional_qualification:'Văn bằng chuyên môn',workplace:'Nơi hành nghề',member_type:'Loại hội viên',status:'Trạng thái hồ sơ',role:'Vai trò',created_at:'Ngày tạo'})[k]||k;}
   async function loadMembers(){
     const box=$('membersContent');box.textContent='Đang tải…';
-    try{const {data,error}=await sb.from('members').select('id,member_code,full_name,gender,birth_year,phone,email,branch_id,status,education_level,professional_qualification,workplace,member_type').order('full_name').limit(300);if(error)throw error;
+    try{const {data,error}=await sb.from('members').select('id,member_code,full_name,gender,birth_year,phone,email,branch_id,status,education_level,professional_qualification,workplace,member_type,photo_url').order('full_name').limit(300);if(error)throw error;
       if(!data?.length){box.innerHTML='<p>Chưa có hội viên hoặc tài khoản không có quyền xem danh sách.</p>';return;}
-      box.innerHTML='<div class="table-wrap"><table><thead><tr><th>Mã hội viên</th><th>Họ tên</th><th>Điện thoại</th><th>Email</th><th>Trạng thái</th><th>Chi hội ID</th></tr></thead><tbody>'+data.map(m=>`<tr><td>${esc(m.member_code||'—')}</td><td>${esc(m.full_name||'—')}</td><td>${esc(m.phone||'—')}</td><td>${esc(m.email||'—')}</td><td>${esc(m.status||'—')}</td><td>${esc(m.branch_id??'—')}</td></tr>`).join('')+'</tbody></table></div>';
+      box.innerHTML='<div class="table-wrap"><table><thead><tr><th>Ảnh</th><th>Mã hội viên</th><th>Họ tên</th><th>Điện thoại</th><th>Email</th><th>Trạng thái</th><th>Chi hội ID</th></tr></thead><tbody>'+data.map(m=>`<tr><td>${photoMarkup(m.photo_url,m.full_name||'Ảnh hội viên')}</td><td>${esc(m.member_code||'—')}</td><td>${esc(m.full_name||'—')}</td><td>${esc(m.phone||'—')}</td><td>${esc(m.email||'—')}</td><td>${esc(m.status||'—')}</td><td>${esc(m.branch_id??'—')}</td></tr>`).join('')+'</tbody></table></div>';
     }catch(e){box.textContent='Không tải được danh sách hội viên. Có thể tài khoản chưa có quyền hoặc cấu trúc bảng khác: '+e.message;}
   }
   async function loadPendingMembers(){
@@ -322,7 +365,7 @@
     const isBranchHead=currentRoles.includes('BRANCH_HEAD');
     if(!isAdmin&&!isExecutive&&!isBranchHead){box.textContent='Bạn không có quyền xem hồ sơ đăng ký hội viên.';return;}
     try{
-      let q=sb.from('members').select('id,user_id,member_code,full_name,phone,email,branch_id,status,created_at').in('status',['pending','branch_checked']).order('created_at',{ascending:true}).limit(300);
+      let q=sb.from('members').select('id,user_id,member_code,full_name,phone,email,branch_id,status,photo_url,created_at').in('status',['pending','branch_checked']).order('created_at',{ascending:true}).limit(300);
       if(isBranchHead&&!isAdmin&&!isExecutive){
         const {data:links,error:le}=await sb.from('user_roles').select('branch_id').eq('user_id',currentUser.id).not('branch_id','is',null);
         if(le)throw le;
@@ -351,12 +394,12 @@
         }
         const comments=(reviewMap[m.id]||[]).map(r=>`<div class="small">• ${esc(r.comment)} <span class="muted">(${esc(r.created_at?new Date(r.created_at).toLocaleString('vi-VN'):'')})</span></div>`).join('')||'<span class="muted small">Chưa có nhận xét</span>';
         const statusLabel=m.status==='pending'?'Chờ xét duyệt':m.status==='branch_checked'?'Đã có bước xử lý trước đây':'—';
-        return `<tr><td>${esc(m.full_name||'—')}</td><td>${esc(m.phone||'—')}</td><td>${esc(m.email||'—')}</td><td>${esc(branches.find(b=>String(b.id)===String(m.branch_id))?.name||m.branch_id||'—')}</td><td>${esc(statusLabel)}</td><td>${comments}</td><td><div class="row-actions">${action}</div></td></tr>`;
+        return `<tr><td>${photoMarkup(m.photo_url,m.full_name||'Ảnh hội viên')}</td><td>${esc(m.full_name||'—')}</td><td>${esc(m.phone||'—')}</td><td>${esc(m.email||'—')}</td><td>${esc(branches.find(b=>String(b.id)===String(m.branch_id))?.name||m.branch_id||'—')}</td><td>${esc(statusLabel)}</td><td>${comments}</td><td><div class="row-actions">${action}</div></td></tr>`;
       }).join('');
       const intro=isBranchHead&&!isAdmin&&!isExecutive
         ?'Chi hội trưởng chỉ gửi nhận xét. Không có quyền duyệt hoặc từ chối hội viên.'
         :'Admin và Ban Thường vụ có quyền xem nhận xét, duyệt hoặc từ chối hồ sơ.';
-      box.innerHTML=`<div class="notice">${intro}</div><div class="table-wrap"><table><thead><tr><th>Họ tên</th><th>Điện thoại</th><th>Email</th><th>Chi hội</th><th>Trạng thái</th><th>Nhận xét Chi hội trưởng</th><th>Thao tác</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+      box.innerHTML=`<div class="notice">${intro}</div><div class="table-wrap"><table><thead><tr><th>Ảnh</th><th>Họ tên</th><th>Điện thoại</th><th>Email</th><th>Chi hội</th><th>Trạng thái</th><th>Nhận xét Chi hội trưởng</th><th>Thao tác</th></tr></thead><tbody>${rows}</tbody></table></div>`;
     }catch(e){box.textContent='Không tải được hồ sơ cần xử lý: '+e.message;}
   }
 
