@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#087653">
+  <meta name="theme-color" content="#087653"><link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./icon.svg" type="image/svg+xml"><meta name="description" content="Quản lý Hội Đông y phường An Hội">
   <title>Hội Đông y phường An Hội</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
@@ -68,7 +68,7 @@
         <button data-page="profile" onclick="showPage('profile',this)">👤 Hồ sơ của tôi</button>
         <button data-page="members" onclick="showPage('members',this)">👥 Quản lý hội viên</button>
         <button data-page="reports" onclick="showPage('reports',this)">📋 Báo cáo hoạt động</button>
-        <button data-page="news" onclick="showPage('news',this)">📰 Tin tức</button>
+        <button data-page="news" onclick="showPage('news',this)">📰 Tin tức</button><button data-page="tasks" onclick="showPage('tasks',this)">✅ Công việc</button><button data-page="documents" onclick="showPage('documents',this)">📁 Văn bản</button>
         <button id="adminMenuBtn" class="hidden" data-page="admin" onclick="showPage('admin',this)">🛡️ Quản trị hệ thống</button>
       </nav>
       <div>
@@ -103,7 +103,7 @@
           </div>
         </div>
         <div id="page-news" class="page hidden"><div class="card"><div class="section-head"><h3>Tin tức Hội và y học cổ truyền</h3><button onclick="loadNews()">Tải tin tức</button></div><div id="newsContent" class="muted">Đang tải tin tức…</div></div></div>
-        <div id="page-admin" class="page hidden"><div class="card"><h3>Quản trị hệ thống</h3><p class="muted">Trang tổng quan dành cho tài khoản có vai trò ADMIN. Dùng các mục bên trái để xem hội viên, báo cáo và tin tức.</p><div class="notice">Lưu ý: việc hiển thị trang quản trị không tự cấp quyền đọc/sửa dữ liệu. Các thao tác vẫn phải được cho phép bởi chính sách RLS trong Supabase.</div><div id="adminStatus" class="item">Đang kiểm tra quyền quản trị…</div><div class="section-head"><h3>Đăng ký hội viên chờ duyệt</h3><button onclick="loadPendingMembers()">Tải danh sách</button></div><div id="pendingMembersContent" class="muted">Chưa tải danh sách đăng ký.</div></div></div>
+        <div id="page-tasks" class="page hidden"><div class="card"><h3>Công việc được giao</h3><div id="tasksContent">Đang tải…</div></div></div><div id="page-documents" class="page hidden"><div class="card"><h3>Kho văn bản Hội</h3><div id="documentsContent">Đang tải…</div></div></div><div id="page-admin" class="page hidden"><div class="card"><h3>Quản trị hệ thống</h3><p class="muted">Trang tổng quan dành cho tài khoản có vai trò ADMIN. Dùng các mục bên trái để xem hội viên, báo cáo và tin tức.</p><div class="notice">Lưu ý: việc hiển thị trang quản trị không tự cấp quyền đọc/sửa dữ liệu. Các thao tác vẫn phải được cho phép bởi chính sách RLS trong Supabase.</div><div id="adminStatus" class="item">Đang kiểm tra quyền quản trị…</div><div class="section-head"><h3>Đăng ký hội viên chờ duyệt</h3><button onclick="loadPendingMembers()">Tải danh sách</button></div><div id="pendingMembersContent" class="muted">Chưa tải danh sách đăng ký.</div></div></div>
       </div>
     </div>
   </section>
@@ -291,6 +291,7 @@
   async function logout(){await sb.auth.signOut();currentUser=null;currentProfile=null;$('appView').classList.add('hidden');$('authView').classList.remove('hidden');$('logoutBtn').classList.add('hidden');$('headerUser').textContent='';$('authPassword').value='';}
   function esc(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
   async function init(){
+    if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(err=>console.warn('PWA worker:',err));}
     await loadBranches();
     sb.auth.onAuthStateChange(async(event,session)=>{
       if(event==='PASSWORD_RECOVERY'){
