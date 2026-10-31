@@ -33,7 +33,7 @@
 <main>
   <section id="authView" class="login-wrap card">
     <h2 id="authTitle">Đăng nhập hệ thống</h2>
-    <p class="muted">Đăng nhập bằng email và mật khẩu tài khoản đã đăng ký.</p>
+    <p class="muted">Đăng nhập bằng số điện thoại và mật khẩu. Khi đăng ký tài khoản mới, sử dụng email hợp lệ.</p>
     <div class="tabs"><button id="loginTab" class="active" onclick="setAuthMode('login')">Đăng nhập</button><button id="registerTab" onclick="setAuthMode('register')">Đăng ký mới</button></div>
     <form id="authForm">
       <div id="registerFields" class="hidden">
@@ -41,7 +41,7 @@
         <label>Số điện thoại</label><input id="regPhone" autocomplete="tel" placeholder="Nhập số điện thoại">
         <label>Chi hội</label><select id="regBranch"><option value="">Đang tải danh sách chi hội…</option></select>
       </div>
-      <label>Email</label><input id="authEmail" type="email" autocomplete="email" required placeholder="ten@example.com">
+      <label id="authEmailLabel">Số điện thoại</label><input id="authEmail" type="tel" inputmode="numeric" autocomplete="tel" required placeholder="0912345678">
       <label>Mật khẩu</label><input id="authPassword" type="password" minlength="6" autocomplete="current-password" required placeholder="Ít nhất 6 ký tự">
       <button id="authSubmit" type="submit" style="width:100%;margin-top:18px">Đăng nhập</button>
     </form>
@@ -124,6 +124,11 @@
     $('registerFields').classList.toggle('hidden',mode!=='register');$('authTitle').textContent=mode==='login'?'Đăng nhập hệ thống':'Đăng ký tài khoản hội viên';
     $('forgotPasswordRow').classList.toggle('hidden',mode!=='login');
     $('authSubmit').textContent=mode==='login'?'Đăng nhập':'Đăng ký tài khoản';$('authPassword').autocomplete=mode==='login'?'current-password':'new-password';$('authMessage').classList.add('hidden');
+    $('authEmailLabel').textContent=mode==='login'?'Số điện thoại':'Email';
+    $('authEmail').type=mode==='login'?'tel':'email';
+    $('authEmail').inputMode=mode==='login'?'numeric':'email';
+    $('authEmail').autocomplete=mode==='login'?'tel':'email';
+    $('authEmail').placeholder=mode==='login'?'0912345678':'ten@example.com';
     $('regName').required=mode==='register';$('regPhone').required=mode==='register';$('regBranch').required=mode==='register';
   }
   async function loadBranches(){
@@ -134,8 +139,9 @@
   }
 
   async function sendPasswordRecovery(){
-    const email=$('authEmail').value.trim();
-    if(!email){message($('authMessage'),'Vui lòng nhập email đăng nhập trước, rồi nhấn “Quên mật khẩu?”.',true);$('authEmail').focus();return;}
+    let email=$('authEmail').value.trim();
+    if(!email || !email.includes('@')) email=prompt('Nhập email đã đăng ký để nhận liên kết đặt lại mật khẩu:')||'';
+    if(!email){message($('authMessage'),'Vui lòng nhập email đã đăng ký để khôi phục mật khẩu.',true);return;}
     const btn=$('forgotPasswordRow').querySelector('button');btn.disabled=true;
     try{
       const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:APP_URL});
@@ -164,11 +170,18 @@
   $('authForm').addEventListener('submit',async e=>{
     e.preventDefault();const btn=$('authSubmit');btn.disabled=true;
     try{
-      const email=$('authEmail').value.trim(),password=$('authPassword').value;
+      const loginValue=$('authEmail').value.trim(),password=$('authPassword').value;
       if(authMode==='login'){
-        const {data,error}=await sb.auth.signInWithPassword({email,password});if(error)throw error;
-        currentUser=data.user;await openApp();
+        const phone=loginValue.replace(/\\D/g,'');
+        if(!/^0\\d{9,10}$/.test(phone))throw new Error('Vui lòng nhập số điện thoại hợp lệ.');
+        const {data,error}=await sb.functions.invoke('phone-login',{body:{phone,password}});
+        if(error)throw new Error(error.message||'Không gọi được chức năng đăng nhập số điện thoại.');
+        if(!data?.access_token||!data?.refresh_token)throw new Error(data?.error||'Không nhận được phiên đăng nhập.');
+        const {data:sessionData,error:sessionError}=await sb.auth.setSession({access_token:data.access_token,refresh_token:data.refresh_token});
+        if(sessionError)throw sessionError;
+        currentUser=sessionData.user||data.user;await openApp();
       }else{
+        const email=loginValue;
         const name=$('regName').value.trim(),phone=$('regPhone').value.trim(),branchId=$('regBranch').value;
         const {data,error}=await sb.auth.signUp({email,password,options:{data:{full_name:name,phone:phone,branch_id:branchId}}});if(error)throw error;
         if(data.user){
