@@ -142,7 +142,7 @@
   const SUPABASE_URL = 'https://bsbipobamdbatcdhmsmy.supabase.co';
   const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_Qj9ZACCvFJrwWdMEsRUl8w_TTh4XPR_';
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
-  let authMode = 'login', currentUser = null, currentProfile = null, currentRoles = [], branches = [], recoverySession = false;
+  let authMode = 'login', currentUser = null, currentProfile = null, currentRoles = [], branches = [], recoverySession = false, registrationInProgress = false;
   const APP_URL = new URL('./', window.location.href).href;
 
   const $ = id => document.getElementById(id);
@@ -263,13 +263,20 @@
         currentUser=data.user;await openApp();
       }else{
         const name=$('regName').value.trim(),phone=$('regPhone').value.trim(),branchId=$('regBranch').value;
+        registrationInProgress=true;
         const {data,error}=await sb.auth.signUp({email,password,options:{data:{full_name:name,phone:phone,branch_id:branchId}}});if(error)throw error;
         if(data.user){
-          if(data.session){await sb.auth.signOut();}
-          $('appView').classList.add('hidden');$('authView').classList.remove('hidden');$('authForm').reset();
-          $('authEmail').value='';$('authPassword').value='';setAuthMode('login');backToLoginMethods();
-          message($('authMessage'),'Đã tạo tài khoản đăng ký. Hãy xác nhận email nếu được yêu cầu, sau đó chọn cách đăng nhập để vào hệ thống. Tài khoản mới không tự động vào bảng điều khiển.');
+          // Dang ky chi tao tai khoan cho xet duyet; khong giu phien dang nhap.
+          await sb.auth.signOut();
+          currentUser=null;currentProfile=null;currentRoles=[];
+          $('appView').classList.add('hidden');$('authView').classList.remove('hidden');
+          $('logoutBtn').classList.add('hidden');$('headerUser').textContent='';
+          $('authForm').reset();$('authEmail').value='';$('authPassword').value='';
+          $('phoneLoginPhone').value='';$('phoneLoginPassword').value='';
+          setAuthMode('login');backToLoginMethods();
+          message($('authMessage'),'ĐÃ GỬI ĐĂNG KÝ THÀNH CÔNG. Hồ sơ của bạn đang chờ Hội kiểm tra và Ban Thường vụ phê duyệt. Bạn đã được đưa về màn hình đăng nhập; vui lòng chờ thông báo duyệt trước khi đăng nhập sử dụng hệ thống.');
         } else {message($('authMessage'),'Không tạo được tài khoản. Vui lòng thử lại.',true);}
+        registrationInProgress=false;
       }
     }catch(err){message($('authMessage'),friendlyError(err),true);}
     finally{btn.disabled=false;}
@@ -576,7 +583,7 @@ async function transferAdmin(){if(!currentRoles.includes('ADMIN'))return alert('
       if(event==='PASSWORD_RECOVERY'){
         recoverySession=true;$('appView').classList.add('hidden');$('authView').classList.remove('hidden');$('authForm').classList.add('hidden');$('forgotPasswordRow').classList.add('hidden');$('registerFields').classList.add('hidden');$('authTitle').textContent='Đặt lại mật khẩu';$('recoveryPanel').classList.remove('hidden');$('recoveryMessage').textContent='';
       }
-      if(event==='SIGNED_IN'&&session&&!recoverySession&&!currentUser){currentUser=session.user;setTimeout(openApp,0);}
+      if(event==='SIGNED_IN'&&session&&!recoverySession&&!registrationInProgress&&!currentUser){currentUser=session.user;setTimeout(openApp,0);}
       if(event==='SIGNED_OUT'){currentUser=null;}
     });
     const {data:{session}}=await sb.auth.getSession();if(session&&!recoverySession){currentUser=session.user;await openApp();}
