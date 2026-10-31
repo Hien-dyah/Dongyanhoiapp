@@ -87,7 +87,7 @@
           <div class="card"><div class="section-head"><h3>Quản lý hội viên</h3><button onclick="loadMembers()">Tải danh sách</button></div><p class="muted">Danh sách hiển thị theo quyền RLS hiện được cấu hình trong Supabase.</p><div id="membersContent" class="muted">Chưa tải dữ liệu.</div><hr><div class="section-head"><h3>Hồ sơ chờ xử lý</h3><button onclick="loadPendingMembers()">Tải hồ sơ</button></div><div id="pendingMembersContent" class="muted">Chưa tải danh sách đăng ký.</div></div>
         </div>
         <div id="page-reports" class="page hidden">
-          <div class="card"><div class="section-head"><h3>Báo cáo hoạt động</h3><button onclick="loadReports()">Tải báo cáo</button></div>
+          <div class="card"><div class="section-head"><h3>Báo cáo hoạt động</h3><div class="row-actions"><button class="secondary" onclick="exportReportsCSV()">Xuất Excel (CSV)</button><button class="secondary" onclick="printReports()">In / Lưu PDF</button><button onclick="loadReports()">Tải báo cáo</button></div></div>
             <form id="reportForm">
               <div class="form-grid">
                 <div class="full"><label>Tiêu đề báo cáo</label><input id="reportTitle" required placeholder="Ví dụ: Báo cáo hoạt động tháng 10"></div>
@@ -264,6 +264,45 @@
     const note=prompt('Lý do từ chối:');if(note===null)return;
     try{const {error}=await sb.rpc('review_member_application',{p_member_id:memberId,p_action:'reject',p_comment:note});if(error)throw error;await loadPendingMembers();}
     catch(e){alert('Chưa cập nhật được hồ sơ: '+e.message);}
+  }
+
+
+  async function getExportReports(){
+    const {data,error}=await sb.from('reports').select('*').order('period_start',{ascending:false}).limit(1000);
+    if(error)throw error;
+    return data||[];
+  }
+  function csvCell(v){const x=String(v??'');return '"'+x.replace(/"/g,'""')+'"';}
+  async function exportReportsCSV(){
+    try{
+      const rows=await getExportReports();
+      if(!rows.length){alert('Chưa có báo cáo để xuất.');return;}
+      const columns=[
+        ['report_code','Mã báo cáo'],['title','Tiêu đề'],['report_type','Loại báo cáo'],
+        ['period_start','Từ ngày'],['period_end','Đến ngày'],['status','Trạng thái'],
+        ['consultation_paid_count','Lượt khám có phí'],['consultation_free_count','Lượt khám miễn phí'],
+        ['chinese_medicine_paid_count','Thuốc bắc có phí'],['chinese_medicine_free_count','Thuốc bắc miễn phí'],
+        ['vietnamese_medicine_paid_count','Thuốc nam có phí'],['vietnamese_medicine_free_count','Thuốc nam miễn phí'],
+        ['acupuncture_paid_count','Châm cứu có phí'],['acupuncture_free_count','Châm cứu miễn phí'],
+        ['electrotherapy_paid_count','Điện trị liệu có phí'],['electrotherapy_free_count','Điện trị liệu miễn phí'],
+        ['medicinal_herbs_quantity','Số lượng dược liệu'],['medicinal_herbs_unit_price','Đơn giá dược liệu'],
+        ['charity_quantity','Số lượng từ thiện'],['charity_unit_price','Đơn giá từ thiện'],
+        ['charity_amount','Thành tiền từ thiện'],['recommendations','Kiến nghị'],['summary','Tóm tắt']
+      ];
+      const csv='\uFEFF'+[columns.map(c=>csvCell(c[1])).join(','),...rows.map(r=>columns.map(c=>csvCell(r[c[0]])).join(','))].join('\r\n');
+      const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
+      const a=document.createElement('a');a.href=url;a.download='bao-cao-hoi-dong-y.csv';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+    }catch(e){alert('Không xuất được báo cáo: '+e.message);}
+  }
+  async function printReports(){
+    try{
+      const rows=await getExportReports();
+      if(!rows.length){alert('Chưa có báo cáo để in.');return;}
+      const cols=[['title','Tiêu đề'],['report_type','Loại'],['period_start','Từ ngày'],['period_end','Đến ngày'],['status','Trạng thái'],['consultation_paid_count','Khám có phí'],['consultation_free_count','Khám miễn phí'],['charity_amount','Từ thiện (VNĐ)']];
+      const w=window.open('','_blank');if(!w){alert('Trình duyệt đang chặn cửa sổ in. Hãy cho phép cửa sổ bật lên.');return;}
+      w.document.write('<!doctype html><html lang="vi"><meta charset="utf-8"><title>Báo cáo Hội Đông y</title><style>body{font:13px Arial;padding:24px;color:#222}h2{margin-bottom:6px}p{color:#555}table{width:100%;border-collapse:collapse;margin-top:18px}th,td{border:1px solid #bbb;padding:7px;text-align:left}th{background:#eee}@media print{button{display:none}}</style><h2>BÁO CÁO HOẠT ĐỘNG HỘI ĐÔNG Y PHƯỜNG AN HỘI</h2><p>Ngày in: '+new Date().toLocaleDateString('vi-VN')+'</p><button onclick="window.print()">In / Lưu PDF</button><table><thead><tr>'+cols.map(c=>'<th>'+c[1]+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+cols.map(c=>'<td>'+String(r[c[0]]??'').replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]))+'</td>').join('')+'</tr>').join('')+'</tbody></table></html>');
+      w.document.close();
+    }catch(e){alert('Không tạo được bản in: '+e.message);}
   }
 
   async function loadReports(){
