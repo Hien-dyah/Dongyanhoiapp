@@ -263,15 +263,16 @@
   }
   async function deleteMember(memberId,memberName){
     if(!currentRoles.includes('ADMIN'))return alert('Chỉ ADMIN mới được xóa hội viên.');
-    if(!confirm('Mày có chắc muốn xóa hồ sơ hội viên '+memberName+'? Tài khoản đăng nhập không bị xóa. Hồ sơ đã có báo cáo sẽ được bảo vệ và không cho xóa.'))return;
-    const confirmText=prompt('Nhập XOA để xác nhận xóa hồ sơ này:');
-    if(confirmText!=='XOA')return alert('Đã hủy thao tác xóa.');
+    if(!confirm('CẢNH BÁO: Xóa '+memberName+' sẽ xóa cả hồ sơ hội viên và tài khoản đăng nhập liên kết. Người này sẽ không thể đăng nhập lại. Hồ sơ đã có báo cáo hoặc tài khoản đang giữ vai trò quản lý sẽ không được xóa.'))return;
+    const confirmText=prompt('Nhập XOA TAI KHOAN để xác nhận xóa cả hồ sơ và tài khoản đăng nhập:');
+    if(confirmText!=='XOA TAI KHOAN')return alert('Đã hủy thao tác xóa.');
     try{
-      const {data,error}=await sb.rpc('admin_delete_member',{p_member_id:memberId});
+      const {data,error}=await sb.functions.invoke('admin-delete-member',{body:{member_id:memberId}});
       if(error)throw error;
-      alert(data||'Đã xóa hồ sơ hội viên.');
+      if(data?.error)throw new Error(data.error);
+      alert(data?.message||'Đã xóa hồ sơ và tài khoản đăng nhập liên kết.');
       await loadMembers();await loadPendingMembers();
-    }catch(e){alert('Không xóa được: '+e.message);}
+    }catch(e){alert('Không xóa được: '+(e.message||String(e)));}
   }
   async function loadPendingMembers(){
     const box=$('pendingMembersContent');if(!box)return;box.textContent='Đang tải hồ sơ chờ xử lý…';
