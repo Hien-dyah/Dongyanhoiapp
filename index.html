@@ -172,8 +172,8 @@
     try{
       const loginValue=$('authEmail').value.trim(),password=$('authPassword').value;
       if(authMode==='login'){
-        const phone=loginValue.replace(/\\D/g,'');
-        if(!/^0\\d{9,10}$/.test(phone))throw new Error('Vui lòng nhập số điện thoại hợp lệ.');
+        const phone=loginValue.replace(/\D/g,'');
+        if(!/^0\d{9,10}$/.test(phone))throw new Error('Vui lòng nhập số điện thoại hợp lệ.');
         const {data,error}=await sb.functions.invoke('phone-login',{body:{phone,password}});
         if(error)throw new Error(error.message||'Không gọi được chức năng đăng nhập số điện thoại.');
         if(!data?.access_token||!data?.refresh_token)throw new Error(data?.error||'Không nhận được phiên đăng nhập.');
