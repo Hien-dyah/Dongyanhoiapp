@@ -22,9 +22,6 @@
     .welcome{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:18px}.welcome h2{margin:0 0 5px}.pill{display:inline-block;padding:5px 9px;border-radius:99px;background:#e8f3ee;color:var(--green);font-size:12px;font-weight:700}
     .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}.stat strong{display:block;font-size:25px;margin-top:8px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.section-head h3{margin:0}.item{border:1px solid var(--line);padding:13px;border-radius:10px;margin:9px 0}.item h4{margin:0 0 6px}.item p{margin:5px 0}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line);vertical-align:top}th{background:#f5f8f6}
     footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}.small{font-size:12px}.row-actions{display:flex;gap:7px;flex-wrap:wrap}
-    .member-photo{width:64px;height:64px;object-fit:cover;border-radius:12px;border:1px solid var(--line);background:#edf4f0}
-    .photo-preview{display:flex;align-items:center;gap:12px;margin-top:8px;flex-wrap:wrap}
-    .photo-preview img{width:110px;height:110px;object-fit:cover;border-radius:12px;border:1px solid var(--line)}
     @media(max-width:760px){header{padding:12px}.layout{grid-template-columns:1fr}.side{display:flex;overflow:auto;gap:4px}.side button{white-space:nowrap;width:auto}.stats{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.full{grid-column:auto}.welcome{align-items:flex-start;flex-direction:column}.header-actions .ghost{display:none}}
   </style>
 </head>
@@ -36,32 +33,16 @@
 <main>
   <section id="authView" class="login-wrap card">
     <h2 id="authTitle">Đăng nhập hệ thống</h2>
-    <p class="muted">Hội viên đăng ký và đăng nhập bằng số điện thoại cùng mật khẩu. Tài khoản quản trị cũ vẫn có thể dùng email.</p>
+    <p class="muted">Đăng nhập bằng email và mật khẩu tài khoản đã đăng ký.</p>
     <div class="tabs"><button id="loginTab" class="active" onclick="setAuthMode('login')">Đăng nhập</button><button id="registerTab" onclick="setAuthMode('register')">Đăng ký mới</button></div>
     <form id="authForm">
       <div id="registerFields" class="hidden">
-        <h3>Thông tin tài khoản</h3>
-        <label>Họ và tên *</label><input id="regName" autocomplete="name" placeholder="Nhập họ và tên">
-        <label>Số điện thoại đăng nhập *</label><input id="regPhone" autocomplete="tel" inputmode="tel" placeholder="Ví dụ: 0912345678">
-        <label>Mật khẩu đăng nhập *</label><input id="regPassword" type="password" minlength="6" autocomplete="new-password" placeholder="Tạo mật khẩu ít nhất 6 ký tự">
-        <label>Nhập lại mật khẩu *</label><input id="regPasswordConfirm" type="password" minlength="6" autocomplete="new-password" placeholder="Nhập lại mật khẩu">
-        <h3>Thông tin hồ sơ hội viên</h3>
-        <label>Chi hội *</label><select id="regBranch"><option value="">Đang tải danh sách chi hội…</option></select>
-        <label>Giới tính</label><select id="regGender"><option value="">Chọn giới tính</option><option value="Nam">Nam</option><option value="Nữ">Nữ</option><option value="Khác">Khác</option></select>
-        <label>Năm sinh</label><input id="regBirthYear" type="number" min="1900" max="2100" step="1" placeholder="Ví dụ: 1975">
-        <label>Địa chỉ thường trú</label><input id="regAddress" autocomplete="street-address" placeholder="Số nhà, ấp/khu phố, xã/phường">
-        <label>Trình độ văn hóa</label><input id="regEducation" placeholder="Ví dụ: 12/12">
-        <label>Văn bằng chuyên môn</label><input id="regQualification" placeholder="Ví dụ: Y sĩ Y học cổ truyền">
-        <label>Nơi hành nghề</label><input id="regWorkplace" placeholder="Tên cơ sở hoặc địa chỉ hành nghề">
-        <label>Loại hội viên</label><select id="regMemberType"><option value="Chính thức">Chính thức</option><option value="Liên kết">Liên kết</option><option value="Danh dự">Danh dự</option></select>
-        <label>Email (không bắt buộc)</label><input id="regContactEmail" type="email" autocomplete="email" placeholder="Địa chỉ email nếu có">
-        <label>Ảnh hội viên (không bắt buộc)</label>
-        <input id="regMemberPhoto" type="file" accept="image/*" capture="environment" onchange="previewMemberPhoto(this,'regPhotoPreview')">
-        <div id="regPhotoPreview" class="photo-preview muted small">Có thể chụp ảnh mới hoặc chọn ảnh có sẵn trong điện thoại/máy tính. Tối đa 5 MB.</div>
-        <p class="muted small">Thông tin có dấu * là bắt buộc. Sau khi gửi, hồ sơ sẽ ở trạng thái chờ xét duyệt; hội viên chưa được tự cấp quyền chính thức.</p>
+        <label>Họ và tên</label><input id="regName" autocomplete="name" placeholder="Nhập họ và tên">
+        <label>Số điện thoại</label><input id="regPhone" autocomplete="tel" placeholder="Nhập số điện thoại">
+        <label>Chi hội</label><select id="regBranch"><option value="">Đang tải danh sách chi hội…</option></select>
       </div>
-      <div id="loginIdentityField"><label>Số điện thoại hoặc email tài khoản quản trị</label><input id="authEmail" type="text" inputmode="tel" autocomplete="username" required placeholder="Ví dụ: 0912345678"></div>
-      <div id="loginPasswordField"><label>Mật khẩu</label><input id="authPassword" type="password" minlength="6" autocomplete="current-password" required placeholder="Ít nhất 6 ký tự"></div>
+      <label>Email</label><input id="authEmail" type="email" autocomplete="email" required placeholder="ten@example.com">
+      <label>Mật khẩu</label><input id="authPassword" type="password" minlength="6" autocomplete="current-password" required placeholder="Ít nhất 6 ký tự">
       <button id="authSubmit" type="submit" style="width:100%;margin-top:18px">Đăng nhập</button>
     </form>
     <div id="forgotPasswordRow" style="text-align:right;margin-top:10px"><button type="button" class="ghost" onclick="sendPasswordRecovery()" style="padding:4px 0;background:transparent;color:var(--green);border:0;text-decoration:underline">Quên mật khẩu?</button></div>
@@ -76,7 +57,7 @@
       <div id="recoveryMessage" class="small" role="status" style="margin-top:8px"></div>
     </section>
     <div id="authMessage" class="notice hidden" role="status"></div>
-    <p class="muted small">Đăng ký bằng số điện thoại không gửi SMS. Hãy nhập đúng số điện thoại đang sử dụng và giữ bí mật mật khẩu. Tài khoản mới sẽ chờ xét duyệt trước khi được sử dụng đầy đủ.</p>
+    <p class="muted small">Tài khoản mới có thể cần xác nhận email. Quyền truy cập phụ thuộc vào vai trò được cấp trong cơ sở dữ liệu.</p>
   </section>
 
   <section id="appView" class="hidden">
@@ -113,63 +94,22 @@
                 <div><label>Loại báo cáo</label><select id="reportType"><option value="monthly">Báo cáo tháng</option><option value="quarterly">Báo cáo quý</option><option value="annual">Báo cáo năm</option><option value="other">Khác</option></select></div>
                 <div><label>Kỳ bắt đầu</label><input id="periodStart" type="date" required></div>
                 <div><label>Kỳ kết thúc</label><input id="periodEnd" type="date" required></div>
+                <div class="full"><label>Tóm tắt hoạt động / kiến nghị</label><textarea id="reportSummary" placeholder="Nội dung hoạt động, dược liệu, từ thiện, kiến nghị…"></textarea></div>
               </div>
-              <h4>1. Khám bệnh</h4>
-              <div class="form-grid">
-                <div><label>Lượt khám có phí</label><input id="consultationPaidCount" type="number" min="0" step="1" value="0"></div>
-                <div><label>Đơn giá khám có phí (đồng)</label><input id="consultationPaidPrice" type="number" min="0" step="1000" value="0"></div>
-                <div><label>Lượt khám miễn phí</label><input id="consultationFreeCount" type="number" min="0" step="1" value="0"></div>
-              </div>
-              <h4>2. Thuốc bắc</h4>
-              <div class="form-grid">
-                <div><label>Lượt/số phần có phí</label><input id="chinesePaidCount" type="number" min="0" step="1" value="0"></div>
-                <div><label>Đơn giá (đồng)</label><input id="chinesePaidPrice" type="number" min="0" step="1000" value="0"></div>
-                <div><label>Lượt/số phần miễn phí</label><input id="chineseFreeCount" type="number" min="0" step="1" value="0"></div>
-              </div>
-              <h4>3. Thuốc nam</h4>
-              <div class="form-grid">
-                <div><label>Lượt/số phần có phí</label><input id="vietnamesePaidCount" type="number" min="0" step="1" value="0"></div>
-                <div><label>Đơn giá (đồng)</label><input id="vietnamesePaidPrice" type="number" min="0" step="1000" value="0"></div>
-                <div><label>Lượt/số phần miễn phí</label><input id="vietnameseFreeCount" type="number" min="0" step="1" value="0"></div>
-              </div>
-              <h4>4. Châm cứu</h4>
-              <div class="form-grid">
-                <div><label>Lượt châm cứu có phí</label><input id="acupuncturePaidCount" type="number" min="0" step="1" value="0"></div>
-                <div><label>Đơn giá (đồng)</label><input id="acupuncturePaidPrice" type="number" min="0" step="1000" value="0"></div>
-                <div><label>Lượt châm cứu miễn phí</label><input id="acupunctureFreeCount" type="number" min="0" step="1" value="0"></div>
-              </div>
-              <h4>5. Điện trị liệu</h4>
-              <div class="form-grid">
-                <div><label>Lượt điện trị liệu có phí</label><input id="electroPaidCount" type="number" min="0" step="1" value="0"></div>
-                <div><label>Đơn giá (đồng)</label><input id="electroPaidPrice" type="number" min="0" step="1000" value="0"></div>
-                <div><label>Lượt điện trị liệu miễn phí</label><input id="electroFreeCount" type="number" min="0" step="1" value="0"></div>
-              </div>
-              <h4>6. Dược liệu</h4>
-              <div class="form-grid">
-                <div><label>Số lượng dược liệu</label><input id="herbsQuantity" type="number" min="0" step="0.01" value="0"></div>
-                <div><label>Đơn giá dược liệu (đồng)</label><input id="herbsUnitPrice" type="number" min="0" step="1000" value="0"></div>
-              </div>
-              <h4>7. Từ thiện, phúc lợi xã hội</h4>
-              <div class="form-grid">
-                <div><label>Số lượng / lượt hỗ trợ</label><input id="charityQuantity" type="number" min="0" step="0.01" value="0"></div>
-                <div><label>Giá trị mỗi phần (đồng)</label><input id="charityUnitPrice" type="number" min="0" step="1000" value="0"></div>
-              </div>
-              <div class="form-grid"><div class="full"><label>Kiến nghị, đề xuất và nội dung hoạt động khác</label><textarea id="reportSummary" placeholder="Nhập kiến nghị, đề xuất hoặc nội dung cần báo cáo…"></textarea></div></div>
-              <div class="notice">Các số liệu được lưu trực tiếp trong bảng reports. Hãy nhập 0 nếu không phát sinh; báo cáo sẽ được lưu ở trạng thái bản nháp.</div>
+              <div class="notice">Bản đầu tiên lưu phần thông tin chung của báo cáo. Các chỉ tiêu chi tiết (khám có phí/miễn phí, thuốc bắc, thuốc nam, dược liệu, từ thiện) cần được ánh xạ chính xác với cấu trúc report_items của dự án trước khi nhập dữ liệu.</div>
               <button type="submit">Lưu bản nháp báo cáo</button>
             </form>
             <hr style="border:0;border-top:1px solid var(--line);margin:20px 0"><div id="reportsContent" class="muted">Chưa tải báo cáo.</div>
           </div>
         </div>
         <div id="page-news" class="page hidden"><div class="card"><div class="section-head"><h3>Tin tức Hội và y học cổ truyền</h3><button onclick="loadNews()">Tải tin tức</button></div><div id="newsContent" class="muted">Đang tải tin tức…</div></div></div>
-        <div id="page-admin" class="page hidden"><div class="card"><h3>Quản trị hệ thống</h3><p class="muted">Khu vực xét duyệt hội viên dành cho ADMIN và Ban Thường vụ; Chi hội trưởng chỉ gửi nhận xét. Các mục bên trái dùng để xem hội viên, báo cáo và tin tức.</p><div class="notice">Quy trình: Hội viên đăng ký → Chi hội trưởng gửi nhận xét → ADMIN hoặc Ban Thường vụ quyết định duyệt/từ chối. Quyền thực tế vẫn do chính sách RLS trong Supabase kiểm soát.</div><div id="adminStatus" class="item">Đang kiểm tra quyền quản trị…</div><div class="section-head"><h3>Hồ sơ hội viên cần xử lý</h3><button onclick="loadPendingMembers()">Tải danh sách</button></div><div id="pendingMembersContent" class="muted">Chưa tải danh sách đăng ký.</div></div></div>
+        <div id="page-admin" class="page hidden"><div class="card"><h3>Quản trị hệ thống</h3><p class="muted">Trang tổng quan dành cho tài khoản có vai trò ADMIN. Dùng các mục bên trái để xem hội viên, báo cáo và tin tức.</p><div class="notice">Lưu ý: việc hiển thị trang quản trị không tự cấp quyền đọc/sửa dữ liệu. Các thao tác vẫn phải được cho phép bởi chính sách RLS trong Supabase.</div><div id="adminStatus" class="item">Đang kiểm tra quyền quản trị…</div><div class="section-head"><h3>Đăng ký hội viên chờ duyệt</h3><button onclick="loadPendingMembers()">Tải danh sách</button></div><div id="pendingMembersContent" class="muted">Chưa tải danh sách đăng ký.</div></div></div>
       </div>
     </div>
   </section>
 </main>
 <footer>Hội Đông y phường An Hội · Hệ thống quản lý hội viên</footer>
 <script>
-  // Publishable key dùng ở trình duyệt; không đặt service_role/secret key trong HTML.
   const SUPABASE_URL = 'https://bsbipobamdbatcdhmsmy.supabase.co';
   const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_Qj9ZACCvFJrwWdMEsRUl8w_TTh4XPR_';
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
@@ -177,50 +117,13 @@
   const APP_URL = 'https://hien-dyah.github.io/hoidongyanapp/';
 
   const $ = id => document.getElementById(id);
-
-  function previewMemberPhoto(input,targetId){
-    const box=$(targetId), file=input.files&&input.files[0];
-    if(!file){box.textContent='Chưa chọn ảnh.';return;}
-    if(!file.type.startsWith('image/')){input.value='';box.textContent='Vui lòng chọn tệp hình ảnh.';return;}
-    if(file.size>5*1024*1024){input.value='';box.textContent='Ảnh không được vượt quá 5 MB.';return;}
-    const old=box.querySelector('img');if(old&&old.dataset.objectUrl)URL.revokeObjectURL(old.dataset.objectUrl);
-    const url=URL.createObjectURL(file);box.innerHTML='';
-    const img=document.createElement('img');img.src=url;img.alt='Ảnh xem trước';img.dataset.objectUrl=url;
-    const note=document.createElement('span');note.className='muted small';note.textContent='Ảnh xem trước';box.append(img,note);
-  }
-
-  async function uploadMemberPhoto(file,userId){
-    if(!file)return null;
-    if(!file.type.startsWith('image/'))throw new Error('Tệp tải lên phải là hình ảnh.');
-    if(file.size>5*1024*1024)throw new Error('Ảnh không được vượt quá 5 MB.');
-    const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
-    const path=`${userId}/${Date.now()}.${ext}`;
-    const {error}=await sb.storage.from('member-photos').upload(path,file,{upsert:false,contentType:file.type});
-    if(error)throw error;
-    const {data}=sb.storage.from('member-photos').getPublicUrl(path);return data.publicUrl;
-  }
-
-  function photoMarkup(url,alt='Ảnh hội viên'){
-    return url?`<img class="member-photo" src="${esc(url)}" alt="${esc(alt)}" loading="lazy">`:`<div class="member-photo" style="display:grid;place-items:center;color:#64756f">👤</div>`;
-  }
-
-  function phoneToAuthEmail(value){
-    const raw=String(value||'').trim();
-    if(raw.includes('@')) return raw.toLowerCase(); // giữ đăng nhập email cho tài khoản quản trị hiện có
-    let digits=raw.replace(/[^0-9]/g,'');
-    if(digits.startsWith('0084')) digits='84'+digits.slice(4);
-    else if(digits.startsWith('0')) digits='84'+digits.slice(1);
-    if(!digits.startsWith('84') || digits.length<11 || digits.length>12)
-      throw new Error('Số điện thoại Việt Nam chưa đúng. Hãy nhập dạng 09xxxxxxxx hoặc +849xxxxxxxx.');
-    return digits+'@phone.hoidongyanapp.com';
-  }
   function message(el, text, error=false){el.textContent=text;el.classList.remove('hidden','error');if(error)el.classList.add('error');}
   function setAuthMode(mode){
     authMode=mode; $('loginTab').classList.toggle('active',mode==='login');$('registerTab').classList.toggle('active',mode==='register');
-    $('registerFields').classList.toggle('hidden',mode!=='register');$('loginIdentityField').classList.toggle('hidden',mode==='register');$('loginPasswordField').classList.toggle('hidden',mode==='register');$('authEmail').required=mode==='login';$('authPassword').required=mode==='login';$('authTitle').textContent=mode==='login'?'Đăng nhập hệ thống':'Đăng ký tài khoản hội viên';
+    $('registerFields').classList.toggle('hidden',mode!=='register');$('authTitle').textContent=mode==='login'?'Đăng nhập hệ thống':'Đăng ký tài khoản hội viên';
     $('forgotPasswordRow').classList.toggle('hidden',mode!=='login');
-    $('authSubmit').textContent=mode==='login'?'Đăng nhập':'Gửi hồ sơ đăng ký';$('authPassword').autocomplete='current-password';$('authMessage').classList.add('hidden');
-    ['regName','regPhone','regBranch','regPassword','regPasswordConfirm'].forEach(id=>$(id).required=mode==='register');
+    $('authSubmit').textContent=mode==='login'?'Đăng nhập':'Đăng ký tài khoản';$('authPassword').autocomplete=mode==='login'?'current-password':'new-password';$('authMessage').classList.add('hidden');
+    $('regName').required=mode==='register';$('regPhone').required=mode==='register';$('regBranch').required=mode==='register';
   }
   async function loadBranches(){
     const sel=$('regBranch');
@@ -230,17 +133,16 @@
   }
 
   async function sendPasswordRecovery(){
-    const entered=$('authEmail').value.trim();
-    if(!entered || !entered.includes('@')){message($('authMessage'),'Tài khoản đăng ký bằng số điện thoại chưa hỗ trợ tự đặt lại mật khẩu qua SMS. Vui lòng liên hệ Ban quản trị để được hỗ trợ đặt lại mật khẩu.',true);$('authEmail').focus();return;}
-    const email=entered.toLowerCase();
+    const email=$('authEmail').value.trim();
+    if(!email){message($('authMessage'),'Vui lòng nhập email đăng nhập trước, rồi nhấn “Quên mật khẩu?”.',true);$('authEmail').focus();return;}
     const btn=$('forgotPasswordRow').querySelector('button');btn.disabled=true;
     try{
       const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:APP_URL});
       if(error)throw error;
-      message($('authMessage'),'Nếu email này đã đăng ký, Supabase sẽ gửi liên kết đặt lại mật khẩu. Hãy kiểm tra Hộp thư đến và Spam. Nếu vừa gửi nhiều lần, hãy chờ trước khi thử lại.');
+      message($('authMessage'),'Nếu email này đã đăng ký, Supabase sẽ gửi liên kết đặt lại mật khẩu. Hãy kiểm tra Hộp thư đến và Spam.');
     }catch(err){
       let msg=err?.message||'Không gửi được email khôi phục.';
-      if(/rate limit|email rate limit exceeded/i.test(msg))msg='Supabase đang giới hạn gửi email do có quá nhiều yêu cầu. Hãy chờ rồi thử lại, không nhấn gửi liên tục.';
+      if(/rate limit|email rate limit exceeded/i.test(msg))msg='Supabase đang giới hạn gửi email do có quá nhiều yêu cầu. Hãy chờ rồi thử lại.';
       message($('authMessage'),msg,true);
     }finally{btn.disabled=false;}
   }
@@ -261,90 +163,28 @@
   $('authForm').addEventListener('submit',async e=>{
     e.preventDefault();const btn=$('authSubmit');btn.disabled=true;
     try{
-      const entered=$('authEmail').value.trim(),password=$('authPassword').value;
+      const email=$('authEmail').value.trim(),password=$('authPassword').value;
       if(authMode==='login'){
-        const authEmail=phoneToAuthEmail(entered);
-        const {data,error}=await sb.auth.signInWithPassword({email:authEmail,password});if(error)throw error;
-        currentUser=data.user;
-        const allowed=await checkMemberAccess(data.user);
-        if(allowed)await openApp();
+        const {data,error}=await sb.auth.signInWithPassword({email,password});if(error)throw error;
+        currentUser=data.user;await openApp();
       }else{
         const name=$('regName').value.trim(),phone=$('regPhone').value.trim(),branchId=$('regBranch').value;
-        const regPassword=$('regPassword').value,regPasswordConfirm=$('regPasswordConfirm').value;
-        if(regPassword.length<6)throw new Error('Mật khẩu cần ít nhất 6 ký tự.');
-        if(regPassword!==regPasswordConfirm)throw new Error('Mật khẩu nhập lại chưa khớp.');
-        const birthRaw=$('regBirthYear').value.trim();
-        const birthYear=birthRaw?Number(birthRaw):null;
-        if(birthYear!==null&&(!Number.isInteger(birthYear)||birthYear<1900||birthYear>new Date().getFullYear()))throw new Error('Năm sinh không hợp lệ.');
-        const phoneEmail=phoneToAuthEmail(phone);
-        const {data,error}=await sb.auth.signUp({email:phoneEmail,password:regPassword,options:{data:{full_name:name,phone:phone,branch_id:branchId,login_method:'phone'}}});if(error)throw error;
+        const {data,error}=await sb.auth.signUp({email,password,options:{data:{full_name:name,phone:phone,branch_id:branchId}}});if(error)throw error;
         if(data.user){
           currentUser=data.user;
-          if(!data.session){message($('authMessage'),'Tài khoản đã tạo nhưng Supabase chưa cấp phiên đăng nhập. Cần tắt Confirm email trong Supabase. Hồ sơ hội viên chưa được gửi.',true);return;}
-           const photoFile=$('regMemberPhoto').files?.[0]||null;
-           const photoUrl=photoFile?await uploadMemberPhoto(photoFile,data.user.id):null;
-          const memberPayload={
-            user_id:data.user.id,branch_id:Number(branchId),full_name:name,phone:phone,
-             photo_url:photoUrl,
-            email:$('regContactEmail').value.trim()||null,
-            gender:$('regGender').value||null,birth_year:birthYear,
-            address:$('regAddress').value.trim()||null,
-            education_level:$('regEducation').value.trim()||null,
-            professional_qualification:$('regQualification').value.trim()||null,
-            workplace:$('regWorkplace').value.trim()||null,
-            member_type:({
-              'Chính thức':'official',
-              'Danh dự':'honorary',
-              'Liên kết':'associate'
-            })[$('regMemberType').value]||'official',
-            status:'pending',created_by:data.user.id
-          };
-          const {error:memberError}=await sb.from('members').insert(memberPayload);
-          if(memberError){await sb.auth.signOut();currentUser=null;throw new Error('Tài khoản đã tạo nhưng chưa lưu được hồ sơ hội viên: '+memberError.message+'. Cần kiểm tra quyền INSERT cho phép người đăng ký tạo hồ sơ pending trong bảng members.');}
-          $('regPassword').value='';$('regPasswordConfirm').value='';['regName','regPhone','regBirthYear','regAddress','regEducation','regQualification','regWorkplace','regContactEmail'].forEach(id=>$(id).value='');$('regGender').value='';$('regMemberType').value='Chính thức';$('regBranch').value='';$('regMemberPhoto').value='';$('regPhotoPreview').textContent='Có thể chụp ảnh mới hoặc chọn ảnh có sẵn trong điện thoại/máy tính. Tối đa 5 MB.';
+          if(!data.session){message($('authMessage'),'Tài khoản đã tạo nhưng Supabase chưa cấp phiên đăng nhập. Hãy kiểm tra cài đặt xác nhận email.');return;}
+          const {error:memberError}=await sb.from('members').insert({user_id:data.user.id,branch_id:Number(branchId),full_name:name,phone:phone,email:email,status:'pending',created_by:data.user.id});
+          if(memberError){await sb.auth.signOut();currentUser=null;throw new Error('Tài khoản đã tạo nhưng chưa lưu được hồ sơ đăng ký hội viên: '+memberError.message);}
+          message($('authMessage'),'Đã gửi đăng ký hội viên. Hồ sơ đang chờ Chi hội trưởng/Ban Thường vụ duyệt.');
+          $('authPassword').value='';
           await sb.auth.signOut();currentUser=null;
           setAuthMode('login');
-          $('authEmail').value=phone;
-          message($('authMessage'),'Đã gửi hồ sơ đăng ký thành công. Hồ sơ đang CHỜ XÉT DUYỆT. Bạn chỉ có thể vào bảng điều khiển sau khi Ban Thường vụ/Admin duyệt chính thức.',false);
         } else {message($('authMessage'),'Không tạo được tài khoản. Vui lòng thử lại.',true);}
       }
     }catch(err){message($('authMessage'),friendlyError(err),true);}
     finally{btn.disabled=false;}
   });
-  function friendlyError(e){const m=e?.message||'Có lỗi xảy ra.';if(/Invalid login credentials/i.test(m))return 'Email hoặc mật khẩu Admin chưa đúng. Hãy dùng đúng email quản trị và mật khẩu cũ; không cần đăng ký lại hoặc tạo tài khoản mới.';if(/Email not confirmed/i.test(m))return 'Tài khoản chưa xác nhận email. Hãy kiểm tra hộp thư.';return m;}
-  async function checkMemberAccess(user){
-    // Đọc vai trò trước để tài khoản quản trị không bị chặn bởi RLS của bảng members.
-    currentUser=user;
-    await loadRoles();
-
-    // Dự phòng cho tài khoản ADMIN gốc đã được thiết lập trước đây,
-    // trong trường hợp chính sách SELECT user_roles chưa cho đọc vai trò.
-    const isOriginalAdmin =
-      user.id==='e76f4f0e-c1ff-4ba8-9ccb-4cf6caec3f82' ||
-      String(user.email||'').toLowerCase()==='dr.tranhien@gmail.com';
-
-    const privileged=currentRoles.some(r=>['ADMIN','EXECUTIVE','COMMITTEE','BRANCH_HEAD'].includes(r));
-    if(privileged||isOriginalAdmin)return true;
-
-    // Chỉ kiểm tra trạng thái hồ sơ đối với tài khoản hội viên thông thường.
-    const {data:member,error}=await sb.from('members')
-      .select('id,status').eq('user_id',user.id).maybeSingle();
-    if(error)throw error;
-
-    if(!member){
-      await sb.auth.signOut();currentUser=null;
-      message($('authMessage'),'Tài khoản chưa có hồ sơ hội viên được liên kết. Vui lòng liên hệ Chi hội trưởng hoặc Ban quản trị.',true);
-      return false;
-    }
-    if(member.status!=='approved'){
-      await sb.auth.signOut();currentUser=null;
-      const statusText=member.status==='pending'?'Hồ sơ đang chờ Chi hội trưởng và Ban Thường vụ xét duyệt.':member.status==='rejected'?'Hồ sơ đã bị từ chối. Vui lòng liên hệ Ban quản trị.':'Hồ sơ chưa được duyệt chính thức.';
-      message($('authMessage'),statusText+' Bạn chưa thể vào bảng điều khiển.',true);
-      return false;
-    }
-    return true;
-  }
-
+  function friendlyError(e){const m=e?.message||'Có lỗi xảy ra.';if(/Invalid login credentials/i.test(m))return 'Email hoặc mật khẩu chưa đúng.';if(/Email not confirmed/i.test(m))return 'Tài khoản chưa xác nhận email. Hãy kiểm tra hộp thư.';return m;}
   async function openApp(){
     if(!currentUser){const {data}=await sb.auth.getUser();currentUser=data.user;}if(!currentUser)return;
     $('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('logoutBtn').classList.remove('hidden');
@@ -366,117 +206,56 @@
     const role=currentRoles.join(', ')||'Chưa đọc được vai trò';
     $('roleBadge').textContent=role;$('statRole').textContent=role;
     const isAdmin=currentRoles.includes('ADMIN');
-    const canReviewMembers=isAdmin||currentRoles.includes('EXECUTIVE');
-    $('adminMenuBtn').classList.toggle('hidden',!canReviewMembers);
-    $('adminMenuBtn').textContent=canReviewMembers?'🛡️ Xét duyệt hội viên':'🛡️ Quản trị hệ thống';
-    if($('adminStatus'))$('adminStatus').textContent=isAdmin?'Đã nhận diện vai trò ADMIN cho tài khoản '+(currentUser.email||'')+'.':'Chưa xác nhận được ADMIN từ bảng user_roles. Kiểm tra quyền SELECT của tài khoản trong Supabase.';
+    $('adminMenuBtn').classList.toggle('hidden',!isAdmin);
+    if($('adminStatus'))$('adminStatus').textContent=isAdmin?'Đã nhận diện vai trò ADMIN cho tài khoản '+(currentUser.email||'')+'.':'Chưa xác nhận được ADMIN từ bảng user_roles.';
     $('welcomeTitle').textContent=isAdmin?'Bảng điều khiển quản trị':'Bảng điều khiển hội viên';
   }
   async function loadProfile(){
     const box=$('profileContent');box.textContent='Đang tải hồ sơ…';
     try{
-      const {data,error}=await sb.from('members').select('*').eq('user_id',currentUser.id).maybeSingle();
-      if(error)throw error;currentProfile=data;$('statMember').textContent=data?'Đã có hồ sơ':'Chưa có hồ sơ';
-      if(!data){box.innerHTML='<p>Chưa tìm thấy hồ sơ hội viên trong bảng <code>members</code>. Nếu bạn vừa đăng ký, hồ sơ có thể đang chờ xử lý hoặc chưa được liên kết.</p>';return;}
-      const photo=data.photo_url?`<div class="item"><strong>Ảnh hội viên</strong><div class="photo-preview">${photoMarkup(data.photo_url,'Ảnh đại diện hội viên')}</div></div>`:'';
-      const rows=Object.entries(data).filter(([k,v])=>!['id','user_id','photo_url','created_by','branch_checked_by','executive_decided_by'].includes(k)&&v!==null&&v!=='').map(([k,v])=>`<div class="item"><strong>${esc(labelFor(k))}</strong><p>${esc(String(v))}</p></div>`).join('');
-      box.innerHTML=`${photo}<div class="item"><strong>Thay đổi ảnh đại diện</strong><label for="profilePhotoInput">Chụp ảnh mới hoặc chọn ảnh từ thiết bị</label><input id="profilePhotoInput" type="file" accept="image/*" capture="environment"><div class="muted small">Ảnh định dạng hình ảnh, tối đa 5 MB.</div><button type="button" class="secondary" id="saveProfilePhoto" style="margin-top:10px">Tải ảnh lên và lưu</button><div id="profilePhotoMessage" class="muted small" role="status"></div></div>${rows||'<p>Hồ sơ đã tồn tại, chưa có trường thông tin bổ sung.</p>'}`;
-      $('saveProfilePhoto').addEventListener('click',async()=>{
-        const btn=$('saveProfilePhoto'),file=$('profilePhotoInput').files?.[0],msg=$('profilePhotoMessage');
-        if(!file){msg.textContent='Bạn chưa chọn ảnh.';return;}btn.disabled=true;msg.textContent='Đang tải ảnh lên…';
-        try{const photoUrl=await uploadMemberPhoto(file,currentUser.id);const {error:updateError}=await sb.from('members').update({photo_url:photoUrl}).eq('id',data.id).eq('user_id',currentUser.id);if(updateError)throw updateError;msg.textContent='Đã cập nhật ảnh đại diện.';await loadProfile();}
-        catch(err){msg.textContent='Không cập nhật được ảnh: '+err.message;}finally{btn.disabled=false;}
-      });
+      const {data,error}=await sb.from('profiles').select('*').eq('id',currentUser.id).maybeSingle();if(error)throw error;currentProfile=data;
+      $('statMember').textContent=data?'Đã có hồ sơ':'Chưa có hồ sơ';
+      if(!data){box.innerHTML='<p>Chưa tìm thấy hồ sơ trong bảng <code>profiles</code>.</p>';return;}
+      const rows=Object.entries(data).filter(([k,v])=>!['id'].includes(k)&&v!==null&&v!=='').map(([k,v])=>`<div class="item"><strong>${esc(labelFor(k))}</strong><p>${esc(String(v))}</p></div>`).join('');
+      box.innerHTML=rows||'<p>Hồ sơ đã tồn tại, chưa có trường thông tin bổ sung.</p>';
     }catch(e){$('statMember').textContent='—';box.textContent='Không đọc được hồ sơ: '+e.message;}
   }
-  function labelFor(k){return ({full_name:'Họ và tên',phone:'Số điện thoại',email:'Email',branch_id:'Mã chi hội',gender:'Giới tính',birth_year:'Năm sinh',address:'Địa chỉ thường trú',education_level:'Trình độ văn hóa',professional_qualification:'Văn bằng chuyên môn',workplace:'Nơi hành nghề',member_type:'Loại hội viên',status:'Trạng thái hồ sơ',role:'Vai trò',created_at:'Ngày tạo'})[k]||k;}
+  function labelFor(k){return ({full_name:'Họ và tên',phone:'Số điện thoại',email:'Email',branch_id:'Mã chi hội',role:'Vai trò',created_at:'Ngày tạo'})[k]||k;}
   async function loadMembers(){
     const box=$('membersContent');box.textContent='Đang tải…';
-    try{const {data,error}=await sb.from('members').select('id,member_code,full_name,gender,birth_year,phone,email,branch_id,status,education_level,professional_qualification,workplace,member_type,photo_url').order('full_name').limit(300);if(error)throw error;
+    try{const {data,error}=await sb.from('members').select('id,member_code,full_name,gender,birth_year,phone,email,branch_id,status,education_level,professional_qualification,workplace,member_type').order('full_name').limit(300);if(error)throw error;
       if(!data?.length){box.innerHTML='<p>Chưa có hội viên hoặc tài khoản không có quyền xem danh sách.</p>';return;}
-      box.innerHTML='<div class="table-wrap"><table><thead><tr><th>Ảnh</th><th>Mã hội viên</th><th>Họ tên</th><th>Điện thoại</th><th>Email</th><th>Trạng thái</th><th>Chi hội ID</th></tr></thead><tbody>'+data.map(m=>`<tr><td>${photoMarkup(m.photo_url,m.full_name||'Ảnh hội viên')}</td><td>${esc(m.member_code||'—')}</td><td>${esc(m.full_name||'—')}</td><td>${esc(m.phone||'—')}</td><td>${esc(m.email||'—')}</td><td>${esc(m.status||'—')}</td><td>${esc(m.branch_id??'—')}</td></tr>`).join('')+'</tbody></table></div>';
-    }catch(e){box.textContent='Không tải được danh sách hội viên. Có thể tài khoản chưa có quyền hoặc cấu trúc bảng khác: '+e.message;}
+      box.innerHTML='<div class="table-wrap"><table><thead><tr><th>Mã hội viên</th><th>Họ tên</th><th>Điện thoại</th><th>Email</th><th>Trạng thái</th><th>Chi hội ID</th></tr></thead><tbody>'+data.map(m=>`<tr><td>${esc(m.member_code||'—')}</td><td>${esc(m.full_name||'—')}</td><td>${esc(m.phone||'—')}</td><td>${esc(m.email||'—')}</td><td>${esc(m.status||'—')}</td><td>${esc(m.branch_id??'—')}</td></tr>`).join('')+'</tbody></table></div>';
+    }catch(e){box.textContent='Không tải được danh sách hội viên: '+e.message;}
   }
   async function loadPendingMembers(){
-    const box=$('pendingMembersContent'); if(!box)return; box.textContent='Đang tải hồ sơ cần xử lý…';
-    const isAdmin=currentRoles.includes('ADMIN');
-    const isExecutive=currentRoles.includes('EXECUTIVE');
-    const isBranchHead=currentRoles.includes('BRANCH_HEAD');
-    if(!isAdmin&&!isExecutive&&!isBranchHead){box.textContent='Bạn không có quyền xem hồ sơ đăng ký hội viên.';return;}
+    const box=$('pendingMembersContent'); if(!box)return; box.textContent='Đang tải đăng ký chờ duyệt…';
+    if(!currentRoles.includes('ADMIN')){box.textContent='Chỉ ADMIN mới được duyệt đăng ký tại màn hình này.';return;}
     try{
-      let q=sb.from('members').select('id,user_id,member_code,full_name,phone,email,branch_id,status,photo_url,created_at').in('status',['pending','branch_checked']).order('created_at',{ascending:true}).limit(300);
-      if(isBranchHead&&!isAdmin&&!isExecutive){
-        const {data:links,error:le}=await sb.from('user_roles').select('branch_id').eq('user_id',currentUser.id).not('branch_id','is',null);
-        if(le)throw le;
-        const ids=(links||[]).map(x=>Number(x.branch_id)).filter(Number.isFinite);
-        if(!ids.length){box.textContent='Tài khoản Chi hội trưởng chưa được gắn chi hội trong user_roles.';return;}
-        q=q.in('branch_id',ids);
-      }
-      const {data,error}=await q;if(error)throw error;
-      if(!data?.length){box.innerHTML='<p>Hiện không có hồ sơ đăng ký cần xử lý.</p>';return;}
-
-      const memberIds=data.map(m=>m.id);
-      const {data:reviews,error:reviewError}=await sb.from('member_reviews').select('member_id,comment,created_at').in('member_id',memberIds).order('created_at',{ascending:false});
-      if(reviewError)throw reviewError;
-      const reviewMap={};
-      (reviews||[]).forEach(r=>{
-        if(!reviewMap[r.member_id])reviewMap[r.member_id]=[];
-        reviewMap[r.member_id].push(r);
-      });
-
-      const rows=data.map(m=>{
-        let action='—';
-        if(isAdmin||isExecutive){
-          action=`<button onclick="approveMember(${Number(m.id)})">Duyệt</button> <button class="danger" onclick="rejectMember(${Number(m.id)})">Từ chối</button>`;
-        }else if(isBranchHead){
-          action=`<button class="secondary" onclick="sendMemberReview(${Number(m.id)})">Gửi nhận xét</button>`;
-        }
-        const comments=(reviewMap[m.id]||[]).map(r=>`<div class="small">• ${esc(r.comment)} <span class="muted">(${esc(r.created_at?new Date(r.created_at).toLocaleString('vi-VN'):'')})</span></div>`).join('')||'<span class="muted small">Chưa có nhận xét</span>';
-        const statusLabel=m.status==='pending'?'Chờ xét duyệt':m.status==='branch_checked'?'Đã có bước xử lý trước đây':'—';
-        return `<tr><td>${photoMarkup(m.photo_url,m.full_name||'Ảnh hội viên')}</td><td>${esc(m.full_name||'—')}</td><td>${esc(m.phone||'—')}</td><td>${esc(m.email||'—')}</td><td>${esc(branches.find(b=>String(b.id)===String(m.branch_id))?.name||m.branch_id||'—')}</td><td>${esc(statusLabel)}</td><td>${comments}</td><td><div class="row-actions">${action}</div></td></tr>`;
-      }).join('');
-      const intro=isBranchHead&&!isAdmin&&!isExecutive
-        ?'Chi hội trưởng chỉ gửi nhận xét. Không có quyền duyệt hoặc từ chối hội viên.'
-        :'Admin và Ban Thường vụ có quyền xem nhận xét, duyệt hoặc từ chối hồ sơ.';
-      box.innerHTML=`<div class="notice">${intro}</div><div class="table-wrap"><table><thead><tr><th>Ảnh</th><th>Họ tên</th><th>Điện thoại</th><th>Email</th><th>Chi hội</th><th>Trạng thái</th><th>Nhận xét Chi hội trưởng</th><th>Thao tác</th></tr></thead><tbody>${rows}</tbody></table></div>`;
-    }catch(e){box.textContent='Không tải được hồ sơ cần xử lý: '+e.message;}
-  }
-
-  async function sendMemberReview(memberId){
-    if(!currentRoles.includes('BRANCH_HEAD')||currentRoles.includes('ADMIN')||currentRoles.includes('EXECUTIVE'))return alert('Chức năng này dành cho Chi hội trưởng.');
-    const comment=prompt('Nhập nhận xét và đề xuất gửi Ban Thường vụ:');
-    if(comment===null)return;
-    if(!comment.trim())return alert('Vui lòng nhập nội dung nhận xét.');
-    try{
-      const {error}=await sb.from('member_reviews').insert({member_id:memberId,reviewer_id:currentUser.id,comment:comment.trim()});
+      const {data,error}=await sb.from('members').select('id,user_id,member_code,full_name,phone,email,branch_id,status,created_at').eq('status','pending').order('created_at',{ascending:true}).limit(300);
       if(error)throw error;
-      alert('Đã gửi nhận xét đến Ban Thường vụ.');
-      await loadPendingMembers();
-    }catch(e){alert('Chưa gửi được nhận xét: '+e.message);}
+      if(!data?.length){box.innerHTML='<p>Hiện không có đăng ký nào đang chờ duyệt.</p>';return;}
+      box.innerHTML='<div class="table-wrap"><table><thead><tr><th>Họ tên</th><th>Điện thoại</th><th>Email</th><th>Chi hội</th><th>Ngày đăng ký</th><th>Thao tác</th></tr></thead><tbody>'+data.map(m=>`<tr><td>${esc(m.full_name||'—')}</td><td>${esc(m.phone||'—')}</td><td>${esc(m.email||'—')}</td><td>${esc(branches.find(b=>String(b.id)===String(m.branch_id))?.name||m.branch_id||'—')}</td><td>${esc(m.created_at?new Date(m.created_at).toLocaleDateString('vi-VN'):'—')}</td><td><div class="row-actions"><button onclick="approveMember(${Number(m.id)})">Duyệt</button><button class="danger" onclick="rejectMember(${Number(m.id)})">Từ chối</button></div></td></tr>`).join('')+'</tbody></table></div>';
+    }catch(e){box.textContent='Không tải được đăng ký chờ duyệt: '+e.message;}
   }
-
   async function approveMember(memberId){
-    if(!currentRoles.includes('ADMIN')&&!currentRoles.includes('EXECUTIVE'))return alert('Chỉ Admin hoặc Ban Thường vụ mới được duyệt hội viên.');
-    if(!confirm('Xác nhận duyệt chính thức hồ sơ hội viên này?'))return;
+    if(!currentRoles.includes('ADMIN'))return alert('Chỉ ADMIN mới được duyệt.');
+    if(!confirm('Xác nhận duyệt hồ sơ hội viên này?'))return;
     try{
-      const {data:mem,error:readError}=await sb.from('members').select('id,user_id,status').eq('id',memberId).in('status',['pending','branch_checked']).single();if(readError)throw readError;
-      const {error:updateError}=await sb.from('members').update({status:'approved',executive_decided_by:currentUser.id,executive_decided_at:new Date().toISOString()}).eq('id',memberId).in('status',['pending','branch_checked']);if(updateError)throw updateError;
+      const {data:mem,error:readError}=await sb.from('members').select('id,user_id').eq('id',memberId).single();if(readError)throw readError;
+      const {error:updateError}=await sb.from('members').update({status:'approved',executive_decided_by:currentUser.id,executive_decided_at:new Date().toISOString()}).eq('id',memberId);if(updateError)throw updateError;
       if(mem.user_id){
         const {data:roleRows,error:roleError}=await sb.from('roles').select('id').eq('code','MEMBER').limit(1);if(roleError)throw roleError;
         if(roleRows?.length){const {error:linkError}=await sb.from('user_roles').upsert({user_id:mem.user_id,role_id:roleRows[0].id},{onConflict:'user_id,role_id',ignoreDuplicates:true});if(linkError)throw linkError;}
       }
-      alert('Đã duyệt chính thức hồ sơ hội viên.');await loadPendingMembers();await loadMembers();
-    }catch(e){alert('Chưa duyệt được: '+e.message+'. Kiểm tra quyền UPDATE members và quyền gán vai trò MEMBER.');}
+      alert('Đã duyệt hồ sơ hội viên.');await loadPendingMembers();await loadMembers();
+    }catch(e){alert('Chưa duyệt được: '+e.message);}
   }
-
   async function rejectMember(memberId){
-    if(!currentRoles.includes('ADMIN')&&!currentRoles.includes('EXECUTIVE'))return alert('Chỉ Admin hoặc Ban Thường vụ mới được từ chối hội viên.');
+    if(!currentRoles.includes('ADMIN'))return alert('Chỉ ADMIN mới được từ chối.');
     const note=prompt('Lý do từ chối (có thể để trống):');if(note===null)return;
-    try{
-      const {error}=await sb.from('members').update({status:'rejected',decision_note:note,executive_decided_by:currentUser.id,executive_decided_at:new Date().toISOString()}).eq('id',memberId).in('status',['pending','branch_checked']);
-      if(error)throw error;
-      alert('Đã ghi nhận quyết định từ chối.');await loadPendingMembers();await loadMembers();
-    }catch(e){alert('Chưa cập nhật được hồ sơ: '+e.message+'. Kiểm tra quyền UPDATE members.');}
+    try{const {error}=await sb.from('members').update({status:'rejected',decision_note:note,executive_decided_by:currentUser.id,executive_decided_at:new Date().toISOString()}).eq('id',memberId);if(error)throw error;await loadPendingMembers();}
+    catch(e){alert('Chưa cập nhật được hồ sơ: '+e.message);}
   }
 
   async function loadReports(){
@@ -490,46 +269,24 @@
     e.preventDefault();const btn=e.submitter;btn.disabled=true;
     try{
       const {data:mem,error:memErr}=await sb.from('members').select('id,branch_id,status').eq('user_id',currentUser.id).maybeSingle();
-      if(memErr)throw memErr;if(!mem)throw new Error('Chưa liên kết tài khoản với hồ sơ trong bảng members. Chi hội trưởng hoặc quản trị viên cần liên kết hồ sơ trước khi gửi báo cáo.');
-      const num=id=>{const value=Number($(id).value||0);if(!Number.isFinite(value)||value<0)throw new Error('Các chỉ tiêu số lượng và đơn giá phải là số không âm.');return value;};
-      const payload={
-        member_id:mem.id,branch_id:mem.branch_id,title:$('reportTitle').value.trim(),
-        report_type:$('reportType').value,period_type:$('reportType').value,
-        period_start:$('periodStart').value,period_end:$('periodEnd').value,
-        summary:$('reportSummary').value.trim(),recommendations:$('reportSummary').value.trim(),
-        status:'draft',created_by:currentUser.id,
-        consultation_paid_count:num('consultationPaidCount'),consultation_paid_unit_price:num('consultationPaidPrice'),
-        consultation_free_count:num('consultationFreeCount'),
-        chinese_medicine_paid_count:num('chinesePaidCount'),chinese_medicine_unit_price:num('chinesePaidPrice'),
-        chinese_medicine_free_count:num('chineseFreeCount'),
-        vietnamese_medicine_paid_count:num('vietnamesePaidCount'),vietnamese_medicine_unit_price:num('vietnamesePaidPrice'),
-        vietnamese_medicine_free_count:num('vietnameseFreeCount'),
-        acupuncture_paid_count:num('acupuncturePaidCount'),acupuncture_unit_price:num('acupuncturePaidPrice'),
-        acupuncture_free_count:num('acupunctureFreeCount'),
-        electrotherapy_paid_count:num('electroPaidCount'),electrotherapy_unit_price:num('electroPaidPrice'),
-        electrotherapy_free_count:num('electroFreeCount'),
-        medicinal_herbs_quantity:num('herbsQuantity'),medicinal_herbs_unit_price:num('herbsUnitPrice'),
-        charity_quantity:num('charityQuantity'),charity_unit_price:num('charityUnitPrice'),
-        charity_amount:num('charityQuantity')*num('charityUnitPrice')
-      };
-      if(payload.period_end<payload.period_start)throw new Error('Kỳ kết thúc không được trước kỳ bắt đầu.');
+      if(memErr)throw memErr;if(!mem)throw new Error('Chưa liên kết tài khoản với hồ sơ trong bảng members.');
+      const payload={member_id:mem.id,branch_id:mem.branch_id,title:$('reportTitle').value.trim(),report_type:$('reportType').value,period_type:$('reportType').value,period_start:$('periodStart').value,period_end:$('periodEnd').value,summary:$('reportSummary').value.trim(),status:'draft',created_by:currentUser.id};
       const {error}=await sb.from('reports').insert(payload);if(error)throw error;
-      message($('homeMessage'),'Đã lưu bản nháp báo cáo.');$('reportTitle').value='';$('reportSummary').value='';
-      document.querySelectorAll('#reportForm input[type=number]').forEach(input=>input.value='0');await loadReports();
+      message($('homeMessage'),'Đã lưu bản nháp báo cáo.');$('reportTitle').value='';$('reportSummary').value='';await loadReports();
     }catch(err){alert('Chưa lưu được báo cáo: '+err.message);}
     finally{btn.disabled=false;}
   });
   async function loadNews(){
     const box=$('newsContent');if(!box)return;box.textContent='Đang tải tin tức…';
-    try{const {data,error}=await sb.from('news').select('id,title,content,category,published,created_at').eq('published',true).order('created_at',{ascending:false}).limit(50);if(error)throw error;
+    try{const {data,error}=await sb.from('news').select('*').eq('status','published').order('created_at',{ascending:false}).limit(50);if(error)throw error;
       if(!data?.length){box.innerHTML='<p>Chưa có tin tức đã xuất bản.</p>';return;}
-      box.innerHTML=data.map(n=>`<article class="item"><h4>${esc(n.title||'Tin tức')}</h4><p class="muted">${esc(n.category||'Tin tức')} · ${esc(n.created_at?new Date(n.created_at).toLocaleDateString('vi-VN'):'')}</p><p>${esc(n.content||'')}</p></article>`).join('');
-    }catch(e){box.textContent='Không tải được tin tức. Kiểm tra tên cột và quyền đọc của bảng news: '+e.message;}
+      box.innerHTML=data.map(n=>`<article class="item"><h4>${esc(n.title||'Tin tức')}</h4><p class="muted">${esc(n.created_at||'')}</p><p>${esc(n.summary||n.content||n.body||'')}</p></article>`).join('');
+    }catch(e){box.textContent='Không tải được tin tức: '+e.message;}
   }
   function showPage(name,btn){
     document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));$('page-'+name).classList.remove('hidden');
     document.querySelectorAll('.side button').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');
-    if(name==='members')loadMembers();if(name==='reports')loadReports();if(name==='news')loadNews();if(name==='profile')loadProfile();if(name==='admin'&&(currentRoles.includes('ADMIN')||currentRoles.includes('EXECUTIVE')||currentRoles.includes('BRANCH_HEAD')))loadPendingMembers();if(name==='admin'&&!currentRoles.includes('ADMIN')&&!currentRoles.includes('EXECUTIVE')&&!currentRoles.includes('BRANCH_HEAD')){message($('homeMessage'),'Tài khoản không có quyền ADMIN.',true);showPage('home',document.querySelector('[data-page=home]'));}
+    if(name==='members')loadMembers();if(name==='reports')loadReports();if(name==='news')loadNews();if(name==='profile')loadProfile();if(name==='admin'&&currentRoles.includes('ADMIN'))loadPendingMembers();if(name==='admin'&&!currentRoles.includes('ADMIN')){message($('homeMessage'),'Tài khoản không có quyền ADMIN.',true);showPage('home',document.querySelector('[data-page=home]'));}
   }
   async function logout(){await sb.auth.signOut();currentUser=null;currentProfile=null;$('appView').classList.add('hidden');$('authView').classList.remove('hidden');$('logoutBtn').classList.add('hidden');$('headerUser').textContent='';$('authPassword').value='';}
   function esc(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -539,17 +296,10 @@
       if(event==='PASSWORD_RECOVERY'){
         recoverySession=true;$('appView').classList.add('hidden');$('authView').classList.remove('hidden');$('authForm').classList.add('hidden');$('forgotPasswordRow').classList.add('hidden');$('registerFields').classList.add('hidden');$('authTitle').textContent='Đặt lại mật khẩu';$('recoveryPanel').classList.remove('hidden');$('recoveryMessage').textContent='';
       }
-      // Không tự mở bảng điều khiển chỉ vì Supabase phát sự kiện SIGNED_IN.
-      // Luồng đăng nhập sẽ kiểm tra trạng thái hội viên trước khi gọi openApp().
+      if(event==='SIGNED_IN'&&session&&!recoverySession&&!currentUser){currentUser=session.user;setTimeout(openApp,0);}
       if(event==='SIGNED_OUT'){currentUser=null;}
     });
-    const {data:{session}}=await sb.auth.getSession();
-    if(session&&!recoverySession){
-      currentUser=session.user;
-      try{const allowed=await checkMemberAccess(session.user);if(allowed)await openApp();}
-      catch(err){await sb.auth.signOut();currentUser=null;message($('authMessage'),'Không kiểm tra được trạng thái hội viên: '+err.message,true);}
-    }
-    // Recovery links may carry tokens in the URL; Supabase processes them and emits PASSWORD_RECOVERY.
+    const {data:{session}}=await sb.auth.getSession();if(session&&!recoverySession){currentUser=session.user;await openApp();}
   }
   init();
 </script>
