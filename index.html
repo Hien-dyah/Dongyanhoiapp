@@ -265,7 +265,9 @@
       if(authMode==='login'){
         const authEmail=phoneToAuthEmail(entered);
         const {data,error}=await sb.auth.signInWithPassword({email:authEmail,password});if(error)throw error;
-        currentUser=data.user;await openApp();
+        currentUser=data.user;
+        const allowed=await checkMemberAccess(data.user);
+        if(allowed)await openApp();
       }else{
         const name=$('regName').value.trim(),phone=$('regPhone').value.trim(),branchId=$('regBranch').value;
         const regPassword=$('regPassword').value,regPasswordConfirm=$('regPasswordConfirm').value;
@@ -295,17 +297,42 @@
           };
           const {error:memberError}=await sb.from('members').insert(memberPayload);
           if(memberError){await sb.auth.signOut();currentUser=null;throw new Error('Tài khoản đã tạo nhưng chưa lưu được hồ sơ hội viên: '+memberError.message+'. Cần kiểm tra quyền INSERT cho phép người đăng ký tạo hồ sơ pending trong bảng members.');}
-          message($('authMessage'),'Đã gửi đầy đủ hồ sơ đăng ký hội viên. Hồ sơ đang chờ Chi hội trưởng nhận xét và Ban Thường vụ/Admin quyết định duyệt hoặc từ chối.');
           $('regPassword').value='';$('regPasswordConfirm').value='';['regName','regPhone','regBirthYear','regAddress','regEducation','regQualification','regWorkplace','regContactEmail'].forEach(id=>$(id).value='');$('regGender').value='';$('regMemberType').value='Chính thức';$('regBranch').value='';$('regMemberPhoto').value='';$('regPhotoPreview').textContent='Có thể chụp ảnh mới hoặc chọn ảnh có sẵn trong điện thoại/máy tính. Tối đa 5 MB.';
           await sb.auth.signOut();currentUser=null;
           setAuthMode('login');
           $('authEmail').value=phone;
+          message($('authMessage'),'Đã gửi hồ sơ đăng ký thành công. Hồ sơ đang CHỜ XÉT DUYỆT. Bạn chỉ có thể vào bảng điều khiển sau khi Ban Thường vụ/Admin duyệt chính thức.',false);
         } else {message($('authMessage'),'Không tạo được tài khoản. Vui lòng thử lại.',true);}
       }
     }catch(err){message($('authMessage'),friendlyError(err),true);}
     finally{btn.disabled=false;}
   });
   function friendlyError(e){const m=e?.message||'Có lỗi xảy ra.';if(/Invalid login credentials/i.test(m))return 'Số điện thoại/email hoặc mật khẩu chưa đúng. Nếu là tài khoản hội viên cũ, hiện có thể vẫn cần đăng nhập bằng email đã đăng ký.';if(/Email not confirmed/i.test(m))return 'Tài khoản chưa xác nhận email. Hãy kiểm tra hộp thư.';return m;}
+  async function checkMemberAccess(user){
+    // Chỉ cho tài khoản hội viên vào ứng dụng khi hồ sơ đã được Ban Thường vụ/Admin duyệt.
+    const {data:member,error}=await sb.from('members')
+      .select('id,status').eq('user_id',user.id).maybeSingle();
+    if(error)throw error;
+
+    // Tài khoản quản trị có thể không có hồ sơ trong bảng members.
+    await loadRoles();
+    const privileged=currentRoles.some(r=>['ADMIN','EXECUTIVE','COMMITTEE','BRANCH_HEAD'].includes(r));
+    if(privileged)return true;
+
+    if(!member){
+      await sb.auth.signOut();currentUser=null;
+      message($('authMessage'),'Tài khoản chưa có hồ sơ hội viên được liên kết. Vui lòng liên hệ Chi hội trưởng hoặc Ban quản trị.',true);
+      return false;
+    }
+    if(member.status!=='approved'){
+      await sb.auth.signOut();currentUser=null;
+      const statusText=member.status==='pending'?'Hồ sơ đang chờ Chi hội trưởng và Ban Thường vụ xét duyệt.':member.status==='rejected'?'Hồ sơ đã bị từ chối. Vui lòng liên hệ Ban quản trị.':'Hồ sơ chưa được duyệt chính thức.';
+      message($('authMessage'),statusText+' Bạn chưa thể vào bảng điều khiển.',true);
+      return false;
+    }
+    return true;
+  }
+
   async function openApp(){
     if(!currentUser){const {data}=await sb.auth.getUser();currentUser=data.user;}if(!currentUser)return;
     $('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('logoutBtn').classList.remove('hidden');
@@ -500,10 +527,16 @@
       if(event==='PASSWORD_RECOVERY'){
         recoverySession=true;$('appView').classList.add('hidden');$('authView').classList.remove('hidden');$('authForm').classList.add('hidden');$('forgotPasswordRow').classList.add('hidden');$('registerFields').classList.add('hidden');$('authTitle').textContent='Đặt lại mật khẩu';$('recoveryPanel').classList.remove('hidden');$('recoveryMessage').textContent='';
       }
-      if(event==='SIGNED_IN'&&session&&!recoverySession&&!currentUser){currentUser=session.user;setTimeout(openApp,0);}
+      // Không tự mở bảng điều khiển chỉ vì Supabase phát sự kiện SIGNED_IN.
+      // Luồng đăng nhập sẽ kiểm tra trạng thái hội viên trước khi gọi openApp().
       if(event==='SIGNED_OUT'){currentUser=null;}
     });
-    const {data:{session}}=await sb.auth.getSession();if(session&&!recoverySession){currentUser=session.user;await openApp();}
+    const {data:{session}}=await sb.auth.getSession();
+    if(session&&!recoverySession){
+      currentUser=session.user;
+      try{const allowed=await checkMemberAccess(session.user);if(allowed)await openApp();}
+      catch(err){await sb.auth.signOut();currentUser=null;message($('authMessage'),'Không kiểm tra được trạng thái hội viên: '+err.message,true);}
+    }
     // Recovery links may carry tokens in the URL; Supabase processes them and emits PASSWORD_RECOVERY.
   }
   init();
