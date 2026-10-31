@@ -84,7 +84,7 @@
           <div class="card"><div class="section-head"><h3>Hồ sơ của tôi</h3><button onclick="loadProfile()">Tải lại</button></div><div id="profileContent" class="muted">Đang tải hồ sơ…</div></div>
         </div>
         <div id="page-members" class="page hidden">
-          <div class="card"><div class="section-head"><h3>Quản lý hội viên</h3><button onclick="loadMembers()">Tải danh sách</button></div><p class="muted">Danh sách hiển thị theo quyền RLS hiện được cấu hình trong Supabase.</p><div id="membersContent" class="muted">Chưa tải dữ liệu.</div></div>
+          <div class="card"><div class="section-head"><h3>Quản lý hội viên</h3><button onclick="loadMembers()">Tải danh sách</button></div><p class="muted">Danh sách hiển thị theo quyền RLS hiện được cấu hình trong Supabase.</p><div id="membersContent" class="muted">Chưa tải dữ liệu.</div><hr><div class="section-head"><h3>Hồ sơ chờ xử lý</h3><button onclick="loadPendingMembers()">Tải hồ sơ</button></div><div id="pendingMembersContent" class="muted">Chưa tải danh sách đăng ký.</div></div>
         </div>
         <div id="page-reports" class="page hidden">
           <div class="card"><div class="section-head"><h3>Báo cáo hoạt động</h3><button onclick="loadReports()">Tải báo cáo</button></div>
@@ -238,38 +238,34 @@
     }catch(e){box.textContent='Không tải được danh sách hội viên: '+e.message;}
   }
   async function loadPendingMembers(){
-    const box=$('pendingMembersContent'); if(!box)return; box.textContent='Đang tải đăng ký chờ duyệt…';
-    if(!currentRoles.includes('ADMIN')){box.textContent='Chỉ ADMIN mới được duyệt đăng ký tại màn hình này.';return;}
+    const box=$('pendingMembersContent');if(!box)return;box.textContent='Đang tải hồ sơ chờ xử lý…';
+    const isAdmin=currentRoles.includes('ADMIN'),isExecutive=currentRoles.includes('EXECUTIVE'),isBranch=currentRoles.includes('BRANCH_HEAD');
+    if(!isAdmin&&!isExecutive&&!isBranch){box.textContent='Tài khoản không có quyền xử lý hồ sơ hội viên.';return;}
     try{
-      const {data,error}=await sb.from('members').select('id,user_id,member_code,full_name,phone,email,branch_id,status,created_at').eq('status','pending').order('created_at',{ascending:true}).limit(300);
+      const statuses=isBranch?['pending']:isExecutive?['branch_checked']:['pending','branch_checked'];
+      const {data,error}=await sb.from('members').select('id,user_id,full_name,phone,email,branch_id,status,created_at').in('status',statuses).order('created_at',{ascending:true}).limit(300);
       if(error)throw error;
-      if(!data?.length){box.innerHTML='<p>Hiện không có đăng ký nào đang chờ duyệt.</p>';return;}
-      box.innerHTML='<div class="table-wrap"><table><thead><tr><th>Họ tên</th><th>Điện thoại</th><th>Email</th><th>Chi hội</th><th>Ngày đăng ký</th><th>Thao tác</th></tr></thead><tbody>'+data.map(m=>`<tr><td>${esc(m.full_name||'—')}</td><td>${esc(m.phone||'—')}</td><td>${esc(m.email||'—')}</td><td>${esc(branches.find(b=>String(b.id)===String(m.branch_id))?.name||m.branch_id||'—')}</td><td>${esc(m.created_at?new Date(m.created_at).toLocaleDateString('vi-VN'):'—')}</td><td><div class="row-actions"><button onclick="approveMember(${Number(m.id)})">Duyệt</button><button class="danger" onclick="rejectMember(${Number(m.id)})">Từ chối</button></div></td></tr>`).join('')+'</tbody></table></div>';
-    }catch(e){box.textContent='Không tải được đăng ký chờ duyệt: '+e.message;}
+      if(!data||!data.length){box.innerHTML='<p>Không có hồ sơ cần xử lý.</p>';return;}
+      box.innerHTML='<div class="table-wrap"><table><thead><tr><th>Họ tên</th><th>Điện thoại</th><th>Chi hội</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>'+data.map(m=>'<tr><td>'+esc(m.full_name||'—')+'</td><td>'+esc(m.phone||'—')+'</td><td>'+esc(branches.find(b=>String(b.id)===String(m.branch_id))?.name||m.branch_id||'—')+'</td><td>'+esc(m.status)+'</td><td><div class="row-actions"><button onclick="approveMember('+Number(m.id)+')">'+(isBranch?'Kiểm tra chi hội':'Duyệt cuối')+'</button>'+(isBranch?'':'<button class="danger" onclick="rejectMember('+Number(m.id)+')">Từ chối</button>')+'</div></td></tr>').join('')+'</tbody></table></div>';
+    }catch(e){box.textContent='Không tải được hồ sơ: '+e.message;}
   }
   async function approveMember(memberId){
-    if(!currentRoles.includes('ADMIN'))return alert('Chỉ ADMIN mới được duyệt.');
-    if(!confirm('Xác nhận duyệt hồ sơ hội viên này?'))return;
-    try{
-      const {data:mem,error:readError}=await sb.from('members').select('id,user_id').eq('id',memberId).single();if(readError)throw readError;
-      const {error:updateError}=await sb.from('members').update({status:'approved',executive_decided_by:currentUser.id,executive_decided_at:new Date().toISOString()}).eq('id',memberId);if(updateError)throw updateError;
-      if(mem.user_id){
-        const {data:roleRows,error:roleError}=await sb.from('roles').select('id').eq('code','MEMBER').limit(1);if(roleError)throw roleError;
-        if(roleRows?.length){const {error:linkError}=await sb.from('user_roles').upsert({user_id:mem.user_id,role_id:roleRows[0].id},{onConflict:'user_id,role_id',ignoreDuplicates:true});if(linkError)throw linkError;}
-      }
-      alert('Đã duyệt hồ sơ hội viên.');await loadPendingMembers();await loadMembers();
-    }catch(e){alert('Chưa duyệt được: '+e.message);}
+    const action=currentRoles.includes('BRANCH_HEAD')?'branch_check':'approve';
+    if(!confirm(action==='branch_check'?'Xác nhận đã kiểm tra hồ sơ và chuyển Ban Thường vụ?':'Xác nhận duyệt cuối hồ sơ hội viên?'))return;
+    const note=prompt('Ý kiến kiểm tra/duyệt (có thể để trống):');if(note===null)return;
+    try{const {error}=await sb.rpc('review_member_application',{p_member_id:memberId,p_action:action,p_comment:note});if(error)throw error;alert('Đã ghi nhận xử lý hồ sơ.');await loadPendingMembers();await loadMembers();}
+    catch(e){alert('Chưa xử lý được: '+e.message);}
   }
   async function rejectMember(memberId){
-    if(!currentRoles.includes('ADMIN'))return alert('Chỉ ADMIN mới được từ chối.');
-    const note=prompt('Lý do từ chối (có thể để trống):');if(note===null)return;
-    try{const {error}=await sb.from('members').update({status:'rejected',decision_note:note,executive_decided_by:currentUser.id,executive_decided_at:new Date().toISOString()}).eq('id',memberId);if(error)throw error;await loadPendingMembers();}
+    if(!currentRoles.includes('ADMIN')&&!currentRoles.includes('EXECUTIVE'))return alert('Chỉ Ban Thường vụ hoặc ADMIN được từ chối.');
+    const note=prompt('Lý do từ chối:');if(note===null)return;
+    try{const {error}=await sb.rpc('review_member_application',{p_member_id:memberId,p_action:'reject',p_comment:note});if(error)throw error;await loadPendingMembers();}
     catch(e){alert('Chưa cập nhật được hồ sơ: '+e.message);}
   }
 
   async function loadReports(){
     const box=$('reportsContent');box.textContent='Đang tải báo cáo…';
-    try{const {data,error}=await sb.from('reports').select('id,report_code,title,report_type,period_start,period_end,status,summary,created_at').order('created_at',{ascending:false}).limit(100);if(error)throw error;
+    try{const {data,error}=await sb.from('reports').select('id,report_code,title,report_type,period_start,period_end,status,summary,created_at,created_by').order('created_at',{ascending:false}).limit(100);if(error)throw error;
       if(!data?.length){box.innerHTML='<p>Chưa có báo cáo hoặc tài khoản không có quyền xem.</p>';return;}
       box.innerHTML=data.map(r=>{let a=[];if(r.status==='draft'&&r.created_by===currentUser.id)a.push('<button onclick="reportAction('+r.id+',\'submit\')">Gửi báo cáo</button>');if(['submitted','reviewing'].includes(r.status)&&currentRoles.includes('BRANCH_HEAD'))a.push('<button onclick="reportAction('+r.id+',\'review\')">Đưa vào xem xét</button><button class="secondary" onclick="reportAction('+r.id+',\'needs_supplement\')">Yêu cầu bổ sung</button>');if(['submitted','reviewing','needs_supplement'].includes(r.status)&&currentRoles.includes('COMMITTEE'))a.push('<button class="secondary" onclick="reportAction('+r.id+',\'comment\')">Góp ý</button>');if(r.status==='reviewing'&&(currentRoles.includes('EXECUTIVE')||currentRoles.includes('ADMIN')))a.push('<button onclick="reportAction('+r.id+',\'approve\')">Duyệt</button><button class="danger" onclick="reportAction('+r.id+',\'reject\')">Từ chối</button>');return '<div class="item"><h4>'+esc(r.title||r.report_code||'Báo cáo')+'</h4><p class="muted">'+esc(r.report_type||'')+' · '+esc(r.period_start||'')+' – '+esc(r.period_end||'')+' · Trạng thái: '+esc(r.status||'')+'</p><p>'+esc(r.summary||'')+'</p><div class="row-actions">'+a.join('')+'</div></div>';}).join('');
     }catch(e){box.textContent='Không tải được báo cáo: '+e.message;}
