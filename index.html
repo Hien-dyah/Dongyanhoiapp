@@ -35,7 +35,7 @@
     <h2 id="authTitle">Đăng nhập hệ thống</h2>
     <p id="authIntro" class="muted">Trước tiên, chọn cách đăng nhập hoặc đăng ký tài khoản mới.</p>
     <div class="tabs"><button id="loginTab" class="active" onclick="setAuthMode('login')">Đăng nhập</button><button id="registerTab" onclick="setAuthMode('register')">Đăng ký mới</button></div>
-    <div id="loginMethodPanel" class="item"><h4>Chọn cách đăng nhập</h4><div class="row-actions"><button type="button" onclick="chooseLoginMethod('email')">Đăng nhập bằng Email</button><button type="button" class="secondary" onclick="chooseLoginMethod('phone')">Đăng nhập bằng số điện thoại</button></div><button type="button" class="secondary" onclick="setAuthMode('register')">Đăng ký tài khoản mới</button></div><form id="authForm" class="hidden" autocomplete="off"><button type="button" class="secondary" onclick="backToLoginMethods()">← Chọn lại cách đăng nhập</button>
+    <div id="loginMethodPanel" style="margin:16px 0"><label for="loginMethod">Phương thức đăng nhập</label><select id="loginMethod"><option value="">-- Chọn Email hoặc số điện thoại --</option><option value="email">Email</option><option value="phone">Số điện thoại</option></select></div><form id="authForm" class="hidden" autocomplete="off">
       <div id="registerFields" class="hidden">
         <label>Họ và tên</label><input id="regName" autocomplete="name" placeholder="Nhập họ và tên">
         <label>Số điện thoại</label><input id="regPhone" autocomplete="tel" placeholder="Nhập số điện thoại">
@@ -56,7 +56,7 @@
       </form>
       <div id="recoveryMessage" class="small" role="status" style="margin-top:8px"></div>
     </section>
-    <div id="authMessage" class="notice hidden" role="status"></div><div style="margin-top:12px;text-align:center"><button type="button" class="secondary" onclick="togglePhoneLogin()">Đăng nhập bằng số điện thoại</button></div><form id="phoneLoginForm" class="hidden" style="margin-top:14px" autocomplete="off"><button type="button" class="secondary" onclick="backToLoginMethods()">← Chọn lại cách đăng nhập</button><label>Số điện thoại</label><input id="phoneLoginPhone" type="tel" name="login_phone" autocomplete="off" placeholder="09xxxxxxxx"><label>Mật khẩu</label><input id="phoneLoginPassword" type="password" name="phone_login_password" autocomplete="new-password" minlength="6" required><button type="submit" style="width:100%;margin-top:12px">Đăng nhập</button><p class="muted small">Số điện thoại cần được xác thực và liên kết với hồ sơ hội viên đã duyệt.</p></form>
+    <div id="authMessage" class="notice hidden" role="status"></div><form id="phoneLoginForm" class="hidden" style="margin-top:14px" autocomplete="off"><label>Số điện thoại</label><input id="phoneLoginPhone" type="tel" name="login_phone" autocomplete="off" placeholder="09xxxxxxxx"><label>Mật khẩu</label><input id="phoneLoginPassword" type="password" name="phone_login_password" autocomplete="new-password" minlength="6" required><button type="submit" style="width:100%;margin-top:12px">Đăng nhập</button><p class="muted small">Số điện thoại cần được xác thực và liên kết với hồ sơ hội viên đã duyệt.</p></form>
     <p class="muted small">Tài khoản mới có thể cần xác nhận email. Quyền truy cập phụ thuộc vào vai trò được cấp trong cơ sở dữ liệu.</p>
   </section>
 
@@ -140,23 +140,24 @@
   function setAuthMode(mode){
     authMode=mode;$('loginTab').classList.toggle('active',mode==='login');$('registerTab').classList.toggle('active',mode==='register');
     $('registerFields').classList.toggle('hidden',mode!=='register');$('authTitle').textContent=mode==='login'?'Đăng nhập hệ thống':'Đăng ký tài khoản hội viên';
-    $('authIntro').textContent=mode==='login'?'Chọn cách đăng nhập trước khi nhập thông tin.':'Tạo tài khoản hội viên mới bằng email và mật khẩu.';
+    $('authIntro').textContent=mode==='login'?'Chọn phương thức đăng nhập, sau đó nhập thông tin.':'Nhập thông tin để đăng ký tài khoản hội viên.';
     $('loginMethodPanel').classList.toggle('hidden',mode!=='login');$('authForm').classList.toggle('hidden',mode==='login');$('phoneLoginForm').classList.add('hidden');
     $('forgotPasswordRow').classList.add('hidden');$('authSubmit').textContent='Đăng ký tài khoản';$('authPassword').autocomplete='new-password';$('authMessage').classList.add('hidden');
     $('regName').required=mode==='register';$('regPhone').required=mode==='register';$('regBranch').required=mode==='register';
     $('authEmail').required=mode==='register';$('authPassword').required=mode==='register';
+    $('loginMethod').value='';$('authEmail').value='';$('authPassword').value='';$('phoneLoginPhone').value='';$('phoneLoginPassword').value='';
   }
   function chooseLoginMethod(method){
     if(authMode!=='login')return;
-    $('loginMethodPanel').classList.add('hidden');$('authForm').classList.toggle('hidden',method!=='email');$('phoneLoginForm').classList.toggle('hidden',method!=='phone');
-    $('forgotPasswordRow').classList.toggle('hidden',method!=='email');$('authIntro').textContent=method==='email'?'Đăng nhập bằng email và mật khẩu.':'Đăng nhập bằng số điện thoại và mật khẩu.';
+    $('authForm').classList.toggle('hidden',method!=='email');$('phoneLoginForm').classList.toggle('hidden',method!=='phone');
+    $('forgotPasswordRow').classList.toggle('hidden',method!=='email');
+    $('authIntro').textContent=method==='email'?'Đăng nhập bằng email và mật khẩu.':method==='phone'?'Đăng nhập bằng số điện thoại và mật khẩu.':'Chọn phương thức đăng nhập, sau đó nhập thông tin.';
     $('authEmail').required=method==='email';$('authPassword').required=method==='email';
-  }
-  function backToLoginMethods(){
-    $('loginMethodPanel').classList.remove('hidden');$('authForm').classList.add('hidden');$('phoneLoginForm').classList.add('hidden');$('forgotPasswordRow').classList.add('hidden');
+    $('phoneLoginPhone').required=method==='phone';$('phoneLoginPassword').required=method==='phone';
     $('authEmail').value='';$('authPassword').value='';$('phoneLoginPhone').value='';$('phoneLoginPassword').value='';
-    $('authIntro').textContent='Chọn cách đăng nhập trước khi nhập thông tin.';
   }
+  $('loginMethod')?.addEventListener('change',e=>chooseLoginMethod(e.target.value));
+  function backToLoginMethods(){ $('loginMethod').value='';chooseLoginMethod(''); }
   async function loadBranches(){
     const sel=$('regBranch');
     try{const {data,error}=await sb.from('branches').select('id,code,name').eq('active',true).order('name');if(error)throw error;branches=data||[];
@@ -212,7 +213,7 @@
     }catch(err){message($('authMessage'),friendlyError(err),true);}
     finally{btn.disabled=false;}
   });
-  function togglePhoneLogin(){$('phoneLoginForm').classList.toggle('hidden');}
+  function togglePhoneLogin(){chooseLoginMethod('phone');$('loginMethod').value='phone';}
   $('phoneLoginForm')?.addEventListener('submit',async e=>{e.preventDefault();const btn=e.submitter;btn.disabled=true;try{const {data,error}=await sb.functions.invoke('phone-login',{body:{phone:$('phoneLoginPhone').value.trim(),password:$('phoneLoginPassword').value}});if(error)throw error;if(!data?.access_token||!data?.refresh_token)throw new Error(data?.error||'Không nhận được phiên đăng nhập.');const {data:sessionData,error:setError}=await sb.auth.setSession({access_token:data.access_token,refresh_token:data.refresh_token});if(setError)throw setError;currentUser=sessionData.user||data.user;await openApp();}catch(err){message($('authMessage'),friendlyError(err),true);}finally{btn.disabled=false;}});
   function friendlyError(e){const m=e?.message||'Có lỗi xảy ra.';if(/Invalid login credentials/i.test(m))return 'Email hoặc mật khẩu chưa đúng.';if(/Email not confirmed/i.test(m))return 'Tài khoản chưa xác nhận email. Hãy kiểm tra hộp thư.';return m;}
   async function openApp(){
