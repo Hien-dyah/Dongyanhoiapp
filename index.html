@@ -258,8 +258,20 @@
     const box=$('membersContent');box.textContent='Đang tải…';
     try{const {data,error}=await sb.from('members').select('id,member_code,full_name,gender,birth_year,phone,email,branch_id,status,education_level,professional_qualification,workplace,member_type').order('full_name').limit(300);if(error)throw error;
       if(!data?.length){box.innerHTML='<p>Chưa có hội viên hoặc tài khoản không có quyền xem danh sách.</p>';return;}
-      box.innerHTML='<div class="table-wrap"><table><thead><tr><th>Mã hội viên</th><th>Họ tên</th><th>Điện thoại</th><th>Email</th><th>Trạng thái</th><th>Chi hội ID</th></tr></thead><tbody>'+data.map(m=>`<tr><td>${esc(m.member_code||'—')}</td><td>${esc(m.full_name||'—')}</td><td>${esc(m.phone||'—')}</td><td>${esc(m.email||'—')}</td><td>${esc(m.status||'—')}</td><td>${esc(m.branch_id??'—')}</td></tr>`).join('')+'</tbody></table></div>';
+      box.innerHTML='<div class="table-wrap"><table><thead><tr><th>Mã hội viên</th><th>Họ tên</th><th>Điện thoại</th><th>Email</th><th>Trạng thái</th><th>Chi hội ID</th>'+(currentRoles.includes('ADMIN')?'<th>Thao tác</th>':'')+'</tr></thead><tbody>'+data.map(m=>`<tr><td>${esc(m.member_code||'—')}</td><td>${esc(m.full_name||'—')}</td><td>${esc(m.phone||'—')}</td><td>${esc(m.email||'—')}</td><td>${esc(m.status||'—')}</td><td>${esc(m.branch_id??'—')}</td>`+(currentRoles.includes('ADMIN')?`<td><button class="danger" onclick="deleteMember(${Number(m.id)},'${esc(m.full_name||'Hội viên').replace(/'/g,"&#39;")}')">Xóa</button></td>`:'')+'</tr>').join('')+'</tbody></table></div>';
     }catch(e){box.textContent='Không tải được danh sách hội viên: '+e.message;}
+  }
+  async function deleteMember(memberId,memberName){
+    if(!currentRoles.includes('ADMIN'))return alert('Chỉ ADMIN mới được xóa hội viên.');
+    if(!confirm('Mày có chắc muốn xóa hồ sơ hội viên '+memberName+'? Tài khoản đăng nhập không bị xóa. Hồ sơ đã có báo cáo sẽ được bảo vệ và không cho xóa.'))return;
+    const confirmText=prompt('Nhập XOA để xác nhận xóa hồ sơ này:');
+    if(confirmText!=='XOA')return alert('Đã hủy thao tác xóa.');
+    try{
+      const {data,error}=await sb.rpc('admin_delete_member',{p_member_id:memberId});
+      if(error)throw error;
+      alert(data||'Đã xóa hồ sơ hội viên.');
+      await loadMembers();await loadPendingMembers();
+    }catch(e){alert('Không xóa được: '+e.message);}
   }
   async function loadPendingMembers(){
     const box=$('pendingMembersContent');if(!box)return;box.textContent='Đang tải hồ sơ chờ xử lý…';
