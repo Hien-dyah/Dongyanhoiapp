@@ -110,7 +110,7 @@
             <hr style="border:0;border-top:1px solid var(--line);margin:20px 0"><div id="reportsContent" class="muted">Chưa tải báo cáo.</div>
           </div>
         </div>
-        <div id="page-news" class="page hidden"><div class="card"><div class="section-head"><h3>Tin tức Hội và y học cổ truyền</h3><button onclick="loadNews()">Tải tin tức</button></div><div id="newsContent" class="muted">Đang tải tin tức…</div><section id="newsAdminTools" class="hidden"><hr><div class="section-head"><h3>Danh sách tin chờ Admin duyệt</h3><button class="secondary" type="button" onclick="fetchTraditionalNews()">🔄 Tìm tin mới từ nguồn y học cổ truyền</button></div><p class="muted">Hệ thống tự kiểm tra nguồn tin mỗi 6 giờ. Tin lấy về chỉ nằm trong danh sách chờ; hội viên không nhìn thấy trước khi Admin duyệt.</p><div id="newsFetchMessage" class="notice hidden" role="status"></div><div id="pendingNewsContent" class="muted">Đang tải tin chờ duyệt…</div><hr><form id="newsForm" class="form-grid"><div class="full"><h4>Soạn tin của Hội</h4><p class="muted">Tin do Admin tự soạn cũng phải lưu chờ duyệt, sau đó mới được xuất bản.</p></div><div class="full"><label>Tiêu đề</label><input id="newsTitle" required></div><div><label>Chuyên mục</label><select id="newsCategory"><option value="association">Tin tức Hội</option><option value="traditional_medicine">Y học cổ truyền</option><option value="announcement">Thông báo</option></select></div><div class="full"><label>Nội dung</label><textarea id="newsBody" required></textarea></div><div class="full"><button type="submit">Lưu vào danh sách chờ duyệt</button></div></form></section></div></div>
+        <div id="page-news" class="page hidden"><div class="card"><div class="section-head"><h3>Tin tức Hội và y học cổ truyền</h3><button onclick="loadNews()">Tải tin tức</button></div><div id="newsContent" class="muted">Đang tải tin tức…</div><section id="newsAdminTools" class="hidden"><hr><div class="section-head"><h3>Danh sách tin chờ Admin duyệt</h3><button class="secondary" type="button" onclick="fetchTraditionalNews()">🔄 Tìm tin mới từ nguồn y học cổ truyền</button></div><p class="muted">Hệ thống tự kiểm tra nguồn tin mỗi 6 giờ. Tin lấy về chỉ nằm trong danh sách chờ; hội viên không nhìn thấy trước khi Admin duyệt.</p><div id="newsFetchMessage" class="notice hidden" role="status"></div><div id="pendingNewsContent" class="muted">Đang tải tin chờ duyệt…</div><hr><h3>Bài đã gỡ xuống</h3><p class="muted">Các bài đã gỡ vẫn được lưu tại đây; Admin có thể đăng lại khi cần.</p><div id="withdrawnNewsContent" class="muted">Đang tải bài đã gỡ…</div><hr><form id="newsForm" class="form-grid"><div class="full"><h4>Soạn tin của Hội</h4><p class="muted">Tin do Admin tự soạn cũng phải lưu chờ duyệt, sau đó mới được xuất bản.</p></div><div class="full"><label>Tiêu đề</label><input id="newsTitle" required></div><div><label>Chuyên mục</label><select id="newsCategory"><option value="association">Tin tức Hội</option><option value="traditional_medicine">Y học cổ truyền</option><option value="announcement">Thông báo</option></select></div><div class="full"><label>Nội dung</label><textarea id="newsBody" required></textarea></div><div class="full"><button type="submit">Lưu vào danh sách chờ duyệt</button></div></form></section></div></div>
         <div id="page-tasks" class="page hidden"><div class="card"><h3>Công việc được giao</h3><div id="tasksContent">Đang tải…</div><hr><form id="taskForm" class="form-grid"><div class="full"><h4>Giao công việc</h4></div><div class="full"><label>Tên công việc</label><input id="taskTitle" required></div><div class="full"><label>Nội dung</label><textarea id="taskDescription"></textarea></div><div><label>Giao theo chức vụ</label><select id="taskPosition"><option value="">Không chỉ định</option></select></div><div><label>Chi hội</label><select id="taskBranch"><option value="">Toàn Hội</option></select></div><div><label>Hạn hoàn thành</label><input id="taskDue" type="datetime-local"></div><div><label>Mức ưu tiên</label><select id="taskPriority"><option value="normal">Bình thường</option><option value="high">Cao</option><option value="urgent">Khẩn</option><option value="low">Thấp</option></select></div><div class="full"><button type="submit">Giao công việc</button></div></form></div></div><div id="page-documents" class="page hidden"><div class="card"><h3>Kho văn bản Hội</h3><div id="documentsContent">Đang tải…</div><hr><form id="documentForm" class="form-grid"><div class="full"><h4>Thêm văn bản vào kho</h4></div><div class="full"><label>Tên văn bản</label><input id="docTitle" required></div><div><label>Loại văn bản</label><select id="docType"><option value="decision">Quyết định</option><option value="official_letter">Công văn</option><option value="minutes">Biên bản</option><option value="guideline">Hướng dẫn</option><option value="other">Khác</option></select></div><div><label>Số văn bản</label><input id="docNumber"></div><div><label>Cơ quan ban hành</label><input id="docIssuer"></div><div><label>Ngày ban hành</label><input id="docDate" type="date"></div><div class="full"><label>Tóm tắt</label><textarea id="docSummary"></textarea></div><div class="full"><label>Tệp văn bản (bắt buộc với quyết định/công văn)</label><input id="docFile" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp"></div><div class="full"><button type="submit">Lưu văn bản</button></div></form></div></div><div id="page-admin" class="page hidden"><div class="card"><h3>Quản trị hệ thống</h3><p class="muted">Trang tổng quan dành cho tài khoản có vai trò ADMIN. Dùng các mục bên trái để xem hội viên, báo cáo và tin tức.</p><div class="notice">Lưu ý: việc hiển thị trang quản trị không tự cấp quyền đọc/sửa dữ liệu. Các thao tác vẫn phải được cho phép bởi chính sách RLS trong Supabase.</div><div id="adminStatus" class="item">Đang kiểm tra quyền quản trị…</div>
             <div class="item"><h4>Quản lý chi hội</h4>
               <p class="muted">Thêm chi hội mới, đổi tên hoặc mã chi hội. Khi không còn sử dụng, hãy ngưng hoạt động; dữ liệu hội viên và báo cáo cũ vẫn được giữ nguyên.</p>
@@ -459,14 +459,39 @@
     if(error)return alert('Không từ chối được: '+error.message);
     await loadPendingNews();
   }
+  async function unpublishNews(id){
+    if(!currentRoles.includes('ADMIN'))return;
+    if(!confirm('Gỡ bài này khỏi trang tin hội viên? Bài vẫn được lưu và có thể đăng lại.'))return;
+    const {error}=await sb.from('news').update({published:false,review_status:'withdrawn',reviewed_by:currentUser.id,reviewed_at:new Date().toISOString()}).eq('id',id).eq('published',true);
+    if(error)return alert('Không gỡ được bài: '+error.message);
+    alert('Đã gỡ bài xuống. Hội viên không còn nhìn thấy bài này.');
+    await loadNews();
+  }
+  async function loadWithdrawnNews(){
+    const box=$('withdrawnNewsContent');if(!box||!currentRoles.includes('ADMIN'))return;
+    box.textContent='Đang tải bài đã gỡ…';
+    try{
+      const {data,error}=await sb.from('news').select('*').eq('review_status','withdrawn').order('reviewed_at',{ascending:false}).limit(50);
+      if(error)throw error;
+      box.innerHTML=data?.length?data.map(n=>'<article class="item"><h4>'+esc(n.title||'Tin tức')+'</h4><p class="muted">Đã gỡ lúc: '+esc(n.reviewed_at||'')+'</p><div class="row-actions"><button type="button" onclick="republishNews('+Number(n.id)+')">Đăng lại</button></div></article>').join(''):'<p>Chưa có bài nào bị gỡ.</p>';
+    }catch(e){box.textContent='Không tải được bài đã gỡ: '+e.message;}
+  }
+  async function republishNews(id){
+    if(!currentRoles.includes('ADMIN'))return;
+    if(!confirm('Đăng lại bài này để hội viên xem?'))return;
+    const {error}=await sb.from('news').update({published:true,review_status:'approved',reviewed_by:currentUser.id,reviewed_at:new Date().toISOString(),rejection_note:null}).eq('id',id).eq('review_status','withdrawn');
+    if(error)return alert('Không đăng lại được: '+error.message);
+    alert('Đã đăng lại bài viết.');
+    await loadNews();
+  }
   async function loadNews(){
     const box=$('newsContent');if(!box)return;box.textContent='Đang tải tin tức…';
     const isAdmin=currentRoles.includes('ADMIN');$('newsAdminTools').classList.toggle('hidden',!isAdmin);
     try{const {data,error}=await sb.from('news').select('*').eq('published',true).order('created_at',{ascending:false}).limit(50);if(error)throw error;
       if(!data?.length){box.innerHTML='<p>Chưa có tin tức đã xuất bản.</p>';}else{
-        box.innerHTML=data.map(n=>{const source=(n.source_url&&String(n.source_url).startsWith('https://'))?'<p class="small">Nguồn: '+esc(n.source_name||'Trang tin')+' · <a href="'+esc(n.source_url)+'" target="_blank" rel="noopener">Đọc bài gốc</a></p>':'';return '<article class="item"><h4>'+esc(n.title||'Tin tức')+'</h4><p class="muted">'+esc(n.created_at||'')+'</p><p>'+esc(n.content||'')+'</p>'+source+'</article>';}).join('');
+        box.innerHTML=data.map(n=>{const source=(n.source_url&&String(n.source_url).startsWith('https://'))?'<p class="small">Nguồn: '+esc(n.source_name||'Trang tin')+' · <a href="'+esc(n.source_url)+'" target="_blank" rel="noopener">Đọc bài gốc</a></p>':'';return '<article class="item"><h4>'+esc(n.title||'Tin tức')+'</h4><p class="muted">'+esc(n.created_at||'')+'</p><p>'+esc(n.content||'')+'</p>'+source+(isAdmin?'<div class="row-actions"><button type="button" class="danger" onclick="unpublishNews('+Number(n.id)+')">Gỡ bài xuống</button></div>':'')+'</article>';}).join('');
       }
-      if(isAdmin)await loadPendingNews();
+      if(isAdmin){await loadPendingNews();await loadWithdrawnNews();}
     }catch(e){box.textContent='Không tải được tin tức: '+e.message;}
   }
   async function reportAction(id,action){let comment=null;if(['comment','needs_supplement','reject'].includes(action)){comment=prompt('Nhập ý kiến hoặc lý do (có thể để trống):');if(comment===null)return;}try{const {error}=await sb.rpc('transition_report_status',{p_report_id:id,p_action:action,p_comment:comment});if(error)throw error;alert('Đã ghi nhận thao tác.');await loadReports();}catch(e){alert('Không xử lý được: '+e.message);}}
