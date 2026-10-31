@@ -66,9 +66,9 @@
       <nav class="side card">
         <button class="active" data-page="home" onclick="showPage('home',this)">🏠 Tổng quan</button>
         <button data-page="profile" onclick="showPage('profile',this)">👤 Hồ sơ của tôi</button>
-        <button data-page="members" onclick="showPage('members',this)">👥 Quản lý hội viên</button>
+        <button id="membersMenuBtn" data-page="members" onclick="showPage('members',this)">👥 Quản lý hội viên</button>
         <button data-page="reports" onclick="showPage('reports',this)">📋 Báo cáo hoạt động</button>
-        <button data-page="news" onclick="showPage('news',this)">📰 Tin tức</button><button data-page="tasks" onclick="showPage('tasks',this)">✅ Công việc</button><button data-page="documents" onclick="showPage('documents',this)">📁 Văn bản</button>
+        <button data-page="news" onclick="showPage('news',this)">📰 Tin tức</button><button data-page="tasks" onclick="showPage('tasks',this)">✅ Công việc</button><button id="documentsMenuBtn" data-page="documents" onclick="showPage('documents',this)">📁 Văn bản</button>
         <button id="adminMenuBtn" class="hidden" data-page="admin" onclick="showPage('admin',this)">🛡️ Quản trị hệ thống</button>
       </nav>
       <div>
@@ -306,7 +306,11 @@
     const role=currentRoles.join(', ')||'Chưa đọc được vai trò';
     $('roleBadge').textContent=role;$('statRole').textContent=role;
     const isAdmin=currentRoles.includes('ADMIN');
+    const hasManagementRole=['ADMIN','EXECUTIVE','COMMITTEE','BRANCH_HEAD'].some(r=>currentRoles.includes(r));
+    const isMemberOnly=currentRoles.includes('MEMBER')&&!hasManagementRole;
     $('adminMenuBtn').classList.toggle('hidden',!isAdmin);
+    $('membersMenuBtn').classList.toggle('hidden',isMemberOnly);
+    $('documentsMenuBtn').classList.toggle('hidden',isMemberOnly);
     $('page-admin').classList.add('hidden');
     if($('adminStatus'))$('adminStatus').textContent=isAdmin?'Đã nhận diện vai trò ADMIN cho tài khoản '+(currentUser.email||'')+'.':'Chưa xác nhận được ADMIN từ bảng user_roles.';
     $('welcomeTitle').textContent=isAdmin?'Bảng điều khiển quản trị':'Bảng điều khiển hội viên';
@@ -586,6 +590,12 @@ async function transferAdmin(){if(!currentRoles.includes('ADMIN'))return alert('
     if(name==='admin'&&!currentRoles.includes('ADMIN')){
       $('page-admin').classList.add('hidden');
       message($('homeMessage'),'Tài khoản này không có quyền quản trị hệ thống.',true);
+      name='home';btn=document.querySelector('[data-page=home]');
+    }
+    const hasManagementRole=['ADMIN','EXECUTIVE','COMMITTEE','BRANCH_HEAD'].some(r=>currentRoles.includes(r));
+    const isMemberOnly=currentRoles.includes('MEMBER')&&!hasManagementRole;
+    if(isMemberOnly&&(name==='members'||name==='documents')){
+      message($('homeMessage'),'Mục này không dành cho tài khoản Hội viên.',true);
       name='home';btn=document.querySelector('[data-page=home]');
     }
     const target=$('page-'+name);if(!target)return;
