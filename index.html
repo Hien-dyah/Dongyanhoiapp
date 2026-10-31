@@ -263,7 +263,7 @@
   }
   async function loadPendingMembers(){
     const box=$('pendingMembersContent');if(!box)return;box.textContent='Đang tải hồ sơ chờ xử lý…';
-    const isAdmin=currentRoles.includes('ADMIN'),isExecutive=currentRoles.includes('EXECUTIVE'),isBranch=currentRoles.includes('BRANCH_HEAD');
+    const isAdmin=currentRoles.includes('ADMIN'),isExecutive=currentRoles.includes('EXECUTIVE'),isBranch=!isAdmin&&!isExecutive&&currentRoles.includes('BRANCH_HEAD');
     if(!isAdmin&&!isExecutive&&!isBranch){box.textContent='Tài khoản không có quyền xử lý hồ sơ hội viên.';return;}
     try{
       const statuses=isBranch?['pending']:(isAdmin?['pending','branch_checked']:['branch_checked']);
@@ -274,7 +274,7 @@
     }catch(e){box.textContent='Không tải được hồ sơ: '+e.message;}
   }
   async function approveMember(memberId){
-    const action=currentRoles.includes('BRANCH_HEAD')?'branch_check':'approve';
+    const action=(!currentRoles.includes('ADMIN')&&!currentRoles.includes('EXECUTIVE')&&currentRoles.includes('BRANCH_HEAD'))?'branch_check':'approve';
     if(!confirm(action==='branch_check'?'Xác nhận đã kiểm tra hồ sơ và chuyển Ban Thường vụ?':'Xác nhận duyệt cuối hồ sơ hội viên?'))return;
     const note=prompt('Ý kiến kiểm tra/duyệt (có thể để trống):');if(note===null)return;
     try{const {error}=await sb.rpc('review_member_application',{p_member_id:memberId,p_action:action,p_comment:note});if(error)throw error;alert('Đã ghi nhận xử lý hồ sơ.');await loadPendingMembers();await loadMembers();}
