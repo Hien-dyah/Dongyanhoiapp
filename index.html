@@ -306,6 +306,7 @@
     $('roleBadge').textContent=role;$('statRole').textContent=role;
     const isAdmin=currentRoles.includes('ADMIN');
     $('adminMenuBtn').classList.toggle('hidden',!isAdmin);
+    $('page-admin').classList.add('hidden');
     if($('adminStatus'))$('adminStatus').textContent=isAdmin?'Đã nhận diện vai trò ADMIN cho tài khoản '+(currentUser.email||'')+'.':'Chưa xác nhận được ADMIN từ bảng user_roles.';
     $('welcomeTitle').textContent=isAdmin?'Bảng điều khiển quản trị':'Bảng điều khiển hội viên';
   }
@@ -564,9 +565,23 @@ async function transferAdmin(){if(!currentRoles.includes('ADMIN'))return alert('
   $('documentForm')?.addEventListener('submit',async e=>{e.preventDefault();if(!currentRoles.includes('ADMIN')&&!currentRoles.includes('EXECUTIVE'))return alert('Chỉ Admin hoặc Ban Thường vụ được thêm văn bản.');const btn=e.submitter;btn.disabled=true;try{const type=$('docType').value,file=$('docFile').files[0];if(['decision','official_letter'].includes(type)&&!file)throw new Error('Quyết định và công văn bắt buộc phải có tệp đính kèm.');if(file&&file.size>20*1024*1024)throw new Error('Tệp vượt quá 20MB.');const payload={title:$('docTitle').value.trim(),document_type:type,document_number:$('docNumber').value.trim()||null,issued_by:$('docIssuer').value.trim()||null,issued_on:$('docDate').value||null,summary:$('docSummary').value.trim()||null,created_by:currentUser.id,file_name:file?.name||null,mime_type:file?.type||null};const {data:doc,error}=await sb.from('documents').insert(payload).select('id').single();if(error)throw error;if(file){const path='documents/'+doc.id+'/'+Date.now()+'_'+file.name.replace(/[^a-zA-Z0-9._-]/g,'_');const {error:upErr}=await sb.storage.from('association-private').upload(path,file);if(upErr)throw upErr;const {error:attErr}=await sb.from('attachments').insert({parent_table:'documents',parent_id:doc.id,storage_path:path,file_name:file.name,mime_type:file.type||null,file_size:file.size,is_required:true,uploaded_by:currentUser.id});if(attErr)throw attErr;const {error:updateErr}=await sb.from('documents').update({storage_path:path}).eq('id',doc.id);if(updateErr)throw updateErr;}alert('Đã lưu văn bản vào kho.');$('documentForm').reset();await loadDocuments();}catch(err){alert('Không lưu được văn bản: '+err.message);}finally{btn.disabled=false;}});
   async function loadDocuments(){const box=$('documentsContent');box.textContent='Đang tải…';$('documentForm').classList.toggle('hidden',!currentRoles.includes('ADMIN')&&!currentRoles.includes('EXECUTIVE'));try{const {data,error}=await sb.from('documents').select('id,title,document_type,document_number,issued_on,summary,file_name,storage_path,created_at').order('created_at',{ascending:false}).limit(100);if(error)throw error;box.innerHTML=data&&data.length?(await Promise.all(data.map(async d=>{let link='';if(d.storage_path){const {data:sign}=await sb.storage.from('association-private').createSignedUrl(d.storage_path,300);if(sign?.signedUrl)link='<p><a target="_blank" rel="noopener" href="'+esc(sign.signedUrl)+'">Mở tệp đính kèm</a></p>';}return '<div class="item"><h4>'+esc(d.title)+'</h4><p class="muted">'+esc(d.document_type)+' · '+esc(d.document_number||'')+' · '+esc(d.issued_on||'')+'</p><p>'+esc(d.summary||'')+'</p>'+link+'</div>';}))).join(''):'Chưa có văn bản trong kho.';}catch(e){box.textContent='Không tải được văn bản: '+e.message;}}
   function showPage(name,btn){
-    document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));$('page-'+name).classList.remove('hidden');
+    // Chan quyen truoc khi hien bat ky noi dung nao cua trang quan tri.
+    if(name==='admin'&&!currentRoles.includes('ADMIN')){
+      $('page-admin').classList.add('hidden');
+      message($('homeMessage'),'Tài khoản này không có quyền quản trị hệ thống.',true);
+      name='home';btn=document.querySelector('[data-page=home]');
+    }
+    const target=$('page-'+name);if(!target)return;
+    document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));
+    target.classList.remove('hidden');
     document.querySelectorAll('.side button').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');
-    if(name==='members'){loadMembers();loadPendingMembers();}if(name==='reports')loadReports();if(name==='news')loadNews();if(name==='profile')loadProfile();if(name==='tasks'){loadTasks();prepareTaskForm();}if(name==='documents')loadDocuments();if(name==='admin'&&currentRoles.includes('ADMIN')){loadPendingMembers();loadPositions();loadAccountDirectory();loadAdminBranches();}if(name==='admin'&&!currentRoles.includes('ADMIN')){message($('homeMessage'),'Tài khoản không có quyền ADMIN.',true);showPage('home',document.querySelector('[data-page=home]'));}
+    if(name==='members'){loadMembers();loadPendingMembers();}
+    if(name==='reports')loadReports();
+    if(name==='news')loadNews();
+    if(name==='profile')loadProfile();
+    if(name==='tasks'){loadTasks();prepareTaskForm();}
+    if(name==='documents')loadDocuments();
+    if(name==='admin'&&currentRoles.includes('ADMIN')){loadPendingMembers();loadPositions();loadAccountDirectory();loadAdminBranches();}
   }
   async function logout(){
     await sb.auth.signOut();currentUser=null;currentProfile=null;currentRoles=[];
