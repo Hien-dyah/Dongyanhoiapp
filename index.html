@@ -220,13 +220,15 @@
     $('welcomeTitle').textContent=isAdmin?'Bảng điều khiển quản trị':'Bảng điều khiển hội viên';
   }
   async function loadProfile(){
-    const box=$('profileContent');box.textContent='Đang tải hồ sơ…';
+    const box=$('profileContent');box.textContent='Đang tải hồ sơ hội viên…';
     try{
-      const {data,error}=await sb.from('profiles').select('*').eq('id',currentUser.id).maybeSingle();if(error)throw error;currentProfile=data;
-      $('statMember').textContent=data?'Đã có hồ sơ':'Chưa có hồ sơ';
-      if(!data){box.innerHTML='<p>Chưa tìm thấy hồ sơ trong bảng <code>profiles</code>.</p>';return;}
-      const rows=Object.entries(data).filter(([k,v])=>!['id'].includes(k)&&v!==null&&v!=='').map(([k,v])=>`<div class="item"><strong>${esc(labelFor(k))}</strong><p>${esc(String(v))}</p></div>`).join('');
-      box.innerHTML=rows||'<p>Hồ sơ đã tồn tại, chưa có trường thông tin bổ sung.</p>';
+      const {data,error}=await sb.from('members').select('id,member_code,full_name,gender,birth_year,phone,email,address,education_level,professional_qualification,workplace,member_type,status,branch_id').eq('user_id',currentUser.id).maybeSingle();
+      if(error)throw error;
+      if(!data){box.innerHTML='<p>Tài khoản chưa được liên kết với hồ sơ hội viên. Nếu vừa đăng ký, hồ sơ đang chờ Chi hội trưởng xử lý.</p>';return;}
+      $('statMember').textContent='Đã có hồ sơ';
+      const fields=[['full_name','Họ và tên','text'],['gender','Giới tính','text'],['birth_year','Năm sinh','number'],['phone','Số điện thoại','tel'],['email','Email','email'],['address','Địa chỉ thường trú','text'],['education_level','Trình độ văn hóa','text'],['professional_qualification','Văn bằng chuyên môn','text'],['workplace','Nơi hành nghề','text']];
+      box.innerHTML='<form id="memberProfileForm" class="form-grid">'+fields.map(([key,label,type])=>'<div><label for="profile_'+key+'">'+label+'</label><input id="profile_'+key+'" name="'+key+'" type="'+type+'" value="'+esc(data[key]??'')+'"></div>').join('')+'<div><label>Loại hội viên</label><input value="'+esc(data.member_type||'')+'" disabled></div><div><label>Trạng thái hồ sơ</label><input value="'+esc(data.status||'')+'" disabled></div><div class="full"><p class="muted">Mã hội viên: '+esc(data.member_code||'Chưa cấp')+' · Chi hội: '+esc(branches.find(b=>String(b.id)===String(data.branch_id))?.name||data.branch_id||'')+'</p><button type="submit">Lưu thay đổi hồ sơ</button></div></form>';
+      $('memberProfileForm').addEventListener('submit',async ev=>{ev.preventDefault();const btn=ev.submitter;btn.disabled=true;try{const update={};fields.forEach(([key])=>{const value=$('profile_'+key).value.trim();update[key]=value===''?null:value;});if(update.birth_year!==null)update.birth_year=Number(update.birth_year);update.updated_at=new Date().toISOString();const {error:updateError}=await sb.from('members').update(update).eq('id',data.id);if(updateError)throw updateError;await sb.from('profiles').update({full_name:update.full_name,phone:update.phone,email:update.email}).eq('id',currentUser.id);alert('Đã lưu hồ sơ hội viên.');await loadProfile();}catch(err){alert('Không lưu được hồ sơ: '+err.message);}finally{btn.disabled=false;}});
     }catch(e){$('statMember').textContent='—';box.textContent='Không đọc được hồ sơ: '+e.message;}
   }
   function labelFor(k){return ({full_name:'Họ và tên',phone:'Số điện thoại',email:'Email',branch_id:'Mã chi hội',role:'Vai trò',created_at:'Ngày tạo'})[k]||k;}
