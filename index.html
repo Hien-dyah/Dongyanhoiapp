@@ -181,14 +181,12 @@
         const name=$('regName').value.trim(),phone=$('regPhone').value.trim(),branchId=$('regBranch').value;
         const {data,error}=await sb.auth.signUp({email,password,options:{data:{full_name:name,phone:phone,branch_id:branchId}}});if(error)throw error;
         if(data.user){
-          currentUser=data.user;
-          if(!data.session){message($('authMessage'),'Tài khoản đã tạo nhưng Supabase chưa cấp phiên đăng nhập. Hãy kiểm tra cài đặt xác nhận email.');return;}
-          const {error:memberError}=await sb.from('members').insert({user_id:data.user.id,branch_id:Number(branchId),full_name:name,phone:phone,email:email,status:'pending',created_by:data.user.id});
-          if(memberError){await sb.auth.signOut();currentUser=null;throw new Error('Tài khoản đã tạo nhưng chưa lưu được hồ sơ đăng ký hội viên: '+memberError.message);}
-          message($('authMessage'),'Đã gửi đăng ký hội viên. Hồ sơ đang chờ Chi hội trưởng/Ban Thường vụ duyệt.');
-          $('authPassword').value='';
-          await sb.auth.signOut();currentUser=null;
-          setAuthMode('login');
+          if(data.session){
+            currentUser=data.user;await openApp();
+            message($('homeMessage'),'Đã tạo tài khoản và gửi hồ sơ hội viên. Hồ sơ đang chờ Chi hội trưởng kiểm tra.');
+          }else{
+            message($('authMessage'),'Đã tạo tài khoản và hồ sơ đăng ký hội viên. Hãy xác nhận email theo hướng dẫn trong hộp thư; sau khi xác nhận, có thể đăng nhập để theo dõi hồ sơ.');
+          }
         } else {message($('authMessage'),'Không tạo được tài khoản. Vui lòng thử lại.',true);}
       }
     }catch(err){message($('authMessage'),friendlyError(err),true);}
