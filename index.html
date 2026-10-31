@@ -278,7 +278,7 @@
   });
   async function loadNews(){
     const box=$('newsContent');if(!box)return;box.textContent='Đang tải tin tức…';
-    try{const {data,error}=await sb.from('news').select('*').eq('status','published').order('created_at',{ascending:false}).limit(50);if(error)throw error;
+    try{const {data,error}=await sb.from('news').select('*').eq('published',true).order('created_at',{ascending:false}).limit(50);if(error)throw error;
       if(!data?.length){box.innerHTML='<p>Chưa có tin tức đã xuất bản.</p>';return;}
       box.innerHTML=data.map(n=>`<article class="item"><h4>${esc(n.title||'Tin tức')}</h4><p class="muted">${esc(n.created_at||'')}</p><p>${esc(n.summary||n.content||n.body||'')}</p></article>`).join('');
     }catch(e){box.textContent='Không tải được tin tức: '+e.message;}
