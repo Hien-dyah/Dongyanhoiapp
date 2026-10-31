@@ -620,7 +620,7 @@ async function transferAdmin(){if(!currentRoles.includes('ADMIN'))return alert('
       message($('homeMessage'),'Mục này không dành cho tài khoản Hội viên.',true);
       name='home';btn=document.querySelector('[data-page=home]');
     }
-    if(currentRoles.includes('BRANCH_HEAD')&&name==='documents'){message($('homeMessage'),'Chi hội trưởng không có quyền xem mục Văn bản.',true);name='home';btn=document.querySelector('[data-page=home]');}
+    if((currentRoles.includes('BRANCH_HEAD')||currentRoles.includes('COMMITTEE'))&&name==='documents'){message($('homeMessage'),'Tài khoản này không có quyền xem mục Văn bản.',true);name='home';btn=document.querySelector('[data-page=home]');}
     const target=$('page-'+name);if(!target)return;
     document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));
     target.classList.remove('hidden');
