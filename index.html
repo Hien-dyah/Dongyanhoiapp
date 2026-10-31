@@ -246,7 +246,7 @@
     const isAdmin=currentRoles.includes('ADMIN'),isExecutive=currentRoles.includes('EXECUTIVE'),isBranch=currentRoles.includes('BRANCH_HEAD');
     if(!isAdmin&&!isExecutive&&!isBranch){box.textContent='Tài khoản không có quyền xử lý hồ sơ hội viên.';return;}
     try{
-      const statuses=isBranch?['pending']:['branch_checked'];
+      const statuses=isBranch?['pending']:(isAdmin?['pending','branch_checked']:['branch_checked']);
       const {data,error}=await sb.from('members').select('id,user_id,full_name,phone,email,branch_id,status,created_at').in('status',statuses).order('created_at',{ascending:true}).limit(300);
       if(error)throw error;
       if(!data||!data.length){box.innerHTML='<p>Không có hồ sơ cần xử lý.</p>';return;}
