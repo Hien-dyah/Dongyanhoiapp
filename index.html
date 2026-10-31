@@ -306,12 +306,20 @@
     const role=currentRoles.join(', ')||'Chưa đọc được vai trò';
     $('roleBadge').textContent=role;$('statRole').textContent=role;
     const isAdmin=currentRoles.includes('ADMIN');
+    const isCommittee=currentRoles.includes('COMMITTEE');
     const hasManagementRole=['ADMIN','EXECUTIVE','COMMITTEE','BRANCH_HEAD'].some(r=>currentRoles.includes(r));
     const isMemberOnly=currentRoles.includes('MEMBER')&&!hasManagementRole;
     $('adminMenuBtn').classList.toggle('hidden',!isAdmin);
     $('membersMenuBtn').classList.toggle('hidden',isMemberOnly);
-    $('documentsMenuBtn').classList.toggle('hidden',isMemberOnly||currentRoles.includes('BRANCH_HEAD'));
+    $('documentsMenuBtn').classList.toggle('hidden',isMemberOnly||currentRoles.includes('BRANCH_HEAD')||isCommittee);
     $('page-admin').classList.add('hidden');
+    $('reportForm').classList.toggle('hidden',isCommittee);
+    const pendingBox=$('pendingMembersContent');
+    if(pendingBox){
+      pendingBox.classList.toggle('hidden',isCommittee);
+      if(pendingBox.previousElementSibling)pendingBox.previousElementSibling.classList.toggle('hidden',isCommittee);
+      if(pendingBox.previousElementSibling?.previousElementSibling)pendingBox.previousElementSibling.previousElementSibling.classList.toggle('hidden',isCommittee);
+    }
     if($('adminStatus'))$('adminStatus').textContent=isAdmin?'Đã nhận diện vai trò ADMIN cho tài khoản '+(currentUser.email||'')+'.':'Chưa xác nhận được ADMIN từ bảng user_roles.';
     $('welcomeTitle').textContent=isAdmin?'Bảng điều khiển quản trị':'Bảng điều khiển hội viên';
   }
@@ -366,7 +374,9 @@
     }catch(e){alert('Không xóa được: '+(e.message||String(e)));}
   }
   async function loadPendingMembers(){
-    const box=$('pendingMembersContent');if(!box)return;box.textContent='Đang tải hồ sơ chờ xử lý…';
+    const box=$('pendingMembersContent');if(!box)return;
+    if(currentRoles.includes('COMMITTEE')){box.textContent='Ban Chấp hành chỉ được xem danh sách hội viên, không có quyền duyệt hồ sơ.';return;}
+    box.textContent='Đang tải hồ sơ chờ xử lý…';
     const isAdmin=currentRoles.includes('ADMIN'),isExecutive=currentRoles.includes('EXECUTIVE'),isBranch=!isAdmin&&!isExecutive&&currentRoles.includes('BRANCH_HEAD');
     if(!isAdmin&&!isExecutive&&!isBranch){box.textContent='Tài khoản không có quyền xử lý hồ sơ hội viên.';return;}
     try{
@@ -434,7 +444,7 @@
     const box=$('reportsContent');box.textContent='Đang tải báo cáo…';
     try{const {data,error}=await sb.from('reports').select('id,report_code,title,report_type,period_start,period_end,status,summary,created_at,created_by').order('created_at',{ascending:false}).limit(100);if(error)throw error;
       if(!data?.length){box.innerHTML='<p>Chưa có báo cáo hoặc tài khoản không có quyền xem.</p>';return;}
-      box.innerHTML=data.map(r=>{let a=[];if(r.status==='draft'&&r.created_by===currentUser.id)a.push('<button onclick="reportAction('+r.id+',\'submit\')">Gửi báo cáo</button>');if(['submitted','reviewing'].includes(r.status)&&currentRoles.includes('BRANCH_HEAD'))a.push('<button onclick="reportAction('+r.id+',\'review\')">Đưa vào xem xét</button><button class="secondary" onclick="reportAction('+r.id+',\'needs_supplement\')">Yêu cầu bổ sung</button>');if(['submitted','reviewing','needs_supplement'].includes(r.status)&&currentRoles.includes('COMMITTEE'))a.push('<button class="secondary" onclick="reportAction('+r.id+',\'comment\')">Góp ý</button>');if(r.status==='reviewing'&&(currentRoles.includes('EXECUTIVE')||currentRoles.includes('ADMIN')))a.push('<button onclick="reportAction('+r.id+',\'approve\')">Duyệt</button><button class="danger" onclick="reportAction('+r.id+',\'reject\')">Từ chối</button>');return '<div class="item"><h4>'+esc(r.title||r.report_code||'Báo cáo')+'</h4><p class="muted">'+esc(r.report_type||'')+' · '+esc(r.period_start||'')+' – '+esc(r.period_end||'')+' · Trạng thái: '+esc(r.status||'')+'</p><p>'+esc(r.summary||'')+'</p><div class="row-actions">'+a.join('')+'</div></div>';}).join('');
+      box.innerHTML=data.map(r=>{let a=[];if(r.status==='draft'&&r.created_by===currentUser.id)a.push('<button onclick="reportAction('+r.id+',\'submit\')">Gửi báo cáo</button>');if(['submitted','reviewing'].includes(r.status)&&currentRoles.includes('BRANCH_HEAD'))a.push('<button onclick="reportAction('+r.id+',\'review\')">Đưa vào xem xét</button><button class="secondary" onclick="reportAction('+r.id+',\'needs_supplement\')">Yêu cầu bổ sung</button>');if(['submitted','reviewing','needs_supplement'].includes(r.status)&&currentRoles.includes('COMMITTEE'))a.push('<button class="secondary" onclick="reportAction('+r.id+',\'comment\')">Góp ý</button>');if(r.status==='reviewing'&&(currentRoles.includes('EXECUTIVE')||currentRoles.includes('ADMIN')))a.push('<button onclick="reportAction('+r.id+',\'approve\')">Duyệt</button><button class="danger" onclick="reportAction('+r.id+',\'reject\')">Từ chối</button>');if(currentRoles.includes('COMMITTEE'))a=[];return '<div class="item"><h4>'+esc(r.title||r.report_code||'Báo cáo')+'</h4><p class="muted">'+esc(r.report_type||'')+' · '+esc(r.period_start||'')+' – '+esc(r.period_end||'')+' · Trạng thái: '+esc(r.status||'')+'</p><p>'+esc(r.summary||'')+'</p><div class="row-actions">'+a.join('')+'</div></div>';}).join('');
     }catch(e){box.textContent='Không tải được báo cáo: '+e.message;}
   }
   $('reportForm').addEventListener('submit',async e=>{
@@ -540,7 +550,7 @@
       if(isAdmin){await loadPendingNews();await loadWithdrawnNews();}
     }catch(e){box.textContent='Không tải được tin tức: '+e.message;}
   }
-  async function reportAction(id,action){let comment=null;if(['comment','needs_supplement','reject'].includes(action)){comment=prompt('Nhập ý kiến hoặc lý do (có thể để trống):');if(comment===null)return;}try{const {error}=await sb.rpc('transition_report_status',{p_report_id:id,p_action:action,p_comment:comment});if(error)throw error;alert('Đã ghi nhận thao tác.');await loadReports();}catch(e){alert('Không xử lý được: '+e.message);}}
+  async function reportAction(id,action){if(currentRoles.includes('COMMITTEE'))return alert('Ban Chấp hành chỉ có quyền xem báo cáo tổng hợp, không được thay đổi báo cáo.');let comment=null;if(['comment','needs_supplement','reject'].includes(action)){comment=prompt('Nhập ý kiến hoặc lý do (có thể để trống):');if(comment===null)return;}try{const {error}=await sb.rpc('transition_report_status',{p_report_id:id,p_action:action,p_comment:comment});if(error)throw error;alert('Đã ghi nhận thao tác.');await loadReports();}catch(e){alert('Không xử lý được: '+e.message);}}
   async function loadPositions(){try{const {data,error}=await sb.from('positions').select('id,code,name').eq('active',true).order('name');if(error)throw error;$('positionSelect').innerHTML='<option value="">Chọn chức vụ</option>'+(data||[]).map(p=>'<option value="'+p.id+'">'+esc(p.name)+' ('+esc(p.code)+')</option>').join('');$('positionBranch').innerHTML='<option value="">Toàn Hội / Không chỉ định</option>'+branches.map(b=>'<option value="'+b.id+'">'+esc(b.name)+'</option>').join('');}catch(e){$('positionsMessage').textContent='Không tải được chức vụ: '+e.message;}}
   $('positionForm')?.addEventListener('submit',async e=>{e.preventDefault();const btn=e.submitter;btn.disabled=true;try{const {error}=await sb.from('positions').insert({code:$('positionCode').value.trim().toUpperCase(),name:$('positionName').value.trim(),description:$('positionDescription').value.trim()||null});if(error)throw error;$('positionForm').reset();$('positionsMessage').textContent='Đã tạo chức vụ.';await loadPositions();}catch(err){$('positionsMessage').textContent='Không tạo được: '+err.message;}finally{btn.disabled=false;}});
   $('assignPositionForm')?.addEventListener('submit',async e=>{e.preventDefault();const btn=e.submitter;btn.disabled=true;try{const branch=$('positionBranch').value;const {error}=await sb.rpc('assign_position_by_email',{p_email:$('positionUserEmail').value.trim(),p_position_id:Number($('positionSelect').value),p_branch_id:branch?Number(branch):null});if(error)throw error;$('positionsMessage').textContent='Đã giao chức vụ. Quyền hệ thống không thay đổi.';$('assignPositionForm').reset();}catch(err){$('positionsMessage').textContent='Không giao được chức vụ: '+err.message;}finally{btn.disabled=false;}});
