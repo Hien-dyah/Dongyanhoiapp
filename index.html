@@ -94,7 +94,15 @@
                 <div><label>Loại báo cáo</label><select id="reportType"><option value="monthly">Báo cáo tháng</option><option value="quarterly">Báo cáo quý</option><option value="annual">Báo cáo năm</option><option value="other">Khác</option></select></div>
                 <div><label>Kỳ bắt đầu</label><input id="periodStart" type="date" required></div>
                 <div><label>Kỳ kết thúc</label><input id="periodEnd" type="date" required></div>
-                <div class="full"><label>Tóm tắt hoạt động / kiến nghị</label><textarea id="reportSummary" placeholder="Nội dung hoạt động, dược liệu, từ thiện, kiến nghị…"></textarea></div>
+                <div class="full"><h3>Chỉ tiêu hoạt động</h3></div>
+                <div><label>Lượt khám có phí</label><input id="consultPaid" type="number" min="0" value="0"></div><div><label>Lượt khám miễn phí</label><input id="consultFree" type="number" min="0" value="0"></div>
+                <div><label>Thuốc bắc có phí</label><input id="chinesePaid" type="number" min="0" value="0"></div><div><label>Thuốc bắc miễn phí</label><input id="chineseFree" type="number" min="0" value="0"></div>
+                <div><label>Thuốc nam có phí</label><input id="vietnamesePaid" type="number" min="0" value="0"></div><div><label>Thuốc nam miễn phí</label><input id="vietnameseFree" type="number" min="0" value="0"></div>
+                <div><label>Châm cứu có phí</label><input id="acupuncturePaid" type="number" min="0" value="0"></div><div><label>Châm cứu miễn phí</label><input id="acupunctureFree" type="number" min="0" value="0"></div>
+                <div><label>Điện châm có phí</label><input id="electroPaid" type="number" min="0" value="0"></div><div><label>Điện châm miễn phí</label><input id="electroFree" type="number" min="0" value="0"></div>
+                <div><label>Dược liệu (số lượng)</label><input id="herbQty" type="number" min="0" step="0.01" value="0"></div><div><label>Đơn giá dược liệu (VNĐ)</label><input id="herbPrice" type="number" min="0" value="0"></div>
+                <div><label>Từ thiện/phúc lợi (số lượng)</label><input id="charityQty" type="number" min="0" step="0.01" value="0"></div><div><label>Đơn giá từ thiện (VNĐ)</label><input id="charityPrice" type="number" min="0" value="0"></div>
+                <div class="full"><label>Tóm tắt hoạt động / kiến nghị</label><textarea id="reportSummary" placeholder="Nội dung hoạt động, kiến nghị…"></textarea></div>
               </div>
               <div class="notice">Bản đầu tiên lưu phần thông tin chung của báo cáo. Các chỉ tiêu chi tiết (khám có phí/miễn phí, thuốc bắc, thuốc nam, dược liệu, từ thiện) cần được ánh xạ chính xác với cấu trúc report_items của dự án trước khi nhập dữ liệu.</div>
               <button type="submit">Lưu bản nháp báo cáo</button>
@@ -103,7 +111,8 @@
           </div>
         </div>
         <div id="page-news" class="page hidden"><div class="card"><div class="section-head"><h3>Tin tức Hội và y học cổ truyền</h3><button onclick="loadNews()">Tải tin tức</button></div><div id="newsContent" class="muted">Đang tải tin tức…</div></div></div>
-        <div id="page-tasks" class="page hidden"><div class="card"><h3>Công việc được giao</h3><div id="tasksContent">Đang tải…</div></div></div><div id="page-documents" class="page hidden"><div class="card"><h3>Kho văn bản Hội</h3><div id="documentsContent">Đang tải…</div></div></div><div id="page-admin" class="page hidden"><div class="card"><h3>Quản trị hệ thống</h3><p class="muted">Trang tổng quan dành cho tài khoản có vai trò ADMIN. Dùng các mục bên trái để xem hội viên, báo cáo và tin tức.</p><div class="notice">Lưu ý: việc hiển thị trang quản trị không tự cấp quyền đọc/sửa dữ liệu. Các thao tác vẫn phải được cho phép bởi chính sách RLS trong Supabase.</div><div id="adminStatus" class="item">Đang kiểm tra quyền quản trị…</div><div class="section-head"><h3>Đăng ký hội viên chờ duyệt</h3><button onclick="loadPendingMembers()">Tải danh sách</button></div><div id="pendingMembersContent" class="muted">Chưa tải danh sách đăng ký.</div></div></div>
+        <div id="page-tasks" class="page hidden"><div class="card"><h3>Công việc được giao</h3><div id="tasksContent">Đang tải…</div></div></div><div id="page-documents" class="page hidden"><div class="card"><h3>Kho văn bản Hội</h3><div id="documentsContent">Đang tải…</div></div></div><div id="page-admin" class="page hidden"><div class="card"><h3>Quản trị hệ thống</h3><p class="muted">Trang tổng quan dành cho tài khoản có vai trò ADMIN. Dùng các mục bên trái để xem hội viên, báo cáo và tin tức.</p><div class="notice">Lưu ý: việc hiển thị trang quản trị không tự cấp quyền đọc/sửa dữ liệu. Các thao tác vẫn phải được cho phép bởi chính sách RLS trong Supabase.</div><div id="adminStatus" class="item">Đang kiểm tra quyền quản trị…</div>
+            <div class="item"><h4>Bàn giao quyền quản trị</h4><p class="muted">Nhập email tài khoản đã đăng ký. Sau khi chuyển, tài khoản hiện tại sẽ mất quyền ADMIN.</p><label>Email người nhận</label><input id="newAdminEmail" type="email" placeholder="email.nguoi.ke.nhiem@example.com"><button class="danger" onclick="transferAdmin()">Bàn giao quyền ADMIN</button></div><div class="section-head"><h3>Đăng ký hội viên chờ duyệt</h3><button onclick="loadPendingMembers()">Tải danh sách</button></div><div id="pendingMembersContent" class="muted">Chưa tải danh sách đăng ký.</div></div></div>
       </div>
     </div>
   </section>
@@ -270,7 +279,9 @@
     try{
       const {data:mem,error:memErr}=await sb.from('members').select('id,branch_id,status').eq('user_id',currentUser.id).maybeSingle();
       if(memErr)throw memErr;if(!mem)throw new Error('Chưa liên kết tài khoản với hồ sơ trong bảng members.');
-      const payload={member_id:mem.id,branch_id:mem.branch_id,title:$('reportTitle').value.trim(),report_type:$('reportType').value,period_type:$('reportType').value,period_start:$('periodStart').value,period_end:$('periodEnd').value,summary:$('reportSummary').value.trim(),status:'draft',created_by:currentUser.id};
+      const n=id=>Number($(id).value||0);
+      const payload={member_id:mem.id,branch_id:mem.branch_id,title:$('reportTitle').value.trim(),report_type:$('reportType').value,period_type:$('reportType').value,period_start:$('periodStart').value,period_end:$('periodEnd').value,summary:$('reportSummary').value.trim(),status:'draft',created_by:currentUser.id,
+      consultation_paid_count:n('consultPaid'),consultation_free_count:n('consultFree'),chinese_medicine_paid_count:n('chinesePaid'),chinese_medicine_free_count:n('chineseFree'),vietnamese_medicine_paid_count:n('vietnamesePaid'),vietnamese_medicine_free_count:n('vietnameseFree'),acupuncture_paid_count:n('acupuncturePaid'),acupuncture_free_count:n('acupunctureFree'),electrotherapy_paid_count:n('electroPaid'),electrotherapy_free_count:n('electroFree'),medicinal_herbs_quantity:n('herbQty'),medicinal_herbs_unit_price:n('herbPrice'),charity_quantity:n('charityQty'),charity_unit_price:n('charityPrice'),charity_amount:n('charityQty')*n('charityPrice')};
       const {error}=await sb.from('reports').insert(payload);if(error)throw error;
       message($('homeMessage'),'Đã lưu bản nháp báo cáo.');$('reportTitle').value='';$('reportSummary').value='';await loadReports();
     }catch(err){alert('Chưa lưu được báo cáo: '+err.message);}
