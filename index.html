@@ -103,7 +103,7 @@
               <div class="notice">Các chỉ tiêu hoạt động được lưu trực tiếp vào báo cáo. Nếu có khoản từ thiện/phúc lợi, vui lòng đính kèm chứng từ trước khi lưu. Tệp đính kèm được lưu trong kho riêng tư của Hội.</div>
               <button type="submit">Lưu bản nháp báo cáo</button>
             </form>
-            <hr style="border:0;border-top:1px solid var(--line);margin:20px 0"><div id="reportsContent" class="muted">Chưa tải báo cáo.</div>
+            <section id="branchSummarySection" class="item hidden"><div class="section-head"><h3>Tổng hợp số liệu chi hội</h3><button type="button" class="secondary" onclick="loadBranchSummaries()">Cập nhật tổng hợp</button></div><p class="muted">Tự cộng số liệu từ báo cáo hội viên đã gửi: theo tháng và theo quý. Chi hội trưởng chỉ xem được chi hội mình.</p><div id="branchSummaryContent" class="muted">Chưa tải số liệu.</div></section><hr style="border:0;border-top:1px solid var(--line);margin:20px 0"><div id="reportsContent" class="muted">Chưa tải báo cáo.</div>
           </div>
         </div>
         <div id="page-news" class="page hidden"><div class="card"><div class="section-head"><h3>Tin tức Hội và y học cổ truyền</h3><button onclick="loadNews()">Tải tin tức</button></div><div id="newsContent" class="muted">Đang tải tin tức…</div><section id="newsAdminTools" class="hidden"><hr><div class="section-head"><h3>Danh sách tin chờ Admin duyệt</h3><button class="secondary" type="button" onclick="fetchTraditionalNews()">🔄 Tìm tin mới từ nguồn y học cổ truyền</button></div><p class="muted">Hệ thống tự kiểm tra nguồn tin mỗi 6 giờ. Tin lấy về chỉ nằm trong danh sách chờ; hội viên không nhìn thấy trước khi Admin duyệt.</p><div id="newsFetchMessage" class="notice hidden" role="status"></div><div id="pendingNewsContent" class="muted">Đang tải tin chờ duyệt…</div><hr><h3>Bài đã gỡ xuống</h3><p class="muted">Các bài đã gỡ vẫn được lưu tại đây; Admin có thể đăng lại khi cần.</p><div id="withdrawnNewsContent" class="muted">Đang tải bài đã gỡ…</div><hr><form id="newsForm" class="form-grid"><div class="full"><h4>Soạn tin của Hội</h4><p class="muted">Tin do Admin tự soạn cũng phải lưu chờ duyệt, sau đó mới được xuất bản.</p></div><div class="full"><label>Tiêu đề</label><input id="newsTitle" required></div><div><label>Chuyên mục</label><select id="newsCategory"><option value="association">Tin tức Hội</option><option value="traditional_medicine">Y học cổ truyền</option><option value="announcement">Thông báo</option></select></div><div class="full"><label>Nội dung</label><textarea id="newsBody" required></textarea></div><div class="full"><button type="submit">Lưu vào danh sách chờ duyệt</button></div></form></section></div></div>
@@ -310,6 +310,7 @@
     if(isCommittee){$('documentsMenuBtn').remove();$('page-documents').remove();}
     $('page-admin').classList.add('hidden');
     $('reportForm').classList.toggle('hidden',isCommittee&&!currentRoles.includes('MEMBER'));
+    $('branchSummarySection').classList.toggle('hidden',!(currentRoles.includes('BRANCH_HEAD')||isAdmin||currentRoles.includes('EXECUTIVE')));
     const pendingBox=$('pendingMembersContent');
     if(pendingBox){
       pendingBox.classList.toggle('hidden',isCommittee);
@@ -436,6 +437,18 @@
     }catch(e){alert('Không tạo được bản in: '+e.message);}
   }
 
+  async function loadBranchSummaries(){
+    const box=$('branchSummaryContent');if(!box)return;box.textContent='Đang tổng hợp số liệu…';
+    try{
+      const {data,error}=await sb.from('branch_report_totals').select('branch_id,period_type,period_start,period_end,report_count,consultation_paid_count,consultation_free_count,chinese_medicine_paid_count,chinese_medicine_free_count,vietnamese_medicine_paid_count,vietnamese_medicine_free_count,acupuncture_paid_count,acupuncture_free_count,electrotherapy_paid_count,electrotherapy_free_count,medicinal_herbs_quantity,charity_quantity,charity_amount').order('period_start',{ascending:false}).limit(100);
+      if(error)throw error;
+      const {data:bs}=await sb.from('branches').select('id,name');
+      const names=Object.fromEntries((bs||[]).map(b=>[b.id,b.name]));
+      if(!data?.length){box.innerHTML='<p>Chưa có báo cáo hội viên đã gửi để tổng hợp.</p>';return;}
+      const render=(type,label)=>{const rows=data.filter(x=>x.period_type===type);return '<h4>'+label+'</h4>'+(rows.length?'<div style="overflow-x:auto"><table><thead><tr><th>Chi hội</th><th>Kỳ</th><th>Số báo cáo</th><th>Khám phí / miễn</th><th>Thuốc bắc phí / miễn</th><th>Thuốc nam phí / miễn</th><th>Châm cứu phí / miễn</th><th>Điện châm phí / miễn</th><th>Dược liệu</th><th>Từ thiện</th></tr></thead><tbody>'+rows.map(x=>'<tr><td>'+esc(names[x.branch_id]||'Chi hội')+'</td><td>'+esc(x.period_start)+' – '+esc(x.period_end)+'</td><td>'+x.report_count+'</td><td>'+Number(x.consultation_paid_count||0)+' / '+Number(x.consultation_free_count||0)+'</td><td>'+Number(x.chinese_medicine_paid_count||0)+' / '+Number(x.chinese_medicine_free_count||0)+'</td><td>'+Number(x.vietnamese_medicine_paid_count||0)+' / '+Number(x.vietnamese_medicine_free_count||0)+'</td><td>'+Number(x.acupuncture_paid_count||0)+' / '+Number(x.acupuncture_free_count||0)+'</td><td>'+Number(x.electrotherapy_paid_count||0)+' / '+Number(x.electrotherapy_free_count||0)+'</td><td>'+Number(x.medicinal_herbs_quantity||0)+'</td><td>'+Number(x.charity_quantity||0)+' ('+Number(x.charity_amount||0).toLocaleString('vi-VN')+' đ)</td></tr>').join('')+'</tbody></table></div>':'<p>Chưa có số liệu '+label.toLowerCase()+'.</p>');};
+      box.innerHTML=render('monthly','Tổng hợp theo tháng')+render('quarterly','Tổng hợp theo quý');
+    }catch(e){box.textContent='Không tổng hợp được: '+e.message;}
+  }
   async function loadReports(){
     const box=$('reportsContent');box.textContent='Đang tải báo cáo…';
     try{const {data,error}=await sb.from('reports').select('id,report_code,title,report_type,period_start,period_end,status,summary,created_at,created_by').order('created_at',{ascending:false}).limit(100);if(error)throw error;
@@ -689,7 +702,7 @@ async function transferAdmin(){if(!currentRoles.includes('ADMIN'))return alert('
     target.classList.remove('hidden');
     document.querySelectorAll('.side button').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');
     if(name==='members'){loadMembers();loadPendingMembers();}
-    if(name==='reports')loadReports();
+    if(name==='reports'){loadReports();if(currentRoles.includes('BRANCH_HEAD')||currentRoles.includes('EXECUTIVE')||currentRoles.includes('ADMIN'))loadBranchSummaries();}
     if(name==='news')loadNews();
     if(name==='profile')loadProfile();
     if(name==='tasks'){loadTasks();prepareTaskForm();}
