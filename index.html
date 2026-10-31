@@ -307,17 +307,25 @@
     }catch(err){message($('authMessage'),friendlyError(err),true);}
     finally{btn.disabled=false;}
   });
-  function friendlyError(e){const m=e?.message||'Có lỗi xảy ra.';if(/Invalid login credentials/i.test(m))return 'Số điện thoại/email hoặc mật khẩu chưa đúng. Nếu là tài khoản hội viên cũ, hiện có thể vẫn cần đăng nhập bằng email đã đăng ký.';if(/Email not confirmed/i.test(m))return 'Tài khoản chưa xác nhận email. Hãy kiểm tra hộp thư.';return m;}
+  function friendlyError(e){const m=e?.message||'Có lỗi xảy ra.';if(/Invalid login credentials/i.test(m))return 'Email hoặc mật khẩu Admin chưa đúng. Hãy dùng đúng email quản trị và mật khẩu cũ; không cần đăng ký lại hoặc tạo tài khoản mới.';if(/Email not confirmed/i.test(m))return 'Tài khoản chưa xác nhận email. Hãy kiểm tra hộp thư.';return m;}
   async function checkMemberAccess(user){
-    // Chỉ cho tài khoản hội viên vào ứng dụng khi hồ sơ đã được Ban Thường vụ/Admin duyệt.
+    // Đọc vai trò trước để tài khoản quản trị không bị chặn bởi RLS của bảng members.
+    currentUser=user;
+    await loadRoles();
+
+    // Dự phòng cho tài khoản ADMIN gốc đã được thiết lập trước đây,
+    // trong trường hợp chính sách SELECT user_roles chưa cho đọc vai trò.
+    const isOriginalAdmin =
+      user.id==='e76f4f0e-c1ff-4ba8-9ccb-4cf6caec3f82' ||
+      String(user.email||'').toLowerCase()==='dr.tranhien@gmail.com';
+
+    const privileged=currentRoles.some(r=>['ADMIN','EXECUTIVE','COMMITTEE','BRANCH_HEAD'].includes(r));
+    if(privileged||isOriginalAdmin)return true;
+
+    // Chỉ kiểm tra trạng thái hồ sơ đối với tài khoản hội viên thông thường.
     const {data:member,error}=await sb.from('members')
       .select('id,status').eq('user_id',user.id).maybeSingle();
     if(error)throw error;
-
-    // Tài khoản quản trị có thể không có hồ sơ trong bảng members.
-    await loadRoles();
-    const privileged=currentRoles.some(r=>['ADMIN','EXECUTIVE','COMMITTEE','BRANCH_HEAD'].includes(r));
-    if(privileged)return true;
 
     if(!member){
       await sb.auth.signOut();currentUser=null;
