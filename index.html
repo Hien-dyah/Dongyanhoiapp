@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#087653"><link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./icon.svg" type="image/svg+xml"><meta name="description" content="Quản lý Hội Đông y phường An Hội">
+  <meta name="theme-color" content="#087653"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Đông y An Hội"><meta name="mobile-web-app-capable" content="yes"><link rel="apple-touch-icon" href="./icon.svg"><link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./icon.svg" type="image/svg+xml"><meta name="description" content="Ứng dụng Hội Đông y phường An Hội – cài lên điện thoại để sử dụng như ứng dụng">
   <title>Hội Đông y phường An Hội</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
@@ -28,7 +28,7 @@
 <body>
 <header>
   <div class="brand"><div class="logo">🌿</div><div><h1>Hội Đông y phường An Hội</h1><p>Hệ thống quản lý hội viên và báo cáo hoạt động</p></div></div>
-  <div class="header-actions"><span id="headerUser" class="small"></span><button id="logoutBtn" class="ghost hidden" onclick="logout()">Đăng xuất</button></div>
+  <div class="header-actions"><span id="headerUser" class="small"></span><button id="installBtn" class="secondary" type="button" onclick="installApp()" style="background:#e8f3ee;color:#087653">＋ Cài ứng dụng</button><button id="logoutBtn" class="ghost hidden" onclick="logout()">Đăng xuất</button></div>
 </header>
 <main>
   <section id="authView" class="login-wrap card">
@@ -642,7 +642,38 @@ async function transferAdmin(){if(!currentRoles.includes('ADMIN'))return alert('
     setAuthMode('login');backToLoginMethods();
   }
   function esc(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  let deferredInstallPrompt=null;
+  function isAppInstalled(){
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true;
+  }
+  function updateInstallButton(){
+    const b=$('installBtn');if(!b)return;
+    b.classList.toggle('hidden',isAppInstalled());
+  }
+  async function installApp(){
+    if(isAppInstalled()){alert('Ứng dụng Hội Đông y An Hội đã được cài trên thiết bị này.');return;}
+    if(deferredInstallPrompt){
+      deferredInstallPrompt.prompt();
+      const choice=await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt=null;updateInstallButton();
+      if(choice?.outcome==='accepted')alert('Đã bắt đầu cài đặt. Hãy mở biểu tượng Hội Đông y An Hội trên màn hình điện thoại.');
+      return;
+    }
+    const ua=navigator.userAgent||'';
+    if(/iPhone|iPad|iPod/i.test(ua)){
+      alert('Để cài ứng dụng trên iPhone/iPad:\\n1. Mở đường link này bằng Safari (không dùng trình duyệt bên trong Zalo).\\n2. Nhấn nút Chia sẻ ở cạnh dưới màn hình.\\n3. Chọn “Thêm vào MH chính” (Add to Home Screen).\\n4. Nhấn “Thêm”.');
+    }else{
+      alert('Để cài ứng dụng trên Android:\\n1. Nếu đang mở trong Zalo, nhấn dấu ⋮ hoặc Chia sẻ và chọn “Mở bằng Chrome”.\\n2. Trong Chrome, nhấn dấu ⋮ ở góc trên bên phải.\\n3. Chọn “Cài đặt ứng dụng” hoặc “Thêm vào màn hình chính”.\\n4. Nhấn “Cài đặt” hoặc “Thêm”.');
+    }
+  }
+  window.addEventListener('beforeinstallprompt',event=>{
+    event.preventDefault();deferredInstallPrompt=event;updateInstallButton();
+    const b=$('installBtn');if(b)b.textContent='＋ Cài ứng dụng';
+  });
+  window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;updateInstallButton();});
+  window.addEventListener('DOMContentLoaded',updateInstallButton);
   async function init(){
+    updateInstallButton();
     if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(err=>console.warn('PWA worker:',err));}
     await loadBranches();
     sb.auth.onAuthStateChange(async(event,session)=>{
