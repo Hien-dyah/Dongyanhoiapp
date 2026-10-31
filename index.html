@@ -307,6 +307,7 @@
     $('adminMenuBtn').classList.toggle('hidden',!isAdmin);
     $('membersMenuBtn').classList.toggle('hidden',isMemberOnly);
     $('documentsMenuBtn').classList.toggle('hidden',isMemberOnly||currentRoles.includes('BRANCH_HEAD')||isCommittee);
+    if(isCommittee){$('documentsMenuBtn').remove();$('page-documents').remove();}
     $('page-admin').classList.add('hidden');
     $('reportForm').classList.toggle('hidden',isCommittee);
     const pendingBox=$('pendingMembersContent');
