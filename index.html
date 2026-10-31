@@ -278,7 +278,7 @@
         } else {message($('authMessage'),'Không tạo được tài khoản. Vui lòng thử lại.',true);}
         registrationInProgress=false;
       }
-    }catch(err){message($('authMessage'),friendlyError(err),true);}
+    }catch(err){registrationInProgress=false;message($('authMessage'),friendlyError(err),true);}
     finally{btn.disabled=false;}
   });
   function togglePhoneLogin(){chooseLoginMethod('phone');$('loginMethod').value='phone';}
