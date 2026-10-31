@@ -37,12 +37,25 @@
     <div class="tabs"><button id="loginTab" class="active" onclick="setAuthMode('login')">Đăng nhập</button><button id="registerTab" onclick="setAuthMode('register')">Đăng ký mới</button></div>
     <form id="authForm">
       <div id="registerFields" class="hidden">
-        <label>Họ và tên</label><input id="regName" autocomplete="name" placeholder="Nhập họ và tên">
-        <label>Số điện thoại</label><input id="regPhone" autocomplete="tel" placeholder="Nhập số điện thoại">
-        <label>Chi hội</label><select id="regBranch"><option value="">Đang tải danh sách chi hội…</option></select>
+        <h3>Thông tin tài khoản</h3>
+        <label>Họ và tên *</label><input id="regName" autocomplete="name" placeholder="Nhập họ và tên">
+        <label>Số điện thoại đăng nhập *</label><input id="regPhone" autocomplete="tel" inputmode="tel" placeholder="Ví dụ: 0912345678">
+        <label>Mật khẩu đăng nhập *</label><input id="regPassword" type="password" minlength="6" autocomplete="new-password" placeholder="Tạo mật khẩu ít nhất 6 ký tự">
+        <label>Nhập lại mật khẩu *</label><input id="regPasswordConfirm" type="password" minlength="6" autocomplete="new-password" placeholder="Nhập lại mật khẩu">
+        <h3>Thông tin hồ sơ hội viên</h3>
+        <label>Chi hội *</label><select id="regBranch"><option value="">Đang tải danh sách chi hội…</option></select>
+        <label>Giới tính</label><select id="regGender"><option value="">Chọn giới tính</option><option value="Nam">Nam</option><option value="Nữ">Nữ</option><option value="Khác">Khác</option></select>
+        <label>Năm sinh</label><input id="regBirthYear" type="number" min="1900" max="2100" step="1" placeholder="Ví dụ: 1975">
+        <label>Địa chỉ thường trú</label><input id="regAddress" autocomplete="street-address" placeholder="Số nhà, ấp/khu phố, xã/phường">
+        <label>Trình độ văn hóa</label><input id="regEducation" placeholder="Ví dụ: 12/12">
+        <label>Văn bằng chuyên môn</label><input id="regQualification" placeholder="Ví dụ: Y sĩ Y học cổ truyền">
+        <label>Nơi hành nghề</label><input id="regWorkplace" placeholder="Tên cơ sở hoặc địa chỉ hành nghề">
+        <label>Loại hội viên</label><select id="regMemberType"><option value="Chính thức">Chính thức</option><option value="Liên kết">Liên kết</option><option value="Danh dự">Danh dự</option></select>
+        <label>Email (không bắt buộc)</label><input id="regContactEmail" type="email" autocomplete="email" placeholder="Địa chỉ email nếu có">
+        <p class="muted small">Thông tin có dấu * là bắt buộc. Sau khi gửi, hồ sơ sẽ ở trạng thái chờ xét duyệt; hội viên chưa được tự cấp quyền chính thức.</p>
       </div>
       <div id="loginIdentityField"><label>Số điện thoại hoặc email tài khoản quản trị</label><input id="authEmail" type="text" inputmode="tel" autocomplete="username" required placeholder="Ví dụ: 0912345678"></div>
-      <label>Mật khẩu</label><input id="authPassword" type="password" minlength="6" autocomplete="current-password" required placeholder="Ít nhất 6 ký tự">
+      <div id="loginPasswordField"><label>Mật khẩu</label><input id="authPassword" type="password" minlength="6" autocomplete="current-password" required placeholder="Ít nhất 6 ký tự"></div>
       <button id="authSubmit" type="submit" style="width:100%;margin-top:18px">Đăng nhập</button>
     </form>
     <div id="forgotPasswordRow" style="text-align:right;margin-top:10px"><button type="button" class="ghost" onclick="sendPasswordRecovery()" style="padding:4px 0;background:transparent;color:var(--green);border:0;text-decoration:underline">Quên mật khẩu?</button></div>
@@ -171,10 +184,10 @@
   function message(el, text, error=false){el.textContent=text;el.classList.remove('hidden','error');if(error)el.classList.add('error');}
   function setAuthMode(mode){
     authMode=mode; $('loginTab').classList.toggle('active',mode==='login');$('registerTab').classList.toggle('active',mode==='register');
-    $('registerFields').classList.toggle('hidden',mode!=='register');$('loginIdentityField').classList.toggle('hidden',mode==='register');$('authEmail').required=mode==='login';$('authTitle').textContent=mode==='login'?'Đăng nhập hệ thống':'Đăng ký tài khoản hội viên';
+    $('registerFields').classList.toggle('hidden',mode!=='register');$('loginIdentityField').classList.toggle('hidden',mode==='register');$('loginPasswordField').classList.toggle('hidden',mode==='register');$('authEmail').required=mode==='login';$('authPassword').required=mode==='login';$('authTitle').textContent=mode==='login'?'Đăng nhập hệ thống':'Đăng ký tài khoản hội viên';
     $('forgotPasswordRow').classList.toggle('hidden',mode!=='login');
-    $('authSubmit').textContent=mode==='login'?'Đăng nhập':'Đăng ký tài khoản';$('authPassword').autocomplete=mode==='login'?'current-password':'new-password';$('authMessage').classList.add('hidden');
-    $('regName').required=mode==='register';$('regPhone').required=mode==='register';$('regBranch').required=mode==='register';
+    $('authSubmit').textContent=mode==='login'?'Đăng nhập':'Gửi hồ sơ đăng ký';$('authPassword').autocomplete='current-password';$('authMessage').classList.add('hidden');
+    ['regName','regPhone','regBranch','regPassword','regPasswordConfirm'].forEach(id=>$(id).required=mode==='register');
   }
   async function loadBranches(){
     const sel=$('regBranch');
@@ -222,15 +235,32 @@
         currentUser=data.user;await openApp();
       }else{
         const name=$('regName').value.trim(),phone=$('regPhone').value.trim(),branchId=$('regBranch').value;
+        const regPassword=$('regPassword').value,regPasswordConfirm=$('regPasswordConfirm').value;
+        if(regPassword.length<6)throw new Error('Mật khẩu cần ít nhất 6 ký tự.');
+        if(regPassword!==regPasswordConfirm)throw new Error('Mật khẩu nhập lại chưa khớp.');
+        const birthRaw=$('regBirthYear').value.trim();
+        const birthYear=birthRaw?Number(birthRaw):null;
+        if(birthYear!==null&&(!Number.isInteger(birthYear)||birthYear<1900||birthYear>new Date().getFullYear()))throw new Error('Năm sinh không hợp lệ.');
         const phoneEmail=phoneToAuthEmail(phone);
-        const {data,error}=await sb.auth.signUp({email:phoneEmail,password,options:{data:{full_name:name,phone:phone,branch_id:branchId,login_method:'phone'}}});if(error)throw error;
+        const {data,error}=await sb.auth.signUp({email:phoneEmail,password:regPassword,options:{data:{full_name:name,phone:phone,branch_id:branchId,login_method:'phone'}}});if(error)throw error;
         if(data.user){
           currentUser=data.user;
-          if(!data.session){message($('authMessage'),'Tài khoản đã tạo nhưng Supabase chưa cấp phiên đăng nhập. Cần tắt xác nhận email trong Supabase để mô hình đăng nhập bằng số điện thoại (không SMS) hoạt động. Hồ sơ hội viên chưa được gửi.',true);return;}
-          const {error:memberError}=await sb.from('members').insert({user_id:data.user.id,branch_id:Number(branchId),full_name:name,phone:phone,email:null,status:'pending',created_by:data.user.id});
-          if(memberError){await sb.auth.signOut();currentUser=null;throw new Error('Tài khoản đã tạo nhưng chưa lưu được hồ sơ đăng ký hội viên: '+memberError.message+'. Cần cho phép người đăng ký tạo hồ sơ trạng thái pending trong Supabase.');}
-          message($('authMessage'),'Đã gửi đăng ký hội viên bằng số điện thoại. Hồ sơ đang chờ Chi hội trưởng nhận xét và Ban Thường vụ/Admin xét duyệt.');
-          $('authPassword').value='';
+          if(!data.session){message($('authMessage'),'Tài khoản đã tạo nhưng Supabase chưa cấp phiên đăng nhập. Cần tắt Confirm email trong Supabase. Hồ sơ hội viên chưa được gửi.',true);return;}
+          const memberPayload={
+            user_id:data.user.id,branch_id:Number(branchId),full_name:name,phone:phone,
+            email:$('regContactEmail').value.trim()||null,
+            gender:$('regGender').value||null,birth_year:birthYear,
+            address:$('regAddress').value.trim()||null,
+            education_level:$('regEducation').value.trim()||null,
+            professional_qualification:$('regQualification').value.trim()||null,
+            workplace:$('regWorkplace').value.trim()||null,
+            member_type:$('regMemberType').value||'Chính thức',
+            status:'pending',created_by:data.user.id
+          };
+          const {error:memberError}=await sb.from('members').insert(memberPayload);
+          if(memberError){await sb.auth.signOut();currentUser=null;throw new Error('Tài khoản đã tạo nhưng chưa lưu được hồ sơ hội viên: '+memberError.message+'. Cần kiểm tra quyền INSERT cho phép người đăng ký tạo hồ sơ pending trong bảng members.');}
+          message($('authMessage'),'Đã gửi đầy đủ hồ sơ đăng ký hội viên. Hồ sơ đang chờ Chi hội trưởng nhận xét và Ban Thường vụ/Admin quyết định duyệt hoặc từ chối.');
+          $('regPassword').value='';$('regPasswordConfirm').value='';['regName','regPhone','regBirthYear','regAddress','regEducation','regQualification','regWorkplace','regContactEmail'].forEach(id=>$(id).value='');$('regGender').value='';$('regMemberType').value='Chính thức';$('regBranch').value='';
           await sb.auth.signOut();currentUser=null;
           setAuthMode('login');
           $('authEmail').value=phone;
@@ -277,7 +307,7 @@
       box.innerHTML=rows||'<p>Hồ sơ đã tồn tại, chưa có trường thông tin bổ sung.</p>';
     }catch(e){$('statMember').textContent='—';box.textContent='Không đọc được hồ sơ: '+e.message;}
   }
-  function labelFor(k){return ({full_name:'Họ và tên',phone:'Số điện thoại',email:'Email',branch_id:'Mã chi hội',role:'Vai trò',created_at:'Ngày tạo'})[k]||k;}
+  function labelFor(k){return ({full_name:'Họ và tên',phone:'Số điện thoại',email:'Email',branch_id:'Mã chi hội',gender:'Giới tính',birth_year:'Năm sinh',address:'Địa chỉ thường trú',education_level:'Trình độ văn hóa',professional_qualification:'Văn bằng chuyên môn',workplace:'Nơi hành nghề',member_type:'Loại hội viên',status:'Trạng thái hồ sơ',role:'Vai trò',created_at:'Ngày tạo'})[k]||k;}
   async function loadMembers(){
     const box=$('membersContent');box.textContent='Đang tải…';
     try{const {data,error}=await sb.from('members').select('id,member_code,full_name,gender,birth_year,phone,email,branch_id,status,education_level,professional_qualification,workplace,member_type').order('full_name').limit(300);if(error)throw error;
