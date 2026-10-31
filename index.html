@@ -299,7 +299,7 @@
       }
     }catch(e){console.warn('Không đọc được vai trò:',e.message);}
     const role=currentRoles.join(', ')||'Chưa đọc được vai trò';
-    $('roleBadge').textContent=role;$('statRole').textContent=role;
+    $('roleBadge').textContent=role;if($('statRole'))$('statRole').textContent=role;
     const isAdmin=currentRoles.includes('ADMIN');
     const isCommittee=currentRoles.includes('COMMITTEE');
     const hasManagementRole=['ADMIN','EXECUTIVE','COMMITTEE','BRANCH_HEAD'].some(r=>currentRoles.includes(r));
