@@ -33,7 +33,7 @@
 <main>
   <section id="authView" class="login-wrap card">
     <h2 id="authTitle">Đăng nhập hệ thống</h2>
-    <p class="muted">Đăng nhập bằng số điện thoại và mật khẩu. Khi đăng ký tài khoản mới, sử dụng email hợp lệ.</p>
+    <p class="muted">Hội viên đăng ký và đăng nhập bằng số điện thoại cùng mật khẩu. Tài khoản quản trị cũ vẫn có thể dùng email.</p>
     <div class="tabs"><button id="loginTab" class="active" onclick="setAuthMode('login')">Đăng nhập</button><button id="registerTab" onclick="setAuthMode('register')">Đăng ký mới</button></div>
     <form id="authForm">
       <div id="registerFields" class="hidden">
@@ -41,7 +41,7 @@
         <label>Số điện thoại</label><input id="regPhone" autocomplete="tel" placeholder="Nhập số điện thoại">
         <label>Chi hội</label><select id="regBranch"><option value="">Đang tải danh sách chi hội…</option></select>
       </div>
-      <label id="authEmailLabel">Số điện thoại</label><input id="authEmail" type="tel" inputmode="numeric" autocomplete="tel" required placeholder="0912345678">
+      <div id="loginIdentityField"><label>Số điện thoại hoặc email tài khoản quản trị</label><input id="authEmail" type="text" inputmode="tel" autocomplete="username" required placeholder="Ví dụ: 0912345678"></div>
       <label>Mật khẩu</label><input id="authPassword" type="password" minlength="6" autocomplete="current-password" required placeholder="Ít nhất 6 ký tự">
       <button id="authSubmit" type="submit" style="width:100%;margin-top:18px">Đăng nhập</button>
     </form>
@@ -57,7 +57,7 @@
       <div id="recoveryMessage" class="small" role="status" style="margin-top:8px"></div>
     </section>
     <div id="authMessage" class="notice hidden" role="status"></div>
-    <p class="muted small">Tài khoản mới có thể cần xác nhận email. Quyền truy cập phụ thuộc vào vai trò được cấp trong cơ sở dữ liệu.</p>
+    <p class="muted small">Đăng ký bằng số điện thoại không gửi SMS. Hãy nhập đúng số điện thoại đang sử dụng và giữ bí mật mật khẩu. Tài khoản mới sẽ chờ xét duyệt trước khi được sử dụng đầy đủ.</p>
   </section>
 
   <section id="appView" class="hidden">
@@ -94,9 +94,49 @@
                 <div><label>Loại báo cáo</label><select id="reportType"><option value="monthly">Báo cáo tháng</option><option value="quarterly">Báo cáo quý</option><option value="annual">Báo cáo năm</option><option value="other">Khác</option></select></div>
                 <div><label>Kỳ bắt đầu</label><input id="periodStart" type="date" required></div>
                 <div><label>Kỳ kết thúc</label><input id="periodEnd" type="date" required></div>
-                <div class="full"><label>Tóm tắt hoạt động / kiến nghị</label><textarea id="reportSummary" placeholder="Nội dung hoạt động, dược liệu, từ thiện, kiến nghị…"></textarea></div>
               </div>
-              <div class="notice">Bản đầu tiên lưu phần thông tin chung của báo cáo. Các chỉ tiêu chi tiết (khám có phí/miễn phí, thuốc bắc, thuốc nam, dược liệu, từ thiện) cần được ánh xạ chính xác với cấu trúc report_items của dự án trước khi nhập dữ liệu.</div>
+              <h4>1. Khám bệnh</h4>
+              <div class="form-grid">
+                <div><label>Lượt khám có phí</label><input id="consultationPaidCount" type="number" min="0" step="1" value="0"></div>
+                <div><label>Đơn giá khám có phí (đồng)</label><input id="consultationPaidPrice" type="number" min="0" step="1000" value="0"></div>
+                <div><label>Lượt khám miễn phí</label><input id="consultationFreeCount" type="number" min="0" step="1" value="0"></div>
+              </div>
+              <h4>2. Thuốc bắc</h4>
+              <div class="form-grid">
+                <div><label>Lượt/số phần có phí</label><input id="chinesePaidCount" type="number" min="0" step="1" value="0"></div>
+                <div><label>Đơn giá (đồng)</label><input id="chinesePaidPrice" type="number" min="0" step="1000" value="0"></div>
+                <div><label>Lượt/số phần miễn phí</label><input id="chineseFreeCount" type="number" min="0" step="1" value="0"></div>
+              </div>
+              <h4>3. Thuốc nam</h4>
+              <div class="form-grid">
+                <div><label>Lượt/số phần có phí</label><input id="vietnamesePaidCount" type="number" min="0" step="1" value="0"></div>
+                <div><label>Đơn giá (đồng)</label><input id="vietnamesePaidPrice" type="number" min="0" step="1000" value="0"></div>
+                <div><label>Lượt/số phần miễn phí</label><input id="vietnameseFreeCount" type="number" min="0" step="1" value="0"></div>
+              </div>
+              <h4>4. Châm cứu</h4>
+              <div class="form-grid">
+                <div><label>Lượt châm cứu có phí</label><input id="acupuncturePaidCount" type="number" min="0" step="1" value="0"></div>
+                <div><label>Đơn giá (đồng)</label><input id="acupuncturePaidPrice" type="number" min="0" step="1000" value="0"></div>
+                <div><label>Lượt châm cứu miễn phí</label><input id="acupunctureFreeCount" type="number" min="0" step="1" value="0"></div>
+              </div>
+              <h4>5. Điện trị liệu</h4>
+              <div class="form-grid">
+                <div><label>Lượt điện trị liệu có phí</label><input id="electroPaidCount" type="number" min="0" step="1" value="0"></div>
+                <div><label>Đơn giá (đồng)</label><input id="electroPaidPrice" type="number" min="0" step="1000" value="0"></div>
+                <div><label>Lượt điện trị liệu miễn phí</label><input id="electroFreeCount" type="number" min="0" step="1" value="0"></div>
+              </div>
+              <h4>6. Dược liệu</h4>
+              <div class="form-grid">
+                <div><label>Số lượng dược liệu</label><input id="herbsQuantity" type="number" min="0" step="0.01" value="0"></div>
+                <div><label>Đơn giá dược liệu (đồng)</label><input id="herbsUnitPrice" type="number" min="0" step="1000" value="0"></div>
+              </div>
+              <h4>7. Từ thiện, phúc lợi xã hội</h4>
+              <div class="form-grid">
+                <div><label>Số lượng / lượt hỗ trợ</label><input id="charityQuantity" type="number" min="0" step="0.01" value="0"></div>
+                <div><label>Giá trị mỗi phần (đồng)</label><input id="charityUnitPrice" type="number" min="0" step="1000" value="0"></div>
+              </div>
+              <div class="form-grid"><div class="full"><label>Kiến nghị, đề xuất và nội dung hoạt động khác</label><textarea id="reportSummary" placeholder="Nhập kiến nghị, đề xuất hoặc nội dung cần báo cáo…"></textarea></div></div>
+              <div class="notice">Các số liệu được lưu trực tiếp trong bảng reports. Hãy nhập 0 nếu không phát sinh; báo cáo sẽ được lưu ở trạng thái bản nháp.</div>
               <button type="submit">Lưu bản nháp báo cáo</button>
             </form>
             <hr style="border:0;border-top:1px solid var(--line);margin:20px 0"><div id="reportsContent" class="muted">Chưa tải báo cáo.</div>
@@ -118,17 +158,22 @@
   const APP_URL = 'https://hien-dyah.github.io/hoidongyanapp/';
 
   const $ = id => document.getElementById(id);
+  function phoneToAuthEmail(value){
+    const raw=String(value||'').trim();
+    if(raw.includes('@')) return raw.toLowerCase(); // giữ đăng nhập email cho tài khoản quản trị hiện có
+    let digits=raw.replace(/[^0-9]/g,'');
+    if(digits.startsWith('0084')) digits='84'+digits.slice(4);
+    else if(digits.startsWith('0')) digits='84'+digits.slice(1);
+    if(!digits.startsWith('84') || digits.length<11 || digits.length>12)
+      throw new Error('Số điện thoại Việt Nam chưa đúng. Hãy nhập dạng 09xxxxxxxx hoặc +849xxxxxxxx.');
+    return digits+'@phone.hoidongyanapp.com';
+  }
   function message(el, text, error=false){el.textContent=text;el.classList.remove('hidden','error');if(error)el.classList.add('error');}
   function setAuthMode(mode){
     authMode=mode; $('loginTab').classList.toggle('active',mode==='login');$('registerTab').classList.toggle('active',mode==='register');
-    $('registerFields').classList.toggle('hidden',mode!=='register');$('authTitle').textContent=mode==='login'?'Đăng nhập hệ thống':'Đăng ký tài khoản hội viên';
+    $('registerFields').classList.toggle('hidden',mode!=='register');$('loginIdentityField').classList.toggle('hidden',mode==='register');$('authEmail').required=mode==='login';$('authTitle').textContent=mode==='login'?'Đăng nhập hệ thống':'Đăng ký tài khoản hội viên';
     $('forgotPasswordRow').classList.toggle('hidden',mode!=='login');
     $('authSubmit').textContent=mode==='login'?'Đăng nhập':'Đăng ký tài khoản';$('authPassword').autocomplete=mode==='login'?'current-password':'new-password';$('authMessage').classList.add('hidden');
-    $('authEmailLabel').textContent=mode==='login'?'Số điện thoại':'Email';
-    $('authEmail').type=mode==='login'?'tel':'email';
-    $('authEmail').inputMode=mode==='login'?'numeric':'email';
-    $('authEmail').autocomplete=mode==='login'?'tel':'email';
-    $('authEmail').placeholder=mode==='login'?'0912345678':'ten@example.com';
     $('regName').required=mode==='register';$('regPhone').required=mode==='register';$('regBranch').required=mode==='register';
   }
   async function loadBranches(){
@@ -139,9 +184,9 @@
   }
 
   async function sendPasswordRecovery(){
-    let email=$('authEmail').value.trim();
-    if(!email || !email.includes('@')) email=prompt('Nhập email đã đăng ký để nhận liên kết đặt lại mật khẩu:')||'';
-    if(!email){message($('authMessage'),'Vui lòng nhập email đã đăng ký để khôi phục mật khẩu.',true);return;}
+    const entered=$('authEmail').value.trim();
+    if(!entered || !entered.includes('@')){message($('authMessage'),'Tài khoản đăng ký bằng số điện thoại chưa hỗ trợ tự đặt lại mật khẩu qua SMS. Vui lòng liên hệ Ban quản trị để được hỗ trợ đặt lại mật khẩu.',true);$('authEmail').focus();return;}
+    const email=entered.toLowerCase();
     const btn=$('forgotPasswordRow').querySelector('button');btn.disabled=true;
     try{
       const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:APP_URL});
@@ -170,35 +215,31 @@
   $('authForm').addEventListener('submit',async e=>{
     e.preventDefault();const btn=$('authSubmit');btn.disabled=true;
     try{
-      const loginValue=$('authEmail').value.trim(),password=$('authPassword').value;
+      const entered=$('authEmail').value.trim(),password=$('authPassword').value;
       if(authMode==='login'){
-        const phone=loginValue.replace(/\D/g,'');
-        if(!/^0\d{9,10}$/.test(phone))throw new Error('Vui lòng nhập số điện thoại hợp lệ.');
-        const {data,error}=await sb.functions.invoke('phone-login',{body:{phone,password}});
-        if(error)throw new Error(error.message||'Không gọi được chức năng đăng nhập số điện thoại.');
-        if(!data?.access_token||!data?.refresh_token)throw new Error(data?.error||'Không nhận được phiên đăng nhập.');
-        const {data:sessionData,error:sessionError}=await sb.auth.setSession({access_token:data.access_token,refresh_token:data.refresh_token});
-        if(sessionError)throw sessionError;
-        currentUser=sessionData.user||data.user;await openApp();
+        const authEmail=phoneToAuthEmail(entered);
+        const {data,error}=await sb.auth.signInWithPassword({email:authEmail,password});if(error)throw error;
+        currentUser=data.user;await openApp();
       }else{
-        const email=loginValue;
         const name=$('regName').value.trim(),phone=$('regPhone').value.trim(),branchId=$('regBranch').value;
-        const {data,error}=await sb.auth.signUp({email,password,options:{data:{full_name:name,phone:phone,branch_id:branchId}}});if(error)throw error;
+        const phoneEmail=phoneToAuthEmail(phone);
+        const {data,error}=await sb.auth.signUp({email:phoneEmail,password,options:{data:{full_name:name,phone:phone,branch_id:branchId,login_method:'phone'}}});if(error)throw error;
         if(data.user){
           currentUser=data.user;
-          if(!data.session){message($('authMessage'),'Tài khoản đã tạo nhưng Supabase chưa cấp phiên đăng nhập. Hãy kiểm tra cài đặt xác nhận email rồi đăng nhập; hồ sơ hội viên chưa được gửi.');return;}
-          const {error:memberError}=await sb.from('members').insert({user_id:data.user.id,branch_id:Number(branchId),full_name:name,phone:phone,email:email,status:'pending',created_by:data.user.id});
+          if(!data.session){message($('authMessage'),'Tài khoản đã tạo nhưng Supabase chưa cấp phiên đăng nhập. Cần tắt xác nhận email trong Supabase để mô hình đăng nhập bằng số điện thoại (không SMS) hoạt động. Hồ sơ hội viên chưa được gửi.',true);return;}
+          const {error:memberError}=await sb.from('members').insert({user_id:data.user.id,branch_id:Number(branchId),full_name:name,phone:phone,email:null,status:'pending',created_by:data.user.id});
           if(memberError){await sb.auth.signOut();currentUser=null;throw new Error('Tài khoản đã tạo nhưng chưa lưu được hồ sơ đăng ký hội viên: '+memberError.message+'. Cần cho phép người đăng ký tạo hồ sơ trạng thái pending trong Supabase.');}
-          message($('authMessage'),'Đã gửi đăng ký hội viên. Hồ sơ đang chờ Admin hoặc Ban Thường vụ xét duyệt; Chi hội trưởng sẽ gửi nhận xét.');
+          message($('authMessage'),'Đã gửi đăng ký hội viên bằng số điện thoại. Hồ sơ đang chờ Chi hội trưởng nhận xét và Ban Thường vụ/Admin xét duyệt.');
           $('authPassword').value='';
           await sb.auth.signOut();currentUser=null;
           setAuthMode('login');
+          $('authEmail').value=phone;
         } else {message($('authMessage'),'Không tạo được tài khoản. Vui lòng thử lại.',true);}
       }
     }catch(err){message($('authMessage'),friendlyError(err),true);}
     finally{btn.disabled=false;}
   });
-  function friendlyError(e){const m=e?.message||'Có lỗi xảy ra.';if(/Invalid login credentials/i.test(m))return 'Email hoặc mật khẩu chưa đúng.';if(/Email not confirmed/i.test(m))return 'Tài khoản chưa xác nhận email. Hãy kiểm tra hộp thư.';return m;}
+  function friendlyError(e){const m=e?.message||'Có lỗi xảy ra.';if(/Invalid login credentials/i.test(m))return 'Số điện thoại/email hoặc mật khẩu chưa đúng. Nếu là tài khoản hội viên cũ, hiện có thể vẫn cần đăng nhập bằng email đã đăng ký.';if(/Email not confirmed/i.test(m))return 'Tài khoản chưa xác nhận email. Hãy kiểm tra hộp thư.';return m;}
   async function openApp(){
     if(!currentUser){const {data}=await sb.auth.getUser();currentUser=data.user;}if(!currentUser)return;
     $('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('logoutBtn').classList.remove('hidden');
@@ -338,17 +379,39 @@
     try{
       const {data:mem,error:memErr}=await sb.from('members').select('id,branch_id,status').eq('user_id',currentUser.id).maybeSingle();
       if(memErr)throw memErr;if(!mem)throw new Error('Chưa liên kết tài khoản với hồ sơ trong bảng members. Chi hội trưởng hoặc quản trị viên cần liên kết hồ sơ trước khi gửi báo cáo.');
-      const payload={member_id:mem.id,branch_id:mem.branch_id,title:$('reportTitle').value.trim(),report_type:$('reportType').value,period_type:$('reportType').value,period_start:$('periodStart').value,period_end:$('periodEnd').value,summary:$('reportSummary').value.trim(),status:'draft',created_by:currentUser.id};
+      const num=id=>{const value=Number($(id).value||0);if(!Number.isFinite(value)||value<0)throw new Error('Các chỉ tiêu số lượng và đơn giá phải là số không âm.');return value;};
+      const payload={
+        member_id:mem.id,branch_id:mem.branch_id,title:$('reportTitle').value.trim(),
+        report_type:$('reportType').value,period_type:$('reportType').value,
+        period_start:$('periodStart').value,period_end:$('periodEnd').value,
+        summary:$('reportSummary').value.trim(),recommendations:$('reportSummary').value.trim(),
+        status:'draft',created_by:currentUser.id,
+        consultation_paid_count:num('consultationPaidCount'),consultation_paid_unit_price:num('consultationPaidPrice'),
+        consultation_free_count:num('consultationFreeCount'),
+        chinese_medicine_paid_count:num('chinesePaidCount'),chinese_medicine_unit_price:num('chinesePaidPrice'),
+        chinese_medicine_free_count:num('chineseFreeCount'),
+        vietnamese_medicine_paid_count:num('vietnamesePaidCount'),vietnamese_medicine_unit_price:num('vietnamesePaidPrice'),
+        vietnamese_medicine_free_count:num('vietnameseFreeCount'),
+        acupuncture_paid_count:num('acupuncturePaidCount'),acupuncture_unit_price:num('acupuncturePaidPrice'),
+        acupuncture_free_count:num('acupunctureFreeCount'),
+        electrotherapy_paid_count:num('electroPaidCount'),electrotherapy_unit_price:num('electroPaidPrice'),
+        electrotherapy_free_count:num('electroFreeCount'),
+        medicinal_herbs_quantity:num('herbsQuantity'),medicinal_herbs_unit_price:num('herbsUnitPrice'),
+        charity_quantity:num('charityQuantity'),charity_unit_price:num('charityUnitPrice'),
+        charity_amount:num('charityQuantity')*num('charityUnitPrice')
+      };
+      if(payload.period_end<payload.period_start)throw new Error('Kỳ kết thúc không được trước kỳ bắt đầu.');
       const {error}=await sb.from('reports').insert(payload);if(error)throw error;
-      message($('homeMessage'),'Đã lưu bản nháp báo cáo.');$('reportTitle').value='';$('reportSummary').value='';await loadReports();
+      message($('homeMessage'),'Đã lưu bản nháp báo cáo.');$('reportTitle').value='';$('reportSummary').value='';
+      document.querySelectorAll('#reportForm input[type=number]').forEach(input=>input.value='0');await loadReports();
     }catch(err){alert('Chưa lưu được báo cáo: '+err.message);}
     finally{btn.disabled=false;}
   });
   async function loadNews(){
     const box=$('newsContent');if(!box)return;box.textContent='Đang tải tin tức…';
-    try{const {data,error}=await sb.from('news').select('*').eq('status','published').order('created_at',{ascending:false}).limit(50);if(error)throw error;
+    try{const {data,error}=await sb.from('news').select('id,title,content,category,published,created_at').eq('published',true).order('created_at',{ascending:false}).limit(50);if(error)throw error;
       if(!data?.length){box.innerHTML='<p>Chưa có tin tức đã xuất bản.</p>';return;}
-      box.innerHTML=data.map(n=>`<article class="item"><h4>${esc(n.title||'Tin tức')}</h4><p class="muted">${esc(n.created_at||'')}</p><p>${esc(n.summary||n.content||n.body||'')}</p></article>`).join('');
+      box.innerHTML=data.map(n=>`<article class="item"><h4>${esc(n.title||'Tin tức')}</h4><p class="muted">${esc(n.category||'Tin tức')} · ${esc(n.created_at?new Date(n.created_at).toLocaleDateString('vi-VN'):'')}</p><p>${esc(n.content||'')}</p></article>`).join('');
     }catch(e){box.textContent='Không tải được tin tức. Kiểm tra tên cột và quyền đọc của bảng news: '+e.message;}
   }
   function showPage(name,btn){
