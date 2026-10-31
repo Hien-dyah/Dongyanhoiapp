@@ -124,7 +124,7 @@
   const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_Qj9ZACCvFJrwWdMEsRUl8w_TTh4XPR_';
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
   let authMode = 'login', currentUser = null, currentProfile = null, currentRoles = [], branches = [], recoverySession = false;
-  const APP_URL = 'https://hien-dyah.github.io/hoidongyanapp/';
+  const APP_URL = new URL('./', window.location.href).href;
 
   const $ = id => document.getElementById(id);
   function message(el, text, error=false){el.textContent=text;el.classList.remove('hidden','error');if(error)el.classList.add('error');}
