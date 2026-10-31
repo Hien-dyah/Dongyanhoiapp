@@ -306,6 +306,14 @@
     const isMemberOnly=currentRoles.includes('MEMBER')&&!hasManagementRole;
     $('adminMenuBtn').classList.toggle('hidden',!isAdmin);
     $('membersMenuBtn').classList.toggle('hidden',isMemberOnly);
+    if(isMemberOnly){
+      $('membersMenuBtn').setAttribute('aria-hidden','true');
+      $('membersMenuBtn').style.display='none';
+      $('page-members').classList.add('hidden');
+    }else{
+      $('membersMenuBtn').removeAttribute('aria-hidden');
+      $('membersMenuBtn').style.display='';
+    }
     $('documentsMenuBtn').classList.toggle('hidden',isMemberOnly||currentRoles.includes('BRANCH_HEAD')||isCommittee);
     if(isCommittee){$('documentsMenuBtn').remove();$('page-documents').remove();}
     $('page-admin').classList.add('hidden');
@@ -692,6 +700,7 @@ async function transferAdmin(){if(!currentRoles.includes('ADMIN'))return alert('
     }
     const hasManagementRole=['ADMIN','EXECUTIVE','COMMITTEE','BRANCH_HEAD'].some(r=>currentRoles.includes(r));
     const isMemberOnly=currentRoles.includes('MEMBER')&&!hasManagementRole;
+    if(currentRoles.includes('MEMBER')&&!hasManagementRole&&name==='members'){message($('homeMessage'),'Tài khoản Hội viên không có quyền quản lý hoặc xem danh sách hội viên.',true);name='home';btn=document.querySelector('[data-page=home]');}
     if(isMemberOnly&&(name==='members'||name==='documents')){
       message($('homeMessage'),'Mục này không dành cho tài khoản Hội viên.',true);
       name='home';btn=document.querySelector('[data-page=home]');
