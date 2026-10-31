@@ -374,12 +374,12 @@
       const {data,error}=await sb.from('members').select('id,user_id,full_name,phone,email,branch_id,status,created_at').in('status',statuses).order('created_at',{ascending:true}).limit(300);
       if(error)throw error;
       if(!data||!data.length){box.innerHTML='<p>Không có hồ sơ cần xử lý.</p>';return;}
-      box.innerHTML='<div class="table-wrap"><table><thead><tr><th>Họ tên</th><th>Điện thoại</th><th>Chi hội</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>'+data.map(m=>'<tr><td>'+esc(m.full_name||'—')+'</td><td>'+esc(m.phone||'—')+'</td><td>'+esc(branches.find(b=>String(b.id)===String(m.branch_id))?.name||m.branch_id||'—')+'</td><td>'+esc(m.status)+'</td><td><div class="row-actions"><button onclick="approveMember('+Number(m.id)+')">'+(isBranch?'Đề xuất Ban Thường vụ':'Duyệt hội viên')+'</button>'+(isBranch?'':'<button class="danger" onclick="rejectMember('+Number(m.id)+')">Từ chối</button>')+'</div></td></tr>').join('')+'</tbody></table></div>';
+      box.innerHTML='<div class="table-wrap"><table><thead><tr><th>Họ tên</th><th>Điện thoại</th><th>Chi hội</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>'+data.map(m=>'<tr><td>'+esc(m.full_name||'—')+'</td><td>'+esc(m.phone||'—')+'</td><td>'+esc(branches.find(b=>String(b.id)===String(m.branch_id))?.name||m.branch_id||'—')+'</td><td>'+esc(m.status)+'</td><td><div class="row-actions"><button onclick="approveMember('+Number(m.id)+')">'+(isBranch?'Đề xuất Ban Chấp hành / Ban Thường vụ':'Duyệt hội viên')+'</button>'+(isBranch?'':'<button class="danger" onclick="rejectMember('+Number(m.id)+')">Từ chối</button>')+'</div></td></tr>').join('')+'</tbody></table></div>';
     }catch(e){box.textContent='Không tải được hồ sơ: '+e.message;}
   }
   async function approveMember(memberId){
     const action=(!currentRoles.includes('ADMIN')&&!currentRoles.includes('EXECUTIVE')&&currentRoles.includes('BRANCH_HEAD'))?'branch_check':'approve';
-    if(!confirm(action==='branch_check'?'Xác nhận đề xuất hồ sơ này lên Ban Thường vụ?':'Xác nhận duyệt trực tiếp hồ sơ hội viên?'))return;
+    if(!confirm(action==='branch_check'?'Xác nhận đề xuất hồ sơ này lên Ban Chấp hành / Ban Thường vụ?':'Xác nhận duyệt trực tiếp hồ sơ hội viên?'))return;
     const note=prompt('Ý kiến kiểm tra/duyệt (có thể để trống):');if(note===null)return;
     try{const {error}=await sb.rpc('review_member_application',{p_member_id:memberId,p_action:action,p_comment:note});if(error)throw error;alert('Đã ghi nhận xử lý hồ sơ.');await loadPendingMembers();await loadMembers();}
     catch(e){alert('Chưa xử lý được: '+e.message);}
