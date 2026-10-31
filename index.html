@@ -33,16 +33,16 @@
 <main>
   <section id="authView" class="login-wrap card">
     <h2 id="authTitle">Đăng nhập hệ thống</h2>
-    <p class="muted">Đăng nhập bằng email và mật khẩu tài khoản đã đăng ký.</p>
+    <p id="authIntro" class="muted">Trước tiên, chọn cách đăng nhập hoặc đăng ký tài khoản mới.</p>
     <div class="tabs"><button id="loginTab" class="active" onclick="setAuthMode('login')">Đăng nhập</button><button id="registerTab" onclick="setAuthMode('register')">Đăng ký mới</button></div>
-    <form id="authForm">
+    <div id="loginMethodPanel" class="item"><h4>Chọn cách đăng nhập</h4><div class="row-actions"><button type="button" onclick="chooseLoginMethod('email')">Đăng nhập bằng Email</button><button type="button" class="secondary" onclick="chooseLoginMethod('phone')">Đăng nhập bằng số điện thoại</button></div><button type="button" class="secondary" onclick="setAuthMode('register')">Đăng ký tài khoản mới</button></div><form id="authForm" class="hidden" autocomplete="off"><button type="button" class="secondary" onclick="backToLoginMethods()">← Chọn lại cách đăng nhập</button>
       <div id="registerFields" class="hidden">
         <label>Họ và tên</label><input id="regName" autocomplete="name" placeholder="Nhập họ và tên">
         <label>Số điện thoại</label><input id="regPhone" autocomplete="tel" placeholder="Nhập số điện thoại">
         <label>Chi hội</label><select id="regBranch"><option value="">Đang tải danh sách chi hội…</option></select>
       </div>
-      <label>Email</label><input id="authEmail" type="email" autocomplete="email" required placeholder="ten@example.com">
-      <label>Mật khẩu</label><input id="authPassword" type="password" minlength="6" autocomplete="current-password" required placeholder="Ít nhất 6 ký tự">
+      <label>Email</label><input id="authEmail" type="email" name="login_email" autocomplete="off" autocapitalize="none" spellcheck="false" required placeholder="ten@example.com">
+      <label>Mật khẩu</label><input id="authPassword" type="password" minlength="6" name="login_password" autocomplete="new-password" required placeholder="Nhập mật khẩu">
       <button id="authSubmit" type="submit" style="width:100%;margin-top:18px">Đăng nhập</button>
     </form>
     <div id="forgotPasswordRow" style="text-align:right;margin-top:10px"><button type="button" class="ghost" onclick="sendPasswordRecovery()" style="padding:4px 0;background:transparent;color:var(--green);border:0;text-decoration:underline">Quên mật khẩu?</button></div>
@@ -56,7 +56,7 @@
       </form>
       <div id="recoveryMessage" class="small" role="status" style="margin-top:8px"></div>
     </section>
-    <div id="authMessage" class="notice hidden" role="status"></div><div style="margin-top:12px;text-align:center"><button type="button" class="secondary" onclick="togglePhoneLogin()">Đăng nhập bằng số điện thoại</button></div><form id="phoneLoginForm" class="hidden" style="margin-top:14px"><label>Số điện thoại</label><input id="phoneLoginPhone" type="tel" autocomplete="tel" placeholder="09xxxxxxxx"><label>Mật khẩu</label><input id="phoneLoginPassword" type="password" autocomplete="current-password" minlength="6" required><button type="submit" style="width:100%;margin-top:12px">Đăng nhập</button><p class="muted small">Số điện thoại cần được xác thực và liên kết với hồ sơ hội viên đã duyệt.</p></form>
+    <div id="authMessage" class="notice hidden" role="status"></div><div style="margin-top:12px;text-align:center"><button type="button" class="secondary" onclick="togglePhoneLogin()">Đăng nhập bằng số điện thoại</button></div><form id="phoneLoginForm" class="hidden" style="margin-top:14px" autocomplete="off"><button type="button" class="secondary" onclick="backToLoginMethods()">← Chọn lại cách đăng nhập</button><label>Số điện thoại</label><input id="phoneLoginPhone" type="tel" name="login_phone" autocomplete="off" placeholder="09xxxxxxxx"><label>Mật khẩu</label><input id="phoneLoginPassword" type="password" name="phone_login_password" autocomplete="new-password" minlength="6" required><button type="submit" style="width:100%;margin-top:12px">Đăng nhập</button><p class="muted small">Số điện thoại cần được xác thực và liên kết với hồ sơ hội viên đã duyệt.</p></form>
     <p class="muted small">Tài khoản mới có thể cần xác nhận email. Quyền truy cập phụ thuộc vào vai trò được cấp trong cơ sở dữ liệu.</p>
   </section>
 
@@ -138,11 +138,24 @@
   const $ = id => document.getElementById(id);
   function message(el, text, error=false){el.textContent=text;el.classList.remove('hidden','error');if(error)el.classList.add('error');}
   function setAuthMode(mode){
-    authMode=mode; $('loginTab').classList.toggle('active',mode==='login');$('registerTab').classList.toggle('active',mode==='register');
+    authMode=mode;$('loginTab').classList.toggle('active',mode==='login');$('registerTab').classList.toggle('active',mode==='register');
     $('registerFields').classList.toggle('hidden',mode!=='register');$('authTitle').textContent=mode==='login'?'Đăng nhập hệ thống':'Đăng ký tài khoản hội viên';
-    $('forgotPasswordRow').classList.toggle('hidden',mode!=='login');
-    $('authSubmit').textContent=mode==='login'?'Đăng nhập':'Đăng ký tài khoản';$('authPassword').autocomplete=mode==='login'?'current-password':'new-password';$('authMessage').classList.add('hidden');
+    $('authIntro').textContent=mode==='login'?'Chọn cách đăng nhập trước khi nhập thông tin.':'Tạo tài khoản hội viên mới bằng email và mật khẩu.';
+    $('loginMethodPanel').classList.toggle('hidden',mode!=='login');$('authForm').classList.toggle('hidden',mode==='login');$('phoneLoginForm').classList.add('hidden');
+    $('forgotPasswordRow').classList.add('hidden');$('authSubmit').textContent='Đăng ký tài khoản';$('authPassword').autocomplete='new-password';$('authMessage').classList.add('hidden');
     $('regName').required=mode==='register';$('regPhone').required=mode==='register';$('regBranch').required=mode==='register';
+    $('authEmail').required=mode==='register';$('authPassword').required=mode==='register';
+  }
+  function chooseLoginMethod(method){
+    if(authMode!=='login')return;
+    $('loginMethodPanel').classList.add('hidden');$('authForm').classList.toggle('hidden',method!=='email');$('phoneLoginForm').classList.toggle('hidden',method!=='phone');
+    $('forgotPasswordRow').classList.toggle('hidden',method!=='email');$('authIntro').textContent=method==='email'?'Đăng nhập bằng email và mật khẩu.':'Đăng nhập bằng số điện thoại và mật khẩu.';
+    $('authEmail').required=method==='email';$('authPassword').required=method==='email';
+  }
+  function backToLoginMethods(){
+    $('loginMethodPanel').classList.remove('hidden');$('authForm').classList.add('hidden');$('phoneLoginForm').classList.add('hidden');$('forgotPasswordRow').classList.add('hidden');
+    $('authEmail').value='';$('authPassword').value='';$('phoneLoginPhone').value='';$('phoneLoginPassword').value='';
+    $('authIntro').textContent='Chọn cách đăng nhập trước khi nhập thông tin.';
   }
   async function loadBranches(){
     const sel=$('regBranch');
@@ -190,12 +203,10 @@
         const name=$('regName').value.trim(),phone=$('regPhone').value.trim(),branchId=$('regBranch').value;
         const {data,error}=await sb.auth.signUp({email,password,options:{data:{full_name:name,phone:phone,branch_id:branchId}}});if(error)throw error;
         if(data.user){
-          if(data.session){
-            currentUser=data.user;await openApp();
-            message($('homeMessage'),'Đã tạo tài khoản và gửi hồ sơ hội viên. Hồ sơ đang chờ Chi hội trưởng kiểm tra.');
-          }else{
-            message($('authMessage'),'Đã tạo tài khoản và hồ sơ đăng ký hội viên. Hãy xác nhận email theo hướng dẫn trong hộp thư; sau khi xác nhận, có thể đăng nhập để theo dõi hồ sơ.');
-          }
+          if(data.session){await sb.auth.signOut();}
+          $('appView').classList.add('hidden');$('authView').classList.remove('hidden');$('authForm').reset();
+          $('authEmail').value='';$('authPassword').value='';setAuthMode('login');backToLoginMethods();
+          message($('authMessage'),'Đã tạo tài khoản đăng ký. Hãy xác nhận email nếu được yêu cầu, sau đó chọn cách đăng nhập để vào hệ thống. Tài khoản mới không tự động vào bảng điều khiển.');
         } else {message($('authMessage'),'Không tạo được tài khoản. Vui lòng thử lại.',true);}
       }
     }catch(err){message($('authMessage'),friendlyError(err),true);}
@@ -409,7 +420,13 @@ async function transferAdmin(){if(!currentRoles.includes('ADMIN'))return alert('
     document.querySelectorAll('.side button').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');
     if(name==='members'){loadMembers();loadPendingMembers();}if(name==='reports')loadReports();if(name==='news')loadNews();if(name==='profile')loadProfile();if(name==='tasks'){loadTasks();prepareTaskForm();}if(name==='documents')loadDocuments();if(name==='admin'&&currentRoles.includes('ADMIN')){loadPendingMembers();loadPositions();loadAccountDirectory();}if(name==='admin'&&!currentRoles.includes('ADMIN')){message($('homeMessage'),'Tài khoản không có quyền ADMIN.',true);showPage('home',document.querySelector('[data-page=home]'));}
   }
-  async function logout(){await sb.auth.signOut();currentUser=null;currentProfile=null;$('appView').classList.add('hidden');$('authView').classList.remove('hidden');$('logoutBtn').classList.add('hidden');$('headerUser').textContent='';$('authPassword').value='';}
+  async function logout(){
+    await sb.auth.signOut();currentUser=null;currentProfile=null;currentRoles=[];
+    $('appView').classList.add('hidden');$('authView').classList.remove('hidden');$('logoutBtn').classList.add('hidden');$('headerUser').textContent='';
+    $('authForm').reset();$('authEmail').value='';$('authPassword').value='';$('phoneLoginPhone').value='';$('phoneLoginPassword').value='';
+    $('regName').value='';$('regPhone').value='';$('regBranch').value='';$('authMessage').classList.add('hidden');
+    setAuthMode('login');backToLoginMethods();
+  }
   function esc(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
   async function init(){
     if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(err=>console.warn('PWA worker:',err));}
