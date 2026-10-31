@@ -291,12 +291,12 @@
             address:$('regAddress').value.trim()||null,
             education_level:$('regEducation').value.trim()||null,
             professional_qualification:$('regQualification').value.trim()||null,
-            workplace:$('regWorkplace').value.trim()||null
+            workplace:$('regWorkplace').value.trim()||null,
             member_type:({
-  'Chính thức':'official',
-  'Danh dự':'honorary',
-  'Liên kết':'associate'
-})[$('regMemberType').value]||'official',
+              'Chính thức':'official',
+              'Danh dự':'honorary',
+              'Liên kết':'associate'
+            })[$('regMemberType').value]||'official',
             status:'pending',created_by:data.user.id
           };
           const {error:memberError}=await sb.from('members').insert(memberPayload);
