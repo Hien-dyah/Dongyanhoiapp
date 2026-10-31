@@ -112,6 +112,16 @@
         </div>
         <div id="page-news" class="page hidden"><div class="card"><div class="section-head"><h3>Tin tức Hội và y học cổ truyền</h3><button onclick="loadNews()">Tải tin tức</button></div><div id="newsContent" class="muted">Đang tải tin tức…</div><hr><form id="newsForm" class="form-grid"><div class="full"><h4>Đăng tin mới (ADMIN)</h4></div><div class="full"><label>Tiêu đề</label><input id="newsTitle" required></div><div><label>Chuyên mục</label><select id="newsCategory"><option value="association">Tin tức Hội</option><option value="traditional_medicine">Y học cổ truyền</option><option value="announcement">Thông báo</option></select></div><div><label>Trạng thái</label><select id="newsPublished"><option value="false">Lưu nháp</option><option value="true">Xuất bản</option></select></div><div class="full"><label>Nội dung</label><textarea id="newsBody" required></textarea></div><div class="full"><button type="submit">Lưu tin tức</button></div></form></div></div>
         <div id="page-tasks" class="page hidden"><div class="card"><h3>Công việc được giao</h3><div id="tasksContent">Đang tải…</div><hr><form id="taskForm" class="form-grid"><div class="full"><h4>Giao công việc</h4></div><div class="full"><label>Tên công việc</label><input id="taskTitle" required></div><div class="full"><label>Nội dung</label><textarea id="taskDescription"></textarea></div><div><label>Giao theo chức vụ</label><select id="taskPosition"><option value="">Không chỉ định</option></select></div><div><label>Chi hội</label><select id="taskBranch"><option value="">Toàn Hội</option></select></div><div><label>Hạn hoàn thành</label><input id="taskDue" type="datetime-local"></div><div><label>Mức ưu tiên</label><select id="taskPriority"><option value="normal">Bình thường</option><option value="high">Cao</option><option value="urgent">Khẩn</option><option value="low">Thấp</option></select></div><div class="full"><button type="submit">Giao công việc</button></div></form></div></div><div id="page-documents" class="page hidden"><div class="card"><h3>Kho văn bản Hội</h3><div id="documentsContent">Đang tải…</div><hr><form id="documentForm" class="form-grid"><div class="full"><h4>Thêm văn bản vào kho</h4></div><div class="full"><label>Tên văn bản</label><input id="docTitle" required></div><div><label>Loại văn bản</label><select id="docType"><option value="decision">Quyết định</option><option value="official_letter">Công văn</option><option value="minutes">Biên bản</option><option value="guideline">Hướng dẫn</option><option value="other">Khác</option></select></div><div><label>Số văn bản</label><input id="docNumber"></div><div><label>Cơ quan ban hành</label><input id="docIssuer"></div><div><label>Ngày ban hành</label><input id="docDate" type="date"></div><div class="full"><label>Tóm tắt</label><textarea id="docSummary"></textarea></div><div class="full"><label>Tệp văn bản (bắt buộc với quyết định/công văn)</label><input id="docFile" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp"></div><div class="full"><button type="submit">Lưu văn bản</button></div></form></div></div><div id="page-admin" class="page hidden"><div class="card"><h3>Quản trị hệ thống</h3><p class="muted">Trang tổng quan dành cho tài khoản có vai trò ADMIN. Dùng các mục bên trái để xem hội viên, báo cáo và tin tức.</p><div class="notice">Lưu ý: việc hiển thị trang quản trị không tự cấp quyền đọc/sửa dữ liệu. Các thao tác vẫn phải được cho phép bởi chính sách RLS trong Supabase.</div><div id="adminStatus" class="item">Đang kiểm tra quyền quản trị…</div>
+            <div class="item"><h4>Quản lý chi hội</h4>
+              <p class="muted">Thêm chi hội mới, đổi tên hoặc mã chi hội. Khi không còn sử dụng, hãy ngưng hoạt động; dữ liệu hội viên và báo cáo cũ vẫn được giữ nguyên.</p>
+              <form id="branchCreateForm" class="form-grid">
+                <div><label>Mã chi hội</label><input id="branchNewCode" required maxlength="30" placeholder="VD: TAN_PHU"></div>
+                <div><label>Tên chi hội</label><input id="branchNewName" required maxlength="120" placeholder="VD: Chi hội Tân Phú"></div>
+                <div class="full"><button type="submit">Thêm chi hội</button></div>
+              </form>
+              <div id="branchAdminMessage" class="small" role="status"></div>
+              <hr><h4>Danh sách chi hội</h4><div id="branchesAdminList" class="muted">Đang tải danh sách…</div>
+            </div>
             <div class="item"><h4>Đăng ký hồ sơ hội viên cho tài khoản ADMIN</h4><p class="muted">Hồ sơ được gắn với tài khoản đang đăng nhập và tạo ở trạng thái chờ Chi hội trưởng kiểm tra. Ban Thường vụ thực hiện phê duyệt cuối.</p><form id="adminMemberApplicationForm" class="form-grid"><div><label>Họ và tên</label><input id="adminMemberName" required value="Trần Công Hiền"></div><div><label>Số điện thoại</label><input id="adminMemberPhone" required value="0915421158"></div><div><label>Năm sinh</label><input id="adminMemberBirthYear" type="number" min="1900" max="2100" value="1982" required></div><div><label>Giới tính</label><input id="adminMemberGender" value="Nam" required></div><div><label>Trình độ văn hóa</label><input id="adminMemberEducation" value="THPT"></div><div><label>Văn bằng chuyên môn</label><input id="adminMemberQualification" value="Y sĩ Y học cổ truyền"></div><div><label>Địa chỉ thường trú</label><input id="adminMemberAddress" value="Khu phố Sơn Phú"></div><div><label>Nơi hành nghề</label><input id="adminMemberWorkplace" value="Sơn Phú"></div><div class="full"><label>Chi hội</label><select id="adminMemberBranch"><option value="SON_PHU" selected>Sơn Phú</option></select></div><div class="full"><button type="submit">Tạo hồ sơ chờ duyệt</button></div></form><div id="adminMemberApplicationMessage" class="small" role="status"></div></div><div class="item"><h4>Quản lý tài khoản và phân quyền</h4>
 <p class="muted">ADMIN có thể cấp hoặc thu hồi cả 5 vai trò. Tài khoản phải đăng ký trước; Chi hội trưởng và Hội viên cần gắn với một chi hội.</p>
 <form id="adminRoleForm" class="form-grid">
@@ -158,6 +168,57 @@
   }
   $('loginMethod')?.addEventListener('change',e=>chooseLoginMethod(e.target.value));
   function backToLoginMethods(){ $('loginMethod').value='';chooseLoginMethod(''); }
+  async function loadAdminBranches(){
+    const box=$('branchesAdminList');if(!box||!currentRoles.includes('ADMIN'))return;
+    box.textContent='Đang tải danh sách chi hội…';
+    try{
+      const {data,error}=await sb.from('branches').select('id,code,name,active').order('name');
+      if(error)throw error;
+      const rows=data||[];
+      const active=rows.filter(b=>b.active);
+      branches=active;
+      const roleSel=$('adminRoleBranch');
+      if(roleSel)roleSel.innerHTML='<option value="">Toàn Hội / Không áp dụng</option>'+active.map(b=>'<option value="'+esc(b.code)+'">'+esc(b.name)+'</option>').join('');
+      const memberSel=$('adminMemberBranch');
+      if(memberSel){const previous=memberSel.value||'SON_PHU';memberSel.innerHTML=active.map(b=>'<option value="'+esc(b.code)+'">'+esc(b.name)+'</option>').join('');memberSel.value=active.some(b=>b.code===previous)?previous:(active[0]?.code||'');}
+      const positionSel=$('positionBranch');
+      if(positionSel)positionSel.innerHTML='<option value="">Toàn Hội / Không chỉ định</option>'+active.map(b=>'<option value="'+Number(b.id)+'">'+esc(b.name)+'</option>').join('');
+      const taskSel=$('taskBranch');
+      if(taskSel)taskSel.innerHTML='<option value="">Toàn Hội</option>'+active.map(b=>'<option value="'+Number(b.id)+'">'+esc(b.name)+'</option>').join('');
+      if(!rows.length){box.textContent='Chưa có chi hội nào.';return;}
+      box.innerHTML='<div class="table-wrap"><table><thead><tr><th>Mã chi hội</th><th>Tên chi hội</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>'+rows.map(b=>'<tr><td>'+esc(b.code)+'</td><td>'+esc(b.name)+'</td><td>'+(b.active?'<span class="pill">Đang hoạt động</span>':'<span class="pill" style="background:#f2f2f2;color:#666">Đã ngưng</span>')+'</td><td><div class="row-actions"><button type="button" class="secondary" onclick="editBranch('+Number(b.id)+')">Sửa tên/mã</button><button type="button" class="'+(b.active?'danger':'secondary')+'" onclick="setBranchActive('+Number(b.id)+','+(!b.active)+')">'+(b.active?'Ngưng hoạt động':'Khôi phục')+'</button></div></td></tr>').join('')+'</tbody></table></div>';
+    }catch(e){box.textContent='Không tải được chi hội: '+e.message;}
+  }
+  $('branchCreateForm')?.addEventListener('submit',async e=>{
+    e.preventDefault();if(!currentRoles.includes('ADMIN'))return;
+    const btn=e.submitter,code=$('branchNewCode').value.trim().toUpperCase(),name=$('branchNewName').value.trim(),out=$('branchAdminMessage');
+    if(!/^[A-Z0-9_]{2,30}$/.test(code)){out.textContent='Mã chỉ gồm chữ không dấu, số và dấu gạch dưới (2–30 ký tự).';return;}
+    btn.disabled=true;out.textContent='Đang thêm chi hội…';
+    try{const {error}=await sb.from('branches').insert({code,name,active:true});if(error)throw error;
+      out.textContent='Đã thêm chi hội '+name+'.';$('branchCreateForm').reset();await loadAdminBranches();await loadBranches();
+    }catch(err){out.textContent='Không thêm được chi hội: '+err.message;}
+    finally{btn.disabled=false;}
+  });
+  async function editBranch(id){
+    if(!currentRoles.includes('ADMIN'))return alert('Chỉ ADMIN được sửa chi hội.');
+    const branchList=await sb.from('branches').select('id,code,name').eq('id',id).maybeSingle();
+    if(branchList.error||!branchList.data)return alert('Không tìm thấy chi hội: '+(branchList.error?.message||''));
+    const old=branchList.data,newName=prompt('Nhập tên chi hội mới:',old.name);if(newName===null)return;
+    const name=newName.trim();if(!name)return alert('Tên chi hội không được để trống.');
+    const newCode=prompt('Nhập mã chi hội mới (chữ không dấu, số, dấu _):',old.code);if(newCode===null)return;
+    const code=newCode.trim().toUpperCase();if(!/^[A-Z0-9_]{2,30}$/.test(code))return alert('Mã chi hội không hợp lệ.');
+    try{const {error}=await sb.from('branches').update({name,code}).eq('id',id);if(error)throw error;
+      $('branchAdminMessage').textContent='Đã cập nhật chi hội '+name+'.';await loadAdminBranches();await loadBranches();
+    }catch(e){alert('Không cập nhật được chi hội: '+e.message);}
+  }
+  async function setBranchActive(id,active){
+    if(!currentRoles.includes('ADMIN'))return alert('Chỉ ADMIN được thay đổi trạng thái chi hội.');
+    const verb=active?'khôi phục':'ngưng hoạt động';
+    if(!confirm('Xác nhận '+verb+' chi hội này? '+(active?'':'Hội viên và báo cáo cũ vẫn được giữ nguyên.')))return;
+    try{const {error}=await sb.from('branches').update({active}).eq('id',id);if(error)throw error;
+      $('branchAdminMessage').textContent='Đã '+verb+' chi hội.';await loadAdminBranches();await loadBranches();
+    }catch(e){alert('Không cập nhật được trạng thái chi hội: '+e.message);}
+  }
   async function loadBranches(){
     const sel=$('regBranch');
     try{const {data,error}=await sb.from('branches').select('id,code,name').eq('active',true).order('name');if(error)throw error;branches=data||[];
@@ -432,7 +493,7 @@ async function transferAdmin(){if(!currentRoles.includes('ADMIN'))return alert('
   function showPage(name,btn){
     document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));$('page-'+name).classList.remove('hidden');
     document.querySelectorAll('.side button').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');
-    if(name==='members'){loadMembers();loadPendingMembers();}if(name==='reports')loadReports();if(name==='news')loadNews();if(name==='profile')loadProfile();if(name==='tasks'){loadTasks();prepareTaskForm();}if(name==='documents')loadDocuments();if(name==='admin'&&currentRoles.includes('ADMIN')){loadPendingMembers();loadPositions();loadAccountDirectory();}if(name==='admin'&&!currentRoles.includes('ADMIN')){message($('homeMessage'),'Tài khoản không có quyền ADMIN.',true);showPage('home',document.querySelector('[data-page=home]'));}
+    if(name==='members'){loadMembers();loadPendingMembers();}if(name==='reports')loadReports();if(name==='news')loadNews();if(name==='profile')loadProfile();if(name==='tasks'){loadTasks();prepareTaskForm();}if(name==='documents')loadDocuments();if(name==='admin'&&currentRoles.includes('ADMIN')){loadPendingMembers();loadPositions();loadAccountDirectory();loadAdminBranches();}if(name==='admin'&&!currentRoles.includes('ADMIN')){message($('homeMessage'),'Tài khoản không có quyền ADMIN.',true);showPage('home',document.querySelector('[data-page=home]'));}
   }
   async function logout(){
     await sb.auth.signOut();currentUser=null;currentProfile=null;currentRoles=[];
