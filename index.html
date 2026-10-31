@@ -56,7 +56,7 @@
       </form>
       <div id="recoveryMessage" class="small" role="status" style="margin-top:8px"></div>
     </section>
-    <div id="authMessage" class="notice hidden" role="status"></div>
+    <div id="authMessage" class="notice hidden" role="status"></div><div style="margin-top:12px;text-align:center"><button type="button" class="secondary" onclick="togglePhoneLogin()">Đăng nhập bằng số điện thoại</button></div><form id="phoneLoginForm" class="hidden" style="margin-top:14px"><label>Số điện thoại</label><input id="phoneLoginPhone" type="tel" autocomplete="tel" placeholder="09xxxxxxxx"><label>Mật khẩu</label><input id="phoneLoginPassword" type="password" autocomplete="current-password" minlength="6" required><button type="submit" style="width:100%;margin-top:12px">Đăng nhập</button><p class="muted small">Số điện thoại cần được xác thực và liên kết với hồ sơ hội viên đã duyệt.</p></form>
     <p class="muted small">Tài khoản mới có thể cần xác nhận email. Quyền truy cập phụ thuộc vào vai trò được cấp trong cơ sở dữ liệu.</p>
   </section>
 
@@ -192,6 +192,8 @@
     }catch(err){message($('authMessage'),friendlyError(err),true);}
     finally{btn.disabled=false;}
   });
+  function togglePhoneLogin(){$('phoneLoginForm').classList.toggle('hidden');}
+  $('phoneLoginForm')?.addEventListener('submit',async e=>{e.preventDefault();const btn=e.submitter;btn.disabled=true;try{const {data,error}=await sb.functions.invoke('phone-login',{body:{phone:$('phoneLoginPhone').value.trim(),password:$('phoneLoginPassword').value}});if(error)throw error;if(!data?.access_token||!data?.refresh_token)throw new Error(data?.error||'Không nhận được phiên đăng nhập.');const {data:sessionData,error:setError}=await sb.auth.setSession({access_token:data.access_token,refresh_token:data.refresh_token});if(setError)throw setError;currentUser=sessionData.user||data.user;await openApp();}catch(err){message($('authMessage'),friendlyError(err),true);}finally{btn.disabled=false;}});
   function friendlyError(e){const m=e?.message||'Có lỗi xảy ra.';if(/Invalid login credentials/i.test(m))return 'Email hoặc mật khẩu chưa đúng.';if(/Email not confirmed/i.test(m))return 'Tài khoản chưa xác nhận email. Hãy kiểm tra hộp thư.';return m;}
   async function openApp(){
     if(!currentUser){const {data}=await sb.auth.getUser();currentUser=data.user;}if(!currentUser)return;
