@@ -400,24 +400,46 @@
   }
   async function loadPendingMembers(){
     const box=$('pendingMembersContent');if(!box)return;
-    if(currentRoles.includes('COMMITTEE')){box.textContent='Ban Chấp hành chỉ được xem danh sách hội viên, không có quyền duyệt hồ sơ.';return;}
-    box.textContent='Đang tải hồ sơ chờ xử lý…';
     const isAdmin=currentRoles.includes('ADMIN'),isExecutive=currentRoles.includes('EXECUTIVE'),isBranch=!isAdmin&&!isExecutive&&currentRoles.includes('BRANCH_HEAD');
-    if(!isAdmin&&!isExecutive&&!isBranch){box.textContent='Tài khoản không có quyền xử lý hồ sơ hội viên.';return;}
+    if(!isAdmin&&!isExecutive&&!isBranch){box.textContent='Tài khoản không có quyền xem hồ sơ chờ duyệt.';return;}
+    box.textContent='Đang tải hồ sơ chờ xử lý…';
     try{
-      const statuses=isBranch?['pending']:['pending','branch_checked'];
+      const statuses=isBranch?['pending','branch_checked']:['pending','branch_checked'];
       const {data,error}=await sb.from('members').select('id,user_id,full_name,phone,email,branch_id,status,created_at').in('status',statuses).order('created_at',{ascending:true}).limit(300);
       if(error)throw error;
-      if(!data||!data.length){box.innerHTML='<p>Không có hồ sơ cần xử lý.</p>';return;}
-      box.innerHTML='<div class="table-wrap"><table><thead><tr><th>Họ tên</th><th>Điện thoại</th><th>Chi hội</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>'+data.map(m=>'<tr><td>'+esc(m.full_name||'—')+'</td><td>'+esc(m.phone||'—')+'</td><td>'+esc(branches.find(b=>String(b.id)===String(m.branch_id))?.name||m.branch_id||'—')+'</td><td>'+esc(m.status)+'</td><td><div class="row-actions"><button onclick="approveMember('+Number(m.id)+')">'+(isBranch?'Gửi Ban Thường vụ phê duyệt':'Duyệt hội viên')+'</button>'+(isBranch?'':'<button class="danger" onclick="rejectMember('+Number(m.id)+')">Từ chối</button>')+'</div></td></tr>').join('')+'</tbody></table></div>';
+      const rows=(data||[]).filter(m=>!isBranch||branches.some(b=>String(b.id)===String(m.branch_id)));
+      if(!rows.length){box.innerHTML='<p>Không có hồ sơ cần xem xét.</p>';return;}
+      box.innerHTML='<div class="table-wrap"><table><thead><tr><th>Họ tên</th><th>Điện thoại</th><th>Chi hội</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>'+rows.map(m=>{
+        const branchName=branches.find(b=>String(b.id)===String(m.branch_id))?.name||m.branch_id||'—';
+        const action=isBranch
+          ?'<button class="secondary" onclick="commentMember('+Number(m.id)+')">Gửi ý kiến</button>'
+          :'<button onclick="approveMember('+Number(m.id)+')">Duyệt hội viên</button><button class="danger" onclick="rejectMember('+Number(m.id)+')">Từ chối</button>';
+        return '<tr><td>'+esc(m.full_name||'—')+'</td><td>'+esc(m.phone||'—')+'</td><td>'+esc(branchName)+'</td><td>'+esc(m.status)+'</td><td><div class="row-actions">'+action+'</div></td></tr>';
+      }).join('')+'</tbody></table></div>';
     }catch(e){box.textContent='Không tải được hồ sơ: '+e.message;}
   }
+  async function commentMember(memberId){
+    if(!currentRoles.includes('BRANCH_HEAD'))return alert('Chỉ Chi hội trưởng mới được gửi ý kiến cho Ban Thường vụ.');
+    const note=prompt('Nhập ý kiến xem xét hồ sơ gửi Ban Thường vụ:');
+    if(note===null)return;
+    if(!note.trim())return alert('Vui lòng nhập ý kiến trước khi gửi.');
+    try{
+      const {error}=await sb.rpc('review_member_application',{p_member_id:memberId,p_action:'comment',p_comment:note.trim()});
+      if(error)throw error;
+      alert('Đã gửi ý kiến cho Ban Thường vụ. Trạng thái hồ sơ không thay đổi.');
+      await loadPendingMembers();
+    }catch(e){alert('Chưa gửi được ý kiến: '+e.message);}
+  }
   async function approveMember(memberId){
-    const action=(!currentRoles.includes('ADMIN')&&!currentRoles.includes('EXECUTIVE')&&currentRoles.includes('BRANCH_HEAD'))?'branch_check':'approve';
-    if(!confirm(action==='branch_check'?'Xác nhận đề xuất hồ sơ này lên Ban Chấp hành / Ban Thường vụ?':'Xác nhận duyệt trực tiếp hồ sơ hội viên?'))return;
-    const note=prompt('Ý kiến kiểm tra/duyệt (có thể để trống):');if(note===null)return;
-    try{const {error}=await sb.rpc('review_member_application',{p_member_id:memberId,p_action:action,p_comment:note});if(error)throw error;alert('Đã ghi nhận xử lý hồ sơ.');await loadPendingMembers();await loadMembers();}
-    catch(e){alert('Chưa xử lý được: '+e.message);}
+    if(!currentRoles.includes('ADMIN')&&!currentRoles.includes('EXECUTIVE'))return alert('Chỉ ADMIN hoặc Ban Thường vụ mới được duyệt hội viên.');
+    if(!confirm('Xác nhận duyệt chính thức hồ sơ hội viên này?'))return;
+    const note=prompt('Ý kiến phê duyệt (có thể để trống):');if(note===null)return;
+    try{
+      const {error}=await sb.rpc('review_member_application',{p_member_id:memberId,p_action:'approve',p_comment:note});
+      if(error)throw error;
+      alert('Đã duyệt hội viên chính thức.');
+      await loadPendingMembers();await loadMembers();
+    }catch(e){alert('Chưa duyệt được: '+e.message);}
   }
   async function rejectMember(memberId){
     if(!currentRoles.includes('ADMIN')&&!currentRoles.includes('EXECUTIVE'))return alert('Chỉ Ban Thường vụ hoặc ADMIN được từ chối.');
