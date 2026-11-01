@@ -66,6 +66,7 @@
       <nav class="side card">
         <button class="active" data-page="home" onclick="showPage('home',this)">🏠 Tổng quan</button>
         <button data-page="profile" onclick="showPage('profile',this)">👤 Hồ sơ của tôi</button>
+        <button id="financeMenuBtn" data-page="finance" onclick="showPage('finance',this)">💰 Hội phí &amp; Tài chính</button>
         <button id="membersMenuBtn" data-page="members" onclick="showPage('members',this)">👥 Quản lý hội viên</button>
         <button data-page="reports" onclick="showPage('reports',this)">📋 Báo cáo hoạt động</button>
         <button data-page="news" onclick="showPage('news',this)">📰 Tin tức</button><button data-page="tasks" onclick="showPage('tasks',this)">✅ Công việc</button><button id="documentsMenuBtn" data-page="documents" onclick="showPage('documents',this)">📁 Văn bản</button>
@@ -78,6 +79,15 @@
         </div>
         <div id="page-profile" class="page hidden">
           <div class="card"><div class="section-head"><h3>Hồ sơ của tôi</h3><button onclick="loadProfile()">Tải lại</button></div><div id="profileContent" class="muted">Đang tải hồ sơ…</div></div>
+        </div>
+        <div id="page-finance" class="page hidden">
+          <div class="card"><div class="section-head"><h3>💰 Hội phí và tài chính</h3><button type="button" class="secondary" onclick="loadFinance()">Tải lại</button></div><p class="muted">Theo dõi hội phí hằng năm, thu chi và ý kiến của Ban Thường vụ.</p></div>
+          <div id="memberDuesPanel" class="card"><h3>Hội phí của tôi</h3><div id="memberDuesContent" class="muted">Đang tải tình trạng hội phí…</div></div>
+          <div id="duesRatePanel" class="card hidden"><h3>Mức hội phí hằng năm</h3><p class="muted">Ban Thường vụ hoặc ADMIN nhập mức thu. Mức này được áp dụng cho hội viên trong năm tương ứng; khoản đã ghi nhận đã đóng sẽ không bị thay đổi.</p><form id="duesRateForm" class="form-grid"><div><label>Năm</label><input id="duesRateYear" type="number" min="2000" max="2200" required></div><div><label>Mức hội phí (đồng/người/năm)</label><input id="duesRateAmount" type="number" min="0" step="1000" required placeholder="Nhập mức hội phí"></div><div class="full"><button type="submit">Lưu mức hội phí</button></div></form><div id="duesRateMessage" class="small" role="status"></div></div>
+          <div id="accountantPanel" class="card hidden"><h3>Quản lý hội phí hội viên</h3><p class="muted">Chỉ Kế toán hoặc ADMIN được cập nhật trạng thái thu hội phí.</p><div id="accountantDuesContent" class="muted">Đang tải danh sách…</div></div>
+          <div id="financeEntryPanel" class="card hidden"><h3>Ghi nhận thu – chi</h3><form id="financeTransactionForm" class="form-grid"><div><label>Ngày phát sinh</label><input id="financeDate" type="date" required></div><div><label>Loại</label><select id="financeDirection"><option value="income">Thu</option><option value="expense">Chi</option></select></div><div><label>Nhóm khoản</label><input id="financeCategory" required placeholder="VD: Hội phí, văn phòng phẩm"></div><div><label>Số tiền (đồng)</label><input id="financeAmount" type="number" min="1" step="1000" required></div><div class="full"><label>Nội dung</label><input id="financeDescription" required placeholder="Mô tả khoản thu hoặc chi"></div><div class="full"><label>Chứng từ / ghi chú</label><input id="financeReference" placeholder="Số phiếu thu, phiếu chi hoặc ghi chú"></div><div class="full"><button type="submit">Lưu khoản thu – chi</button></div></form><div id="financeEntryMessage" class="small" role="status"></div></div>
+          <div id="financeReportPanel" class="card hidden"><div class="section-head"><h3>Báo cáo thu – chi tổng hợp</h3><div><label for="financeReportYear">Năm</label><input id="financeReportYear" type="number" min="2000" max="2200" style="width:110px" onchange="loadFinanceReport()"></div></div><div id="financeReportContent" class="muted">Đang tải báo cáo…</div></div>
+          <div id="financeCommentsPanel" class="card hidden"><h3>Ý kiến trao đổi với Kế toán</h3><p class="muted">Ban Thường vụ gửi ý kiến; Kế toán có thể phản hồi. Nội dung được lưu cùng người gửi và thời gian.</p><form id="financeCommentForm" class="form-grid"><div class="full"><label>Nội dung ý kiến / phản hồi</label><textarea id="financeCommentText" rows="3" required></textarea></div><div class="full"><button type="submit">Gửi ý kiến</button></div></form><div id="financeCommentsContent" class="muted">Đang tải ý kiến…</div></div>
         </div>
         <div id="page-members" class="page hidden">
           <div class="card"><div class="section-head"><h3>Quản lý hội viên</h3><div class="row-actions"><button class="secondary" onclick="exportMembersCSV()">Xuất danh sách CSV</button><button onclick="loadMembers()">Tải danh sách</button></div></div><p class="muted">Tìm kiếm theo họ tên, mã hội viên, số điện thoại hoặc email. Danh sách tuân theo quyền của từng vai trò.</p><div id="membersContent" class="muted">Chưa tải dữ liệu.</div><hr><div class="section-head"><h3>Hồ sơ chờ xem xét / phê duyệt</h3><button onclick="loadPendingMembers()">Tải hồ sơ</button></div><div id="pendingMembersContent" class="muted">Chưa tải danh sách đăng ký.</div></div>
@@ -119,10 +129,10 @@
               <hr><h4>Danh sách chi hội</h4><div id="branchesAdminList" class="muted">Đang tải danh sách…</div>
             </div>
 <div class="item"><h4>Quản lý tài khoản và phân quyền</h4>
-<p class="muted">ADMIN có thể cấp hoặc thu hồi cả 5 vai trò. Tài khoản phải đăng ký trước; Chi hội trưởng và Hội viên cần gắn với một chi hội.</p>
+<p class="muted">ADMIN có thể cấp hoặc thu hồi các vai trò, bao gồm Kế toán. Tài khoản phải đăng ký trước; Chi hội trưởng và Hội viên cần gắn với một chi hội.</p>
 <form id="adminRoleForm" class="form-grid">
 <div class="full"><label>Email tài khoản đã đăng ký</label><input id="adminRoleEmail" type="email" required placeholder="nhap.email@..."></div>
-<div><label>Vai trò</label><select id="adminRoleCode" required><option value="ADMIN">ADMIN – Quản trị hệ thống</option><option value="EXECUTIVE">EXECUTIVE – Ban Thường vụ</option><option value="COMMITTEE">COMMITTEE – Ban Chấp hành</option><option value="BRANCH_HEAD">BRANCH_HEAD – Chi hội trưởng</option><option value="MEMBER">MEMBER – Hội viên</option></select></div>
+<div><label>Vai trò</label><select id="adminRoleCode" required><option value="ADMIN">ADMIN – Quản trị hệ thống</option><option value="EXECUTIVE">EXECUTIVE – Ban Thường vụ</option><option value="COMMITTEE">COMMITTEE – Ban Chấp hành</option><option value="BRANCH_HEAD">BRANCH_HEAD – Chi hội trưởng</option><option value="MEMBER">MEMBER – Hội viên</option><option value="ACCOUNTANT">ACCOUNTANT – Kế toán</option></select></div>
 <div><label>Chi hội (bắt buộc với Chi hội trưởng/Hội viên)</label><select id="adminRoleBranch"><option value="">Toàn Hội / Không áp dụng</option></select></div>
 <div class="full row-actions"><button type="submit">Cấp / cập nhật quyền</button><button type="button" class="danger" onclick="changeAdminRole(false)">Thu hồi vai trò đã chọn</button><button type="button" class="secondary" onclick="loadAccountDirectory()">Tải danh sách tài khoản</button></div>
 </form><div id="adminRoleMessage" class="small" role="status"></div>
@@ -310,6 +320,9 @@
     if(canViewMemberDirectory){$('membersMenuBtn').removeAttribute('aria-hidden');}
     else{$('membersMenuBtn').setAttribute('aria-hidden','true');$('page-members').classList.add('hidden');}
     $('documentsMenuBtn').classList.toggle('hidden',isMemberOnly);
+    const canUseFinance=['ADMIN','ACCOUNTANT','EXECUTIVE','COMMITTEE','MEMBER'].some(r=>currentRoles.includes(r));
+    $('financeMenuBtn').classList.toggle('hidden',!canUseFinance);
+    if(!canUseFinance)$('page-finance').classList.add('hidden');
     $('page-admin').classList.add('hidden');
     $('reportForm').classList.toggle('hidden',isCommittee&&!currentRoles.includes('MEMBER'));
     $('branchSummarySection').classList.toggle('hidden',!(currentRoles.includes('BRANCH_HEAD')||isAdmin||currentRoles.includes('EXECUTIVE')));
@@ -759,6 +772,85 @@ async function transferAdmin(){if(!currentRoles.includes('ADMIN'))return alert('
       }))).join(''):'Chưa có văn bản đã được duyệt trong kho.';
     }catch(e){box.textContent='Không tải được văn bản: '+e.message;if(pending)pending.textContent='Không tải được danh sách chờ duyệt: '+e.message;}
   }
+
+  function money(value){return Number(value||0).toLocaleString('vi-VN')+' đ';}
+  function financeYear(){return Number($('financeReportYear')?.value||new Date().getFullYear());}
+  async function loadFinance(){
+    const year=new Date().getFullYear(),isAdmin=currentRoles.includes('ADMIN'),isAccountant=currentRoles.includes('ACCOUNTANT')||isAdmin,isExecutive=currentRoles.includes('EXECUTIVE'),isCommittee=currentRoles.includes('COMMITTEE');
+    const canViewReport=isAdmin||isAccountant||isExecutive||isCommittee;
+    $('memberDuesPanel').classList.toggle('hidden',!currentRoles.includes('MEMBER'));
+    $('duesRatePanel').classList.toggle('hidden',!(isAdmin||isExecutive));
+    $('accountantPanel').classList.toggle('hidden',!isAccountant);
+    $('financeEntryPanel').classList.toggle('hidden',!isAccountant);
+    $('financeReportPanel').classList.toggle('hidden',!canViewReport);
+    $('financeCommentsPanel').classList.toggle('hidden',!(isAdmin||isAccountant||isExecutive));
+    $('duesRateYear').value=year;$('financeReportYear').value=year;$('financeDate').value=new Date().toISOString().slice(0,10);
+    if(currentRoles.includes('MEMBER'))await loadMyDues();
+    if(isAdmin||isExecutive)await loadDuesRate();
+    if(isAccountant)await loadAccountantDues();
+    if(canViewReport)await loadFinanceReport();
+    if(isAdmin||isAccountant||isExecutive)await loadFinanceComments();
+  }
+  async function loadMyDues(){
+    const box=$('memberDuesContent');box.textContent='Đang tải…';
+    try{
+      const {data:m,error:me}=await sb.from('members').select('id').eq('user_id',currentUser.id).maybeSingle();if(me)throw me;
+      if(!m){box.textContent='Tài khoản chưa được liên kết với hồ sơ hội viên.';return;}
+      const {data:rows,error}=await sb.from('member_dues').select('year,amount,status,paid_at,note').eq('member_id',m.id).order('year',{ascending:false});
+      if(error)throw error;
+      box.innerHTML=rows?.length?'<div class="table-wrap"><table><thead><tr><th>Năm</th><th>Mức hội phí</th><th>Tình trạng</th><th>Ngày đóng</th></tr></thead><tbody>'+rows.map(d=>'<tr><td>'+d.year+'</td><td>'+money(d.amount)+'</td><td>'+(d.status==='paid'?'<span class="pill">Đã đóng</span>':'<span class="pill">Chưa đóng</span>')+'</td><td>'+esc(d.paid_at?new Date(d.paid_at).toLocaleDateString('vi-VN'):'—')+'</td></tr>').join('')+'</tbody></table></div>':'Chưa có dữ liệu hội phí. Ban Thường vụ/ADMIN sẽ thiết lập mức thu và Kế toán cập nhật dữ liệu.';
+    }catch(e){box.textContent='Không tải được hội phí: '+e.message;}
+  }
+  async function loadDuesRate(){
+    const year=Number($('duesRateYear').value||new Date().getFullYear());
+    try{const {data,error}=await sb.from('annual_dues_rates').select('amount').eq('year',year).maybeSingle();if(error)throw error;$('duesRateAmount').value=data?.amount??'';$('duesRateMessage').textContent=data?'Mức hội phí năm '+year+': '+money(data.amount):'Chưa thiết lập mức hội phí cho năm '+year+'.';}catch(e){$('duesRateMessage').textContent='Không tải được mức hội phí: '+e.message;}
+  }
+  $('duesRateYear')?.addEventListener('change',loadDuesRate);
+  $('duesRateForm')?.addEventListener('submit',async e=>{
+    e.preventDefault();if(!currentRoles.includes('ADMIN')&&!currentRoles.includes('EXECUTIVE'))return;
+    const year=Number($('duesRateYear').value),amount=Number($('duesRateAmount').value);if(!Number.isInteger(year)||amount<0)return;
+    const out=$('duesRateMessage');out.textContent='Đang lưu…';
+    try{const {error}=await sb.from('annual_dues_rates').upsert({year,amount,updated_by:currentUser.id,updated_at:new Date().toISOString()},{onConflict:'year'});if(error)throw error;out.textContent='Đã lưu mức hội phí năm '+year+'. Kế toán có thể cập nhật tình trạng thu.';await loadDuesRate();}catch(err){out.textContent='Không lưu được: '+err.message;}
+  });
+  async function loadAccountantDues(){
+    const box=$('accountantDuesContent');box.textContent='Đang tải danh sách hội viên…';
+    try{
+      const year=financeYear();const {data:membersData,error:mErr}=await sb.from('members').select('id,member_code,full_name,phone,branch_id').eq('status','approved').order('full_name').limit(1500);if(mErr)throw mErr;
+      const {data:dues,error:dErr}=await sb.from('member_dues').select('id,member_id,year,amount,status,paid_at').eq('year',year);if(dErr)throw dErr;
+      const byMember=new Map((dues||[]).map(d=>[Number(d.member_id),d]));
+      box.innerHTML='<p class="muted">Năm '+year+' · '+(membersData||[]).length+' hội viên đã duyệt</p><div class="table-wrap"><table><thead><tr><th>Mã hội viên</th><th>Họ tên</th><th>Mức thu</th><th>Tình trạng</th><th>Thao tác</th></tr></thead><tbody>'+(membersData||[]).map(m=>{const d=byMember.get(Number(m.id));return '<tr><td>'+esc(m.member_code||'—')+'</td><td>'+esc(m.full_name)+'</td><td>'+money(d?.amount||0)+'</td><td>'+(d?(d.status==='paid'?'Đã đóng':'Chưa đóng'):'Chưa có mức thu')+'</td><td>'+(d?'<button type="button" class="secondary" onclick="setMemberDuesStatus('+d.id+',\''+(d.status==='paid'?'unpaid':'paid')+'\')">'+(d.status==='paid'?'Đánh dấu chưa đóng':'Xác nhận đã đóng')+'</button>':'—')+'</td></tr>';}).join('')+'</tbody></table></div>';
+    }catch(e){box.textContent='Không tải được danh sách hội phí: '+e.message;}
+  }
+  async function setMemberDuesStatus(id,status){
+    if(!(currentRoles.includes('ACCOUNTANT')||currentRoles.includes('ADMIN')))return alert('Chỉ Kế toán được cập nhật hội phí.');
+    if(!['paid','unpaid'].includes(status))return;
+    const note=status==='paid'?'Xác nhận hội viên đã đóng hội phí?':'Đánh dấu hội viên chưa đóng hội phí?';if(!confirm(note))return;
+    try{const {error}=await sb.from('member_dues').update({status,paid_at:status==='paid'?new Date().toISOString():null,recorded_by:currentUser.id,updated_at:new Date().toISOString()}).eq('id',id);if(error)throw error;await loadAccountantDues();}catch(e){alert('Không cập nhật được: '+e.message);}
+  }
+  $('financeTransactionForm')?.addEventListener('submit',async e=>{
+    e.preventDefault();if(!(currentRoles.includes('ACCOUNTANT')||currentRoles.includes('ADMIN')))return;
+    const btn=e.submitter;btn.disabled=true;
+    try{const payload={transaction_date:$('financeDate').value,direction:$('financeDirection').value,category:$('financeCategory').value.trim(),description:$('financeDescription').value.trim(),amount:Number($('financeAmount').value),reference_note:$('financeReference').value.trim()||null,created_by:currentUser.id};const {error}=await sb.from('finance_transactions').insert(payload);if(error)throw error;$('financeEntryMessage').textContent='Đã lưu khoản thu – chi.';$('financeTransactionForm').reset();$('financeDate').value=new Date().toISOString().slice(0,10);await loadFinanceReport();}catch(err){$('financeEntryMessage').textContent='Không lưu được: '+err.message;}finally{btn.disabled=false;}
+  });
+  async function loadFinanceReport(){
+    const box=$('financeReportContent');if(!box)return;const year=financeYear();box.textContent='Đang tổng hợp…';
+    try{const start=year+'-01-01',end=(year+1)+'-01-01';const {data,error}=await sb.from('finance_transactions').select('id,transaction_date,direction,category,description,amount,reference_note').gte('transaction_date',start).lt('transaction_date',end).order('transaction_date',{ascending:false});if(error)throw error;
+      const rows=data||[],income=rows.filter(x=>x.direction==='income').reduce((a,x)=>a+Number(x.amount||0),0),expense=rows.filter(x=>x.direction==='expense').reduce((a,x)=>a+Number(x.amount||0),0);
+      box.innerHTML='<div class="stats-grid"><div class="item"><div class="muted">Tổng thu</div><h3>'+money(income)+'</h3></div><div class="item"><div class="muted">Tổng chi</div><h3>'+money(expense)+'</h3></div><div class="item"><div class="muted">Chênh lệch thu – chi</div><h3>'+money(income-expense)+'</h3></div></div><h4>Sổ thu – chi năm '+year+'</h4>'+(rows.length?'<div class="table-wrap"><table><thead><tr><th>Ngày</th><th>Loại</th><th>Nhóm</th><th>Nội dung</th><th>Số tiền</th></tr></thead><tbody>'+rows.map(x=>'<tr><td>'+esc(x.transaction_date)+'</td><td>'+(x.direction==='income'?'Thu':'Chi')+'</td><td>'+esc(x.category)+'</td><td>'+esc(x.description)+(x.reference_note?'<div class="muted small">'+esc(x.reference_note)+'</div>':'')+'</td><td>'+money(x.amount)+'</td></tr>').join('')+'</tbody></table></div>':'Chưa có khoản thu – chi trong năm này.');
+    }catch(e){box.textContent='Không tải được báo cáo: '+e.message;}
+  }
+  async function loadFinanceComments(){
+    const box=$('financeCommentsContent');if(!box)return;box.textContent='Đang tải…';
+    try{const year=financeYear();const {data,error}=await sb.from('finance_comments').select('id,year,comment,created_by,created_at').eq('year',year).order('created_at',{ascending:false});if(error)throw error;
+      const rows=data||[];box.innerHTML=rows.length?rows.map(c=>'<div class="item"><p>'+esc(c.comment)+'</p><p class="muted small">'+esc(new Date(c.created_at).toLocaleString('vi-VN'))+' · '+(c.created_by===currentUser.id?'Bạn':'Thành viên trao đổi')+'</p></div>').join(''):'Chưa có ý kiến trao đổi trong năm '+year+'.';
+    }catch(e){box.textContent='Không tải được ý kiến: '+e.message;}
+  }
+  $('financeCommentForm')?.addEventListener('submit',async e=>{
+    e.preventDefault();if(!['ADMIN','ACCOUNTANT','EXECUTIVE'].some(r=>currentRoles.includes(r)))return;
+    const comment=$('financeCommentText').value.trim();if(!comment)return;
+    try{const {error}=await sb.from('finance_comments').insert({year:financeYear(),comment,created_by:currentUser.id});if(error)throw error;$('financeCommentText').value='';await loadFinanceComments();}catch(err){alert('Không gửi được ý kiến: '+err.message);}
+  });
+
   function showPage(name,btn){
     // Chan quyen truoc khi hien bat ky noi dung nao cua trang quan tri.
     if(name==='admin'&&!currentRoles.includes('ADMIN')){
@@ -770,6 +862,8 @@ async function transferAdmin(){if(!currentRoles.includes('ADMIN'))return alert('
     const hasManagementRole=canViewMemberDirectory;
     const isMemberOnly=currentRoles.includes('MEMBER')&&!hasManagementRole;
     if(name==='members'&&!canViewMemberDirectory){message($('homeMessage'),'Tài khoản này không có quyền xem danh sách hội viên.',true);name='home';btn=document.querySelector('[data-page=home]');}
+    const canUseFinance=['ADMIN','ACCOUNTANT','EXECUTIVE','COMMITTEE','MEMBER'].some(r=>currentRoles.includes(r));
+    if(name==='finance'&&!canUseFinance){message($('homeMessage'),'Tài khoản này không có quyền truy cập tài chính.',true);name='home';btn=document.querySelector('[data-page=home]');}
     if(isMemberOnly&&(name==='members'||name==='documents')){
       message($('homeMessage'),'Mục này không dành cho tài khoản Hội viên.',true);
       name='home';btn=document.querySelector('[data-page=home]');
@@ -782,6 +876,7 @@ async function transferAdmin(){if(!currentRoles.includes('ADMIN'))return alert('
     if(name==='reports'){loadReports();if(currentRoles.includes('BRANCH_HEAD')||currentRoles.includes('EXECUTIVE')||currentRoles.includes('ADMIN'))loadBranchSummaries();}
     if(name==='news')loadNews();
     if(name==='profile')loadProfile();
+    if(name==='finance')loadFinance();
     if(name==='tasks'){loadTasks();prepareTaskForm();}
     if(name==='documents')loadDocuments();
     if(name==='admin'&&currentRoles.includes('ADMIN')){loadPendingMembers();loadPositions();loadAccountDirectory();loadAdminBranches();}
