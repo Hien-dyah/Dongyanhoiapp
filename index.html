@@ -380,7 +380,7 @@
       const hay=[m.full_name,m.member_code,m.phone,m.email].join(' ').toLocaleLowerCase('vi');
       return (!q||hay.includes(q))&&(!branch||String(m.branch_id)===branch)&&(!status||m.status===status);
     });
-    const canBranchEdit=currentRoles.includes('BRANCH_HEAD');
+    const canBranchEdit=false;
     target.innerHTML='<p class="muted">Hiển thị '+rows.length+' / '+memberDirectoryRows.length+' hồ sơ.</p>'+(!rows.length?'<p>Không tìm thấy hội viên phù hợp.</p>':'<div class="table-wrap"><table><thead><tr><th>Mã hội viên</th><th>Họ tên</th><th>Điện thoại</th><th>Email</th><th>Chi hội</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>'+rows.map(m=>{
       const branchName=branches.find(b=>String(b.id)===String(m.branch_id))?.name||('Chi hội '+(m.branch_id??'—'));
       const editButton=canBranchEdit?'<button class="secondary" onclick="editBranchMember('+Number(m.id)+')">Sửa hồ sơ</button>':'';
