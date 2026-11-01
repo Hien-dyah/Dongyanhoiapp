@@ -302,18 +302,13 @@
     $('roleBadge').textContent=role;if($('statRole'))$('statRole').textContent=role;
     const isAdmin=currentRoles.includes('ADMIN');
     const isCommittee=currentRoles.includes('COMMITTEE');
-    const hasManagementRole=['ADMIN','EXECUTIVE','COMMITTEE','BRANCH_HEAD'].some(r=>currentRoles.includes(r));
-    const isMemberOnly=currentRoles.includes('MEMBER')&&!hasManagementRole;
+    const canViewMemberDirectory=['ADMIN','EXECUTIVE','COMMITTEE','BRANCH_HEAD'].some(r=>currentRoles.includes(r));
+    const isMemberOnly=currentRoles.includes('MEMBER')&&!canViewMemberDirectory;
     $('adminMenuBtn').classList.toggle('hidden',!isAdmin);
-    $('membersMenuBtn').classList.toggle('hidden',isMemberOnly);
-    if(isMemberOnly){
-      $('membersMenuBtn').setAttribute('aria-hidden','true');
-      $('membersMenuBtn').style.display='none';
-      $('page-members').classList.add('hidden');
-    }else{
-      $('membersMenuBtn').removeAttribute('aria-hidden');
-      $('membersMenuBtn').style.display='';
-    }
+    $('membersMenuBtn').classList.toggle('hidden',!canViewMemberDirectory);
+    $('membersMenuBtn').style.display=canViewMemberDirectory?'':'none';
+    if(canViewMemberDirectory){$('membersMenuBtn').removeAttribute('aria-hidden');}
+    else{$('membersMenuBtn').setAttribute('aria-hidden','true');$('page-members').classList.add('hidden');}
     $('documentsMenuBtn').classList.toggle('hidden',isMemberOnly);
     $('page-admin').classList.add('hidden');
     $('reportForm').classList.toggle('hidden',isCommittee&&!currentRoles.includes('MEMBER'));
@@ -362,7 +357,10 @@
     return ({approved:'Đã duyệt',pending:'Chờ xem xét',branch_checked:'Đang chờ Ban Thường vụ',rejected:'Đã từ chối',suspended:'Tạm ngưng'})[status]||status||'—';
   }
   async function loadMembers(){
-    const box=$('membersContent');box.textContent='Đang tải…';
+    const canViewMemberDirectory=['ADMIN','EXECUTIVE','COMMITTEE','BRANCH_HEAD'].some(r=>currentRoles.includes(r));
+    const box=$('membersContent');
+    if(!canViewMemberDirectory){memberDirectoryRows=[];box.textContent='Tài khoản Hội viên không có quyền xem danh sách hội viên.';return;}
+    box.textContent='Đang tải…';
     try{
       const {data,error}=await sb.from('members').select('id,member_code,full_name,gender,birth_year,phone,email,address,branch_id,status,education_level,professional_qualification,workplace,member_type,join_date').order('full_name').limit(1000);
       if(error)throw error;
@@ -805,9 +803,10 @@ async function transferAdmin(){if(!currentRoles.includes('ADMIN'))return alert('
       message($('homeMessage'),'Tài khoản này không có quyền quản trị hệ thống.',true);
       name='home';btn=document.querySelector('[data-page=home]');
     }
-    const hasManagementRole=['ADMIN','EXECUTIVE','COMMITTEE','BRANCH_HEAD'].some(r=>currentRoles.includes(r));
+    const canViewMemberDirectory=['ADMIN','EXECUTIVE','COMMITTEE','BRANCH_HEAD'].some(r=>currentRoles.includes(r));
+    const hasManagementRole=canViewMemberDirectory;
     const isMemberOnly=currentRoles.includes('MEMBER')&&!hasManagementRole;
-    if(currentRoles.includes('MEMBER')&&!hasManagementRole&&name==='members'){message($('homeMessage'),'Tài khoản Hội viên không có quyền quản lý hoặc xem danh sách hội viên.',true);name='home';btn=document.querySelector('[data-page=home]');}
+    if(name==='members'&&!canViewMemberDirectory){message($('homeMessage'),'Tài khoản này không có quyền xem danh sách hội viên.',true);name='home';btn=document.querySelector('[data-page=home]');}
     if(isMemberOnly&&(name==='members'||name==='documents')){
       message($('homeMessage'),'Mục này không dành cho tài khoản Hội viên.',true);
       name='home';btn=document.querySelector('[data-page=home]');
