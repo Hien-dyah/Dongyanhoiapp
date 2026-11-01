@@ -360,10 +360,30 @@
   function labelFor(k){return ({full_name:'Họ và tên',phone:'Số điện thoại',email:'Email',branch_id:'Mã chi hội',role:'Vai trò',created_at:'Ngày tạo'})[k]||k;}
   async function loadMembers(){
     const box=$('membersContent');box.textContent='Đang tải…';
-    try{const {data,error}=await sb.from('members').select('id,member_code,full_name,gender,birth_year,phone,email,branch_id,status,education_level,professional_qualification,workplace,member_type').order('full_name').limit(300);if(error)throw error;
+    try{
+      const {data,error}=await sb.from('members').select('id,member_code,full_name,gender,birth_year,phone,email,branch_id,status,education_level,professional_qualification,workplace,member_type').order('full_name').limit(300);if(error)throw error;
       if(!data?.length){box.innerHTML='<p>Chưa có hội viên hoặc tài khoản không có quyền xem danh sách.</p>';return;}
-      box.innerHTML='<div class="table-wrap"><table><thead><tr><th>Mã hội viên</th><th>Họ tên</th><th>Điện thoại</th><th>Email</th><th>Trạng thái</th><th>Chi hội ID</th>'+(currentRoles.includes('ADMIN')?'<th>Thao tác</th>':'')+'</tr></thead><tbody>'+data.map(m=>`<tr><td>${esc(m.member_code||'—')}</td><td>${esc(m.full_name||'—')}</td><td>${esc(m.phone||'—')}</td><td>${esc(m.email||'—')}</td><td>${esc(m.status||'—')}</td><td>${esc(m.branch_id??'—')}</td>`+(currentRoles.includes('ADMIN')?`<td><button class="danger" onclick="deleteMember(${Number(m.id)},'${esc(m.full_name||'Hội viên').replace(/'/g,"&#39;")}')">Xóa</button></td>`:'')+'</tr>').join('')+'</tbody></table></div>';
+      const canBranchEdit=currentRoles.includes('BRANCH_HEAD');
+      box.innerHTML='<div class="table-wrap"><table><thead><tr><th>Mã hội viên</th><th>Họ tên</th><th>Điện thoại</th><th>Email</th><th>Chi hội</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>'+data.map(m=>{
+        const branchName=branches.find(b=>String(b.id)===String(m.branch_id))?.name||('Chi hội '+(m.branch_id??'—'));
+        const editButton=canBranchEdit?'<button class="secondary" onclick="editBranchMember('+Number(m.id)+')">Sửa hồ sơ</button>':'';
+        const deleteButton=currentRoles.includes('ADMIN')?'<button class="danger" onclick="deleteMember('+Number(m.id)+',\''+esc(m.full_name||'Hội viên').replace(/'/g,"&#39;")+'\')">Xóa</button>':'';
+        return '<tr><td>'+esc(m.member_code||'—')+'</td><td>'+esc(m.full_name||'—')+'</td><td>'+esc(m.phone||'—')+'</td><td>'+esc(m.email||'—')+'</td><td>'+esc(branchName)+'</td><td>'+esc(m.status||'—')+'</td><td><div class="row-actions">'+editButton+deleteButton+'</div></td></tr>';
+      }).join('')+'</tbody></table></div>';
     }catch(e){box.textContent='Không tải được danh sách hội viên: '+e.message;}
+  }
+  async function editBranchMember(memberId){
+    if(!currentRoles.includes('BRANCH_HEAD'))return alert('Chỉ Chi hội trưởng mới được sửa hồ sơ hội viên trong chi hội mình.');
+    const {data,error}=await sb.from('members').select('id,full_name,gender,birth_year,phone,email,address,education_level,professional_qualification,workplace,member_type').eq('id',memberId).maybeSingle();
+    if(error||!data)return alert('Không tải được hồ sơ: '+(error?.message||'Không tìm thấy hồ sơ.'));
+    const fields=[['full_name','Họ và tên'],['gender','Giới tính'],['birth_year','Năm sinh'],['phone','Số điện thoại'],['email','Email'],['address','Địa chỉ thường trú'],['education_level','Trình độ văn hóa'],['professional_qualification','Văn bằng chuyên môn'],['workplace','Nơi hành nghề'],['member_type','Loại hội viên (official / honorary / associate)']];
+    const updates={};
+    for(const [key,label] of fields){const value=prompt(label+':',data[key]??'');if(value===null)return;updates[key]=value.trim();}
+    if(!updates.full_name)return alert('Họ tên không được để trống.');
+    if(updates.birth_year&&!/^\\d{4}$/.test(updates.birth_year))return alert('Năm sinh phải gồm 4 chữ số.');
+    if(updates.birth_year)updates.birth_year=Number(updates.birth_year);else updates.birth_year=null;
+    try{const {error:saveError}=await sb.rpc('branch_head_update_member',{p_member_id:memberId,p_updates:updates});if(saveError)throw saveError;alert('Đã cập nhật hồ sơ hội viên.');await loadMembers();}
+    catch(e){alert('Không cập nhật được hồ sơ: '+e.message);}
   }
   async function deleteMember(memberId,memberName){
     if(!currentRoles.includes('ADMIN'))return alert('Chỉ ADMIN mới được xóa hội viên.');
@@ -389,7 +409,7 @@
       const {data,error}=await sb.from('members').select('id,user_id,full_name,phone,email,branch_id,status,created_at').in('status',statuses).order('created_at',{ascending:true}).limit(300);
       if(error)throw error;
       if(!data||!data.length){box.innerHTML='<p>Không có hồ sơ cần xử lý.</p>';return;}
-      box.innerHTML='<div class="table-wrap"><table><thead><tr><th>Họ tên</th><th>Điện thoại</th><th>Chi hội</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>'+data.map(m=>'<tr><td>'+esc(m.full_name||'—')+'</td><td>'+esc(m.phone||'—')+'</td><td>'+esc(branches.find(b=>String(b.id)===String(m.branch_id))?.name||m.branch_id||'—')+'</td><td>'+esc(m.status)+'</td><td><div class="row-actions"><button onclick="approveMember('+Number(m.id)+')">'+(isBranch?'Đề xuất Ban Chấp hành / Ban Thường vụ':'Duyệt hội viên')+'</button>'+(isBranch?'':'<button class="danger" onclick="rejectMember('+Number(m.id)+')">Từ chối</button>')+'</div></td></tr>').join('')+'</tbody></table></div>';
+      box.innerHTML='<div class="table-wrap"><table><thead><tr><th>Họ tên</th><th>Điện thoại</th><th>Chi hội</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>'+data.map(m=>'<tr><td>'+esc(m.full_name||'—')+'</td><td>'+esc(m.phone||'—')+'</td><td>'+esc(branches.find(b=>String(b.id)===String(m.branch_id))?.name||m.branch_id||'—')+'</td><td>'+esc(m.status)+'</td><td><div class="row-actions"><button onclick="approveMember('+Number(m.id)+')">'+(isBranch?'Gửi Ban Thường vụ phê duyệt':'Duyệt hội viên')+'</button>'+(isBranch?'':'<button class="danger" onclick="rejectMember('+Number(m.id)+')">Từ chối</button>')+'</div></td></tr>').join('')+'</tbody></table></div>';
     }catch(e){box.textContent='Không tải được hồ sơ: '+e.message;}
   }
   async function approveMember(memberId){
