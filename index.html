@@ -86,7 +86,7 @@
           <div id="duesRatePanel" class="card hidden"><h3>Mức hội phí hằng năm</h3><p class="muted">Ban Thường vụ hoặc ADMIN nhập mức thu. Mức này được áp dụng cho hội viên trong năm tương ứng; khoản đã ghi nhận đã đóng sẽ không bị thay đổi.</p><form id="duesRateForm" class="form-grid"><div><label>Năm</label><input id="duesRateYear" type="number" min="2000" max="2200" required></div><div><label>Mức hội phí (đồng/người/năm)</label><input id="duesRateAmount" type="number" min="0" step="1000" required placeholder="Nhập mức hội phí"></div><div class="full"><button type="submit">Lưu mức hội phí</button></div></form><div id="duesRateMessage" class="small" role="status"></div></div>
           <div id="accountantPanel" class="card hidden"><h3>Quản lý hội phí hội viên</h3><p class="muted">Chỉ Kế toán hoặc ADMIN được cập nhật trạng thái thu hội phí.</p><div id="accountantDuesContent" class="muted">Đang tải danh sách…</div></div>
           <div id="financeEntryPanel" class="card hidden"><h3>Ghi nhận thu – chi</h3><form id="financeTransactionForm" class="form-grid"><div><label>Ngày phát sinh</label><input id="financeDate" type="date" required></div><div><label>Loại</label><select id="financeDirection"><option value="income">Thu</option><option value="expense">Chi</option></select></div><div><label>Nhóm khoản</label><input id="financeCategory" required placeholder="VD: Hội phí, văn phòng phẩm"></div><div><label>Số tiền (đồng)</label><input id="financeAmount" type="number" min="1" step="1000" required></div><div class="full"><label>Nội dung</label><input id="financeDescription" required placeholder="Mô tả khoản thu hoặc chi"></div><div class="full"><label>Chứng từ / ghi chú</label><input id="financeReference" placeholder="Số phiếu thu, phiếu chi hoặc ghi chú"></div><div class="full"><button type="submit">Lưu khoản thu – chi</button></div></form><div id="financeEntryMessage" class="small" role="status"></div></div>
-          <div id="financeReportPanel" class="card hidden"><div class="section-head"><h3>Báo cáo thu – chi tổng hợp</h3><div><label for="financeReportYear">Năm</label><input id="financeReportYear" type="number" min="2000" max="2200" style="width:110px" onchange="loadFinanceReport()"></div></div><div id="financeReportContent" class="muted">Đang tải báo cáo…</div></div>
+          <div id="financeReportPanel" class="card hidden"><div class="section-head"><h3>Báo cáo thu – chi tổng hợp</h3><div><label for="financeReportYear">Năm</label><input id="financeReportYear" type="number" min="2000" max="2200" style="width:110px" onchange="loadFinanceYear()"></div></div><div id="financeReportContent" class="muted">Đang tải báo cáo…</div></div>
           <div id="financeCommentsPanel" class="card hidden"><h3>Ý kiến trao đổi với Kế toán</h3><p class="muted">Ban Thường vụ gửi ý kiến; Kế toán có thể phản hồi. Nội dung được lưu cùng người gửi và thời gian.</p><form id="financeCommentForm" class="form-grid"><div class="full"><label>Nội dung ý kiến / phản hồi</label><textarea id="financeCommentText" rows="3" required></textarea></div><div class="full"><button type="submit">Gửi ý kiến</button></div></form><div id="financeCommentsContent" class="muted">Đang tải ý kiến…</div></div>
         </div>
         <div id="page-members" class="page hidden">
@@ -670,7 +670,7 @@ async function changeAdminRole(enabled){
  if(!currentRoles.includes('ADMIN'))return alert('Chỉ ADMIN được phân quyền.');
  const email=$('adminRoleEmail').value.trim(),role=$('adminRoleCode').value,branch=$('adminRoleBranch').value;
  if(!email)return alert('Nhập hoặc chọn email tài khoản.');
- if(enabled&&!confirm('LƯU Ý: Khi lưu, toàn bộ quyền cũ của tài khoản '+email+' sẽ bị xóa và chỉ còn quyền mới: '+role+'. Bạn có muốn tiếp tục không?'))return;
+ if(enabled&&!confirm(role==='ACCOUNTANT'?'Bổ sung quyền KẾ TOÁN cho '+email+'? Các vai trò hiện có của tài khoản sẽ được giữ nguyên.':'LƯU Ý: Khi lưu, toàn bộ quyền cũ của tài khoản '+email+' sẽ bị xóa và chỉ còn quyền mới: '+role+'. Bạn có muốn tiếp tục không?'))return;
  if(!enabled&&!confirm('Thu hồi riêng vai trò '+role+' khỏi '+email+'?'))return;
  const out=$('adminRoleMessage');out.textContent=enabled?'Đang thay thế quyền cũ bằng quyền mới…':'Đang thu hồi quyền…';
  try{
@@ -806,6 +806,12 @@ async function transferAdmin(){if(!currentRoles.includes('ADMIN'))return alert('
     try{const {data,error}=await sb.from('annual_dues_rates').select('amount').eq('year',year).maybeSingle();if(error)throw error;$('duesRateAmount').value=data?.amount??'';$('duesRateMessage').textContent=data?'Mức hội phí năm '+year+': '+money(data.amount):'Chưa thiết lập mức hội phí cho năm '+year+'.';}catch(e){$('duesRateMessage').textContent='Không tải được mức hội phí: '+e.message;}
   }
   $('duesRateYear')?.addEventListener('change',loadDuesRate);
+  async function loadFinanceYear(){
+    if(currentRoles.includes('ACCOUNTANT')||currentRoles.includes('ADMIN'))await loadAccountantDues();
+    if(['ADMIN','ACCOUNTANT','EXECUTIVE','COMMITTEE'].some(r=>currentRoles.includes(r)))await loadFinanceReport();
+    if(['ADMIN','ACCOUNTANT','EXECUTIVE'].some(r=>currentRoles.includes(r)))await loadFinanceComments();
+    if(currentRoles.includes('ADMIN')||currentRoles.includes('EXECUTIVE'))await loadDuesRate();
+  }
   $('duesRateForm')?.addEventListener('submit',async e=>{
     e.preventDefault();if(!currentRoles.includes('ADMIN')&&!currentRoles.includes('EXECUTIVE'))return;
     const year=Number($('duesRateYear').value),amount=Number($('duesRateAmount').value);if(!Number.isInteger(year)||amount<0)return;
