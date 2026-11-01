@@ -409,12 +409,17 @@
       if(error)throw error;
       const rows=(data||[]).filter(m=>!isBranch||branches.some(b=>String(b.id)===String(m.branch_id)));
       if(!rows.length){box.innerHTML='<p>Không có hồ sơ cần xem xét.</p>';return;}
-      box.innerHTML='<div class="table-wrap"><table><thead><tr><th>Họ tên</th><th>Điện thoại</th><th>Chi hội</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>'+rows.map(m=>{
+      const {data:reviewRows,error:reviewError}=await sb.from('member_reviews').select('member_id,comment,created_at').in('member_id',rows.map(m=>m.id)).order('created_at',{ascending:false});
+      if(reviewError)throw reviewError;
+      const reviewMap={};
+      (reviewRows||[]).forEach(r=>{if(!reviewMap[r.member_id])reviewMap[r.member_id]=[];reviewMap[r.member_id].push(r);});
+      box.innerHTML='<div class="table-wrap"><table><thead><tr><th>Họ tên</th><th>Điện thoại</th><th>Chi hội</th><th>Trạng thái</th><th>Ý kiến Chi hội trưởng</th><th>Thao tác</th></tr></thead><tbody>'+rows.map(m=>{
         const branchName=branches.find(b=>String(b.id)===String(m.branch_id))?.name||m.branch_id||'—';
+        const comments=(reviewMap[m.id]||[]).map(r=>'<div class="small">'+esc(r.comment||'')+'<br><span class="muted">'+esc(r.created_at||'')+'</span></div>').join('<hr>');
         const action=isBranch
           ?'<button class="secondary" onclick="commentMember('+Number(m.id)+')">Gửi ý kiến</button>'
           :'<button onclick="approveMember('+Number(m.id)+')">Duyệt hội viên</button><button class="danger" onclick="rejectMember('+Number(m.id)+')">Từ chối</button>';
-        return '<tr><td>'+esc(m.full_name||'—')+'</td><td>'+esc(m.phone||'—')+'</td><td>'+esc(branchName)+'</td><td>'+esc(m.status)+'</td><td><div class="row-actions">'+action+'</div></td></tr>';
+        return '<tr><td>'+esc(m.full_name||'—')+'</td><td>'+esc(m.phone||'—')+'</td><td>'+esc(branchName)+'</td><td>'+esc(m.status)+'</td><td>'+(comments||'<span class="muted">Chưa có ý kiến</span>')+'</td><td><div class="row-actions">'+action+'</div></td></tr>';
       }).join('')+'</tbody></table></div>';
     }catch(e){box.textContent='Không tải được hồ sơ: '+e.message;}
   }
