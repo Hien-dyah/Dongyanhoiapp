@@ -690,7 +690,7 @@ async function transferAdmin(){if(!currentRoles.includes('ADMIN'))return alert('
     try{
       $('taskPosition').innerHTML='<option value="">Không chỉ định</option>';
       const {data:positions}=await sb.from('positions').select('id,name').eq('active',true).order('name');
-      $('taskPosition').innerHTML+ = (positions||[]).map(p=>'<option value="'+p.id+'">'+esc(p.name)+'</option>').join('');
+      $('taskPosition').innerHTML+= (positions||[]).map(p=>'<option value="'+p.id+'">'+esc(p.name)+'</option>').join('');
       let memberQuery=sb.from('members').select('user_id,full_name,branch_id').eq('status','approved').not('user_id','is',null).order('full_name');
       if(isBranchHead){
         const {data:links,error:linkError}=await sb.from('user_roles').select('branch_id,role_id').eq('user_id',currentUser.id);
