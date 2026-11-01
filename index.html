@@ -314,8 +314,7 @@
       $('membersMenuBtn').removeAttribute('aria-hidden');
       $('membersMenuBtn').style.display='';
     }
-    $('documentsMenuBtn').classList.toggle('hidden',isMemberOnly||currentRoles.includes('BRANCH_HEAD')||isCommittee);
-    if(isCommittee){$('documentsMenuBtn').remove();$('page-documents').remove();}
+    $('documentsMenuBtn').classList.toggle('hidden',isMemberOnly);
     $('page-admin').classList.add('hidden');
     $('reportForm').classList.toggle('hidden',isCommittee&&!currentRoles.includes('MEMBER'));
     $('branchSummarySection').classList.toggle('hidden',!(currentRoles.includes('BRANCH_HEAD')||isAdmin||currentRoles.includes('EXECUTIVE')));
@@ -754,6 +753,18 @@ async function transferAdmin(){if(!currentRoles.includes('ADMIN'))return alert('
       await loadDocuments();
     }catch(e){alert('Không cập nhật được văn bản: '+e.message);}
   }
+  async function deployDocument(id){
+    if(!currentRoles.includes('ADMIN'))return alert('Chỉ ADMIN mới được triển khai văn bản.');
+    const roles=['BRANCH_HEAD','COMMITTEE','EXECUTIVE'].filter(role=>$('deploy-'+id+'-'+role)?.checked);
+    if(!roles.length)return alert('Hãy chọn ít nhất một cấp nhận văn bản.');
+    if(!confirm('Triển khai văn bản này đến: '+roles.map(r=>r==='BRANCH_HEAD'?'Chi hội trưởng':r==='COMMITTEE'?'Ban Chấp hành':'Ban Thường vụ').join(', ')+'? Danh sách nhận hiện tại sẽ được thay thế.'))return;
+    try{
+      const {data,error}=await sb.rpc('admin_deploy_document',{p_document_id:id,p_role_codes:roles});
+      if(error)throw error;
+      alert(data||'Đã triển khai văn bản.');
+      await loadDocuments();
+    }catch(e){alert('Không triển khai được văn bản: '+e.message);}
+  }
   async function loadDocuments(){
     const box=$('documentsContent'),pending=$('documentsPendingContent'),isAdmin=currentRoles.includes('ADMIN');
     box.textContent='Đang tải…';
@@ -771,11 +782,19 @@ async function transferAdmin(){if(!currentRoles.includes('ADMIN'))return alert('
         if(withdrawn){const removed=rows.filter(d=>d.review_status==='withdrawn');withdrawn.innerHTML=removed.length?removed.map(d=>'<div class="item"><h4>'+esc(d.title)+'</h4><p class="muted">'+esc(d.document_type||'Văn bản')+' · '+esc(d.document_number||'')+'</p><div class="row-actions"><button type="button" onclick="changeDocumentStatus('+d.id+',\'approved\')">Đưa trở lại kho</button></div></div>').join(''):'Chưa có văn bản nào bị gỡ.';}
       }
       const visible=rows.filter(d=>d.review_status==='approved');
+      let deploymentRows=[];
+      if(isAdmin&&visible.length){
+        const {data:dist,error:distError}=await sb.from('document_deployments').select('document_id,role_code').in('document_id',visible.map(d=>d.id));
+        if(distError)throw distError;
+        deploymentRows=dist||[];
+      }
       box.innerHTML=visible.length?(await Promise.all(visible.map(async d=>{
         let link='';
         if(d.storage_path){const {data:sign}=await sb.storage.from('association-private').createSignedUrl(d.storage_path,300);if(sign?.signedUrl)link='<p><a target="_blank" rel="noopener" href="'+esc(sign.signedUrl)+'">Mở tệp đính kèm</a></p>';}
         if(d.source_url)link+='<p><a target="_blank" rel="noopener" href="'+esc(d.source_url)+'">Xem văn bản tại nguồn chính thức</a></p>';
-        return '<div class="item"><h4>'+esc(d.title)+'</h4><p class="muted">'+esc(d.document_type)+' · '+esc(d.document_number||'')+' · '+esc(d.issued_on||'')+'</p><p>'+esc(d.summary||'')+'</p>'+link+(isAdmin?'<div class="row-actions"><button type="button" class="danger" onclick="changeDocumentStatus('+d.id+',\'withdrawn\')">Gỡ bỏ văn bản</button></div>':'')+'</div>';
+        const deployed=deploymentRows.filter(x=>Number(x.document_id)===Number(d.id)).map(x=>x.role_code);
+        const deployBox=isAdmin?'<div class="item"><strong>Triển khai đến cấp:</strong><div class="row-actions" style="margin-top:8px;flex-wrap:wrap"><label><input type="checkbox" id="deploy-'+d.id+'-BRANCH_HEAD" '+(deployed.includes('BRANCH_HEAD')?'checked':'')+'> Chi hội trưởng</label><label><input type="checkbox" id="deploy-'+d.id+'-COMMITTEE" '+(deployed.includes('COMMITTEE')?'checked':'')+'> Ban Chấp hành</label><label><input type="checkbox" id="deploy-'+d.id+'-EXECUTIVE" '+(deployed.includes('EXECUTIVE')?'checked':'')+'> Ban Thường vụ</label></div><div class="row-actions"><button type="button" onclick="deployDocument('+d.id+')">Triển khai văn bản</button><button type="button" class="secondary" onclick="changeDocumentStatus('+d.id+',\'withdrawn\')">Gỡ bỏ văn bản</button></div><p class="muted small">Đang gửi đến: '+(deployed.length?deployed.map(x=>x==='BRANCH_HEAD'?'Chi hội trưởng':x==='COMMITTEE'?'Ban Chấp hành':'Ban Thường vụ').join(', '):'Chưa triển khai')+'</p></div>':'';
+        return '<div class="item"><h4>'+esc(d.title)+'</h4><p class="muted">'+esc(d.document_type)+' · '+esc(d.document_number||'')+' · '+esc(d.issued_on||'')+'</p><p>'+esc(d.summary||'')+'</p>'+link+deployBox+'</div>';
       }))).join(''):'Chưa có văn bản đã được duyệt trong kho.';
     }catch(e){box.textContent='Không tải được văn bản: '+e.message;if(pending)pending.textContent='Không tải được danh sách chờ duyệt: '+e.message;}
   }
@@ -793,7 +812,6 @@ async function transferAdmin(){if(!currentRoles.includes('ADMIN'))return alert('
       message($('homeMessage'),'Mục này không dành cho tài khoản Hội viên.',true);
       name='home';btn=document.querySelector('[data-page=home]');
     }
-    if((currentRoles.includes('BRANCH_HEAD')||currentRoles.includes('COMMITTEE'))&&name==='documents'){message($('homeMessage'),'Tài khoản này không có quyền xem mục Văn bản.',true);name='home';btn=document.querySelector('[data-page=home]');}
     const target=$('page-'+name);if(!target)return;
     document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));
     target.classList.remove('hidden');
