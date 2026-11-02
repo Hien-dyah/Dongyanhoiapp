@@ -164,7 +164,7 @@
 </form><div id="adminRoleMessage" class="small" role="status"></div>
 <hr><h4>Danh sách tài khoản hiện có</h4><p class="muted">Danh sách lấy trực tiếp từ tài khoản đăng nhập. Khi ADMIN xóa tài khoản hội viên thành công, tài khoản đó sẽ tự biến mất khỏi danh sách này sau khi tải lại.</p><div class="row-actions"><button type="button" class="secondary" onclick="loadAccountDirectory()">🔄 Cập nhật danh sách tài khoản</button></div><div id="adminAccountsContent" class="muted">Chưa tải danh sách.</div></div><div class="item"><h4>Kho tệp bảo mật</h4><p class="muted">Tạo kho riêng tư để lưu chứng từ, hồ sơ và văn bản.</p><button onclick="setupPrivateStorage()">Khởi tạo kho tệp bảo mật</button><span id="storageSetupMessage" class="small"></span></div>
             <div class="item"><h4>Chức vụ kiêm nhiệm</h4><p class="muted">Chức vụ công tác tách biệt với quyền ADMIN/EXECUTIVE/COMMITTEE/BRANCH_HEAD/MEMBER.</p><form id="positionForm" class="form-grid"><div><label>Mã chức vụ</label><input id="positionCode" required placeholder="VD: DEPUTY_SECRETARY"></div><div><label>Tên chức vụ</label><input id="positionName" required placeholder="VD: Phó Thư ký"></div><div class="full"><label>Mô tả</label><input id="positionDescription" placeholder="Nhiệm vụ phụ trách"></div><div class="full"><button type="submit">Tạo chức vụ</button></div></form><hr><form id="assignPositionForm" class="form-grid"><div class="full"><label>Email tài khoản được phân công</label><input id="positionUserEmail" type="email" required placeholder="hoi.vien@example.com"></div><div><label>Chức vụ</label><select id="positionSelect" required><option value="">Đang tải…</option></select></div><div><label>Chi hội</label><select id="positionBranch"><option value="">Toàn Hội / Không chỉ định</option></select></div><div class="full"><button type="submit">Giao chức vụ</button></div></form><div id="positionsMessage" class="small"></div></div>
-            <div class="item"><h4>Bàn giao quyền quản trị</h4><p class="muted">Nhập email tài khoản đã đăng ký. Sau khi chuyển, tài khoản hiện tại sẽ mất quyền ADMIN.</p><label>Email người nhận</label><input id="newAdminEmail" type="email" placeholder="email.nguoi.ke.nhiem@example.com"><button class="danger" onclick="transferAdmin()">Bàn giao quyền ADMIN</button></div><div class="section-head"><h3>Đăng ký hội viên chờ duyệt</h3><button onclick="loadPendingMembers()">Tải danh sách</button></div><div id="pendingMembersContent" class="muted">Chưa tải danh sách đăng ký.</div></div></div>
+            <div class="item"><h4>Bàn giao quyền quản trị</h4><p class="muted">Tạo tài khoản đăng nhập mới bằng email và mật khẩu. Sau khi bàn giao thành công, tài khoản hiện tại sẽ mất quyền ADMIN; tài khoản mới nhận quyền ADMIN.</p><label for="newAdminName">Họ và tên người nhận</label><input id="newAdminName" type="text" autocomplete="name" placeholder="Nhập họ và tên"><label for="newAdminEmail">Email đăng nhập mới</label><input id="newAdminEmail" type="email" autocomplete="off" placeholder="email.nguoi.ke.nhiem@example.com"><label for="newAdminPassword">Mật khẩu đăng nhập</label><input id="newAdminPassword" type="password" minlength="12" autocomplete="new-password" placeholder="Ít nhất 12 ký tự, có chữ hoa, chữ thường và số"><label for="newAdminPasswordConfirm">Nhập lại mật khẩu</label><input id="newAdminPasswordConfirm" type="password" minlength="12" autocomplete="new-password" placeholder="Nhập lại mật khẩu để xác nhận"><p class="muted small">Email phải chưa được đăng ký trong hệ thống. Mật khẩu không được lưu dạng chữ thường; người nhận nên đổi mật khẩu sau lần đăng nhập đầu tiên.</p><button id="transferAdminBtn" class="danger" type="button" onclick="transferAdmin()">Tạo tài khoản và bàn giao quyền ADMIN</button><div id="transferAdminMessage" class="small" role="status" style="margin-top:8px"></div></div><div class="section-head"><h3>Đăng ký hội viên chờ duyệt</h3><button onclick="loadPendingMembers()">Tải danh sách</button></div><div id="pendingMembersContent" class="muted">Chưa tải danh sách đăng ký.</div></div></div>
       </div>
     </div>
   </section>
@@ -751,7 +751,30 @@ async function changeAdminRole(enabled){
  }catch(e){out.textContent='Không cập nhật được: '+e.message;}
 }
 $('adminRoleForm')?.addEventListener('submit',async e=>{e.preventDefault();await changeAdminRole(true);});
-async function transferAdmin(){if(!currentRoles.includes('ADMIN'))return alert('Chỉ ADMIN hiện tại được bàn giao.');const email=$('newAdminEmail').value.trim();if(!email)return alert('Nhập email người nhận.');if(!confirm('Chuyển quyền ADMIN cho '+email+'? Tài khoản hiện tại sẽ mất quyền quản trị.'))return;try{const {error}=await sb.rpc('transfer_system_admin_by_email',{p_new_admin_email:email});if(error)throw error;alert('Đã bàn giao quyền quản trị.');await logout();}catch(e){alert('Chưa bàn giao được: '+e.message);}}
+async function transferAdmin(){
+    if(!currentRoles.includes('ADMIN'))return alert('Chỉ ADMIN hiện tại được bàn giao.');
+    const email=$('newAdminEmail').value.trim().toLowerCase();
+    const fullName=$('newAdminName').value.trim();
+    const password=$('newAdminPassword').value;
+    const confirmPassword=$('newAdminPasswordConfirm').value;
+    const out=$('transferAdminMessage'),btn=$('transferAdminBtn');
+    if(!email)return message(out,'Vui lòng nhập email đăng nhập mới.',true);
+    if(password.length<12||!/[a-z]/.test(password)||!/[A-Z]/.test(password)||!/[0-9]/.test(password))return message(out,'Mật khẩu phải có ít nhất 12 ký tự, gồm chữ thường, chữ hoa và số.',true);
+    if(password!==confirmPassword)return message(out,'Mật khẩu nhập lại chưa khớp.',true);
+    if(!confirm('Tạo tài khoản '+email+' với mật khẩu đã nhập và bàn giao quyền ADMIN? Sau khi thành công, tài khoản hiện tại sẽ mất quyền ADMIN và đăng xuất.'))return;
+    btn.disabled=true;out.textContent='Đang tạo tài khoản và chuyển quyền quản trị…';
+    try{
+      const {data,error}=await sb.functions.invoke('admin-handover',{body:{email,full_name:fullName,password}});
+      if(error)throw error;
+      if(!data?.success)throw new Error(data?.error||'Máy chủ chưa xác nhận bàn giao thành công.');
+      $('newAdminPassword').value='';$('newAdminPasswordConfirm').value='';
+      alert('Đã tạo tài khoản và bàn giao quyền ADMIN cho '+email+'. Người nhận có thể đăng nhập bằng email và mật khẩu đã được cấp. Tài khoản hiện tại sẽ đăng xuất.');
+      await logout();
+    }catch(e){
+      out.textContent='Chưa bàn giao được: '+(e.message||'Lỗi không xác định.');
+      $('newAdminPassword').value='';$('newAdminPasswordConfirm').value='';
+    }finally{btn.disabled=false;}
+  }
   async function prepareTaskForm(){
     const canAssign=['ADMIN','CHAIRPERSON','EXECUTIVE','COMMITTEE','BRANCH_HEAD'].some(r=>currentRoles.includes(r));
     const form=$('taskForm');form.classList.toggle('hidden',!canAssign);if(!canAssign)return;
