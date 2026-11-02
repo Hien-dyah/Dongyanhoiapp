@@ -1042,15 +1042,9 @@ async function transferAdmin(){if(!currentRoles.includes('ADMIN'))return alert('
     if(note===null)return;
     if(decision==='rejected'&&!note.trim())return alert('Vui lòng ghi lý do từ chối để hội viên biết và gửi lại.');
     try{
-      const {data:proof,error:proofError}=await sb.from('dues_payment_submissions').select('id,status').eq('id',submissionId).single();
-      if(proofError)throw proofError;if(proof.status!=='pending')throw new Error('Chứng từ này đã được xử lý.');
-      const {error:updateProofError}=await sb.from('dues_payment_submissions').update({status:decision,reviewed_by:currentUser.id,reviewed_at:new Date().toISOString(),review_note:note.trim()||null}).eq('id',submissionId);
-      if(updateProofError)throw updateProofError;
-      if(decision==='approved'){
-        const {error:duesError}=await sb.from('member_dues').update({status:'paid',paid_at:new Date().toISOString(),recorded_by:currentUser.id,note:'Kế toán duyệt chứng từ hội viên gửi. '+(note.trim()||''),updated_at:new Date().toISOString()}).eq('id',duesId);
-        if(duesError)throw duesError;
-      }
-      alert(decision==='approved'?'Đã xác nhận đóng hội phí; sổ thu – chi được đồng bộ tự động.':'Đã từ chối chứng từ và lưu lý do để hội viên bổ sung.');
+      const {data,error}=await sb.rpc('review_dues_payment_submission',{p_submission_id:submissionId,p_decision:decision,p_note:note.trim()||null});
+      if(error)throw error;
+      alert(Array.isArray(data)?(data[0]||'Đã xử lý chứng từ.'):String(data||'Đã xử lý chứng từ.'));
       await loadAccountantDues();
     }catch(e){alert('Không xử lý được chứng từ: '+e.message);}
   }
