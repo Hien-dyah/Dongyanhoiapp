@@ -22,13 +22,21 @@
     .welcome{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:18px}.welcome h2{margin:0 0 5px}.pill{display:inline-block;padding:5px 9px;border-radius:99px;background:#e8f3ee;color:var(--green);font-size:12px;font-weight:700}
     .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}.stat strong{display:block;font-size:25px;margin-top:8px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.section-head h3{margin:0}.item{border:1px solid var(--line);padding:13px;border-radius:10px;margin:9px 0}.item h4{margin:0 0 6px}.item p{margin:5px 0}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line);vertical-align:top}th{background:#f5f8f6}
     footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}.small{font-size:12px}.row-actions{display:flex;gap:7px;flex-wrap:wrap}
-    @media(max-width:760px){header{padding:12px}.layout{grid-template-columns:1fr}.side{display:flex;overflow:auto;gap:4px}.side button{white-space:nowrap;width:auto}.stats{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.full{grid-column:auto}.welcome{align-items:flex-start;flex-direction:column}.header-actions .ghost{display:none}}
+    .logout-button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:8px 12px;border:1px solid #ffffffa8;border-radius:999px;background:#ffffff18;color:#fff;font-size:13px;white-space:nowrap}
+    .logout-icon{font-size:19px;line-height:1}.home-hero{position:relative;overflow:hidden;display:flex;align-items:center;gap:14px;margin-bottom:14px;padding:22px;background:linear-gradient(115deg,#075b3e,#0a9563 70%,#77b94c);color:#fff;border:0;min-height:132px}
+    .home-hero-mark{width:62px;height:62px;flex:0 0 62px;border:2px solid #ffffffc9;border-radius:50%;display:grid;place-items:center;font-size:35px;background:#ffffff18}
+    .home-kicker{font-size:11px;font-weight:700;letter-spacing:1.1px;opacity:.9}.home-hero h3{font-size:26px;margin:5px 0;color:#fff}.home-hero p{margin:0;font-size:12px;color:#e8fff3}.home-leaf{margin-left:auto;font-size:48px;opacity:.9}
+    .home-shortcuts-card{margin-bottom:16px}.home-shortcuts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    .home-tile{min-height:132px;padding:14px 9px;border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;color:#17352c;border:1px solid transparent;font-size:14px;line-height:1.25;text-align:center;white-space:normal}
+    .home-tile .tile-icon{font-size:34px;line-height:1.1}.tile-blue{background:#e1f3ff;border-color:#c3e8ff}.tile-green{background:#e9f8dc;border-color:#d7efc5}.tile-orange{background:#fff0df;border-color:#ffe0c0}.tile-purple{background:#f0e8ff;border-color:#e3d4ff}.tile-pink{background:#ffe8f1;border-color:#ffd3e4}.tile-yellow{background:#fff6cf;border-color:#f8e9a1}.tile-teal{background:#dff8ef;border-color:#c4efe1}
+    @media(max-width:760px){header{padding:10px 12px;gap:8px}.brand{gap:8px;min-width:0}.logo{width:36px;height:36px;flex:0 0 36px}.brand h1{font-size:15px;line-height:1.2}.brand p{font-size:10px}.header-actions{gap:5px;flex:0 0 auto}.header-actions #headerUser{display:none}.header-actions #installBtn{font-size:11px;padding:7px 9px}.logout-button{min-height:34px;padding:6px 10px;font-size:12px}.logout-icon{font-size:17px}.home-hero{min-height:112px;padding:16px;gap:10px}.home-hero-mark{width:48px;height:48px;flex-basis:48px;font-size:28px}.home-hero h3{font-size:21px}.home-leaf{font-size:36px}.home-shortcuts{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.home-tile{min-height:108px;padding:10px 5px;border-radius:16px;font-size:12px}.home-tile .tile-icon{font-size:28px}.layout{grid-template-columns:1fr}.side{display:flex;overflow:auto;gap:4px}.side button{white-space:nowrap;width:auto}.stats{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.full{grid-column:auto}.welcome{align-items:flex-start;flex-direction:column}}
+    @media(max-width:380px){.brand p{display:none}.header-actions #installBtn{font-size:10px;padding:6px 7px}.logout-button{padding:6px 8px}.home-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr))}.home-tile{min-height:102px}}
   </style>
 </head>
 <body>
 <header>
   <div class="brand"><div class="logo">🌿</div><div><h1>Hội Đông y phường An Hội</h1><p>Hệ thống quản lý hội viên và báo cáo hoạt động</p></div></div>
-  <div class="header-actions"><span id="headerUser" class="small"></span><button id="installBtn" class="secondary" type="button" onclick="installApp()" style="background:#e8f3ee;color:#087653">＋ Cài ứng dụng</button><button id="logoutBtn" class="ghost hidden" onclick="logout()">Đăng xuất</button></div>
+  <div class="header-actions"><span id="headerUser" class="small"></span><button id="installBtn" class="secondary" type="button" onclick="installApp()" style="background:#e8f3ee;color:#087653">＋ Cài ứng dụng</button><button id="logoutBtn" class="logout-button hidden" type="button" onclick="logout()" aria-label="Đăng xuất"><span class="logout-icon" aria-hidden="true">↪</span><span class="logout-label">Đăng xuất</span></button></div>
 </header>
 <main>
   <section id="authView" class="login-wrap card">
@@ -74,7 +82,18 @@
       </nav>
       <div>
         <div id="page-home" class="page">
-          <div class="card"><h3>Chào mừng đến với hệ thống</h3><p class="muted">Dùng menu bên trái để xem hồ sơ, gửi báo cáo và đọc tin tức. Các thao tác sẽ tuân theo chính sách phân quyền trong cơ sở dữ liệu.</p><div id="homeMessage" class="notice">Đang tải dữ liệu…</div></div>
+          <div class="home-hero card"><div class="home-hero-mark">☯</div><div><div class="home-kicker">HỘI ĐÔNG Y PHƯỜNG AN HỘI</div><h3>Đồng y An Hội</h3><p>Đoàn kết · Kế thừa · Phát triển y học cổ truyền</p></div><div class="home-leaf" aria-hidden="true">🌿</div></div>
+          <div class="card home-shortcuts-card"><div class="section-head"><h3>Tiện ích nhanh</h3><span class="muted small">Chọn chức năng để sử dụng</span></div><div class="home-shortcuts">
+            <button class="home-tile tile-blue" type="button" onclick="showPage('profile',document.querySelector('[data-page=profile]'))"><span class="tile-icon">👤</span><span>Hồ sơ của tôi</span></button>
+            <button class="home-tile tile-green" type="button" onclick="showPage('reports',document.querySelector('[data-page=reports]'))"><span class="tile-icon">📋</span><span>Báo cáo công tác</span></button>
+            <button class="home-tile tile-orange" type="button" onclick="showPage('tasks',document.querySelector('[data-page=tasks]'))"><span class="tile-icon">🗂️</span><span>Nhiệm vụ được giao</span></button>
+            <button class="home-tile tile-purple" type="button" onclick="showPage('members',document.querySelector('[data-page=members]'))"><span class="tile-icon">👥</span><span>Danh sách hội viên</span></button>
+            <button class="home-tile tile-pink" type="button" onclick="showPage('news',document.querySelector('[data-page=news]'))"><span class="tile-icon">📰</span><span>Tin tức của Hội</span></button>
+            <button class="home-tile tile-yellow" type="button" onclick="showPage('news',document.querySelector('[data-page=news]'))"><span class="tile-icon">🌱</span><span>Tin tức y học cổ truyền</span></button>
+            <button class="home-tile tile-teal" type="button" onclick="showPage('tasks',document.querySelector('[data-page=tasks]'))"><span class="tile-icon">📈</span><span>Tiến độ công việc</span></button>
+            <button class="home-tile tile-blue" type="button" onclick="showPage('reports',document.querySelector('[data-page=reports]'))"><span class="tile-icon">💬</span><span>Ý kiến, kiến nghị</span></button>
+            <button class="home-tile tile-purple" type="button" onclick="showPage('documents',document.querySelector('[data-page=documents]'))"><span class="tile-icon">📚</span><span>Văn bản hướng dẫn</span></button>
+          </div><div id="homeMessage" class="notice">Đang tải dữ liệu…</div></div>
           <div class="card"><div class="section-head"><h3>📰 Tin tức mới nhất</h3><button type="button" onclick="showPage('news',document.querySelector('[data-page=news]'))">Xem tất cả tin tức</button></div><p class="muted">Tin tức của Hội và thông tin y học cổ truyền đã được duyệt.</p><div id="homeNewsContent" class="muted">Đang tải tin tức mới…</div></div>
         </div>
         <div id="page-profile" class="page hidden">
@@ -1072,7 +1091,24 @@ async function transferAdmin(){if(!currentRoles.includes('ADMIN'))return alert('
   window.addEventListener('DOMContentLoaded',updateInstallButton);
   async function init(){
     updateInstallButton();
-    if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(err=>console.warn('PWA worker:',err));}
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(reg=>{
+        reg.update().catch(()=>{});
+        reg.addEventListener('updatefound',()=>{
+          const installing=reg.installing;
+          if(installing)installing.addEventListener('statechange',()=>{
+            if(installing.state==='installed'&&navigator.serviceWorker.controller){installing.postMessage('SKIP_WAITING');}
+          });
+        });
+      }).catch(err=>console.warn('PWA worker:',err));
+      let refreshing=false;
+      navigator.serviceWorker.addEventListener('controllerchange',()=>{
+        if(!refreshing){refreshing=true;window.location.reload();}
+      });
+      document.addEventListener('visibilitychange',()=>{
+        if(document.visibilityState==='visible')navigator.serviceWorker.getRegistration('./').then(reg=>reg?.update()).catch(()=>{});
+      });
+    }
     await loadBranches();
     sb.auth.onAuthStateChange(async(event,session)=>{
       if(event==='PASSWORD_RECOVERY'){
