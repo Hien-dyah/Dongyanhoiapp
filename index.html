@@ -392,7 +392,7 @@
         }catch(err){alert('Không lưu được thông tin: '+err.message);}finally{btn.disabled=false;}});
         return;
       }
-      $('statMember').textContent='Đã có hồ sơ';
+      if($('statMember'))$('statMember').textContent='Đã có hồ sơ';
       const fields=[['full_name','Họ và tên','text'],['gender','Giới tính','text'],['birth_year','Năm sinh','number'],['phone','Số điện thoại','tel'],['email','Email','email'],['address','Địa chỉ thường trú','text'],['education_level','Trình độ văn hóa','text'],['professional_qualification','Văn bằng chuyên môn','text'],['workplace','Nơi hành nghề','text']];
       const photoMarkup=data.photo_url?'<img id="memberPhotoPreview" src="'+esc(data.photo_url)+'" alt="Ảnh hội viên" style="width:132px;height:132px;object-fit:cover;border-radius:12px;border:1px solid var(--line)">':'<div id="memberPhotoPreview" class="muted" style="width:132px;height:132px;border:1px dashed var(--line);border-radius:12px;display:flex;align-items:center;justify-content:center;text-align:center;padding:8px">Chưa có ảnh</div>';
       box.innerHTML='<form id="memberProfileForm" class="form-grid"><div class="full"><h4>Ảnh đại diện</h4><div class="row" style="align-items:center;gap:16px">'+photoMarkup+'<div><label for="profilePhotoFile">Chọn ảnh đại diện</label><input id="profilePhotoFile" type="file" accept="image/jpeg,image/png,image/webp"><p class="muted small">Ảnh JPG, PNG hoặc WEBP; tối đa 5MB.</p></div></div></div>'+fields.map(([key,label,type])=>'<div><label for="profile_'+key+'">'+label+'</label><input id="profile_'+key+'" name="'+key+'" type="'+type+'" value="'+esc(data[key]??'')+'"></div>').join('')+'<div><label>Loại hội viên</label><input value="'+esc(data.member_type||'')+'" disabled></div><div><label>Trạng thái hồ sơ</label><input value="'+esc(data.status||'')+'" disabled></div><div class="full"><p class="muted">Mã hội viên: '+esc(data.member_code||'Chưa cấp')+' · Chi hội: '+esc(branches.find(b=>String(b.id)===String(data.branch_id))?.name||data.branch_id||'')+'</p><p class="muted small">Bạn được sửa thông tin cá nhân của mình. Mã hội viên, chi hội và trạng thái duyệt do Hội quản lý.</p><button type="submit">Lưu thay đổi hồ sơ</button></div></form>';
@@ -413,7 +413,7 @@
         const {error:profileError}=await sb.from('profiles').upsert({id:currentUser.id,full_name:update.full_name,phone:update.phone,email:update.email},{onConflict:'id'});if(profileError)console.warn('Không cập nhật được profiles:',profileError.message);
         alert('Đã lưu hồ sơ cá nhân'+(photoFile?' và ảnh đại diện.':'.'));await loadProfile();
       }catch(err){alert('Không lưu được hồ sơ: '+err.message);}finally{btn.disabled=false;}});
-    }catch(e){$('statMember').textContent='—';box.textContent='Không đọc được hồ sơ: '+e.message;}
+    }catch(e){if($('statMember'))$('statMember').textContent='—';box.textContent='Không đọc được hồ sơ: '+e.message;}
   }
   function labelFor(k){return ({full_name:'Họ và tên',phone:'Số điện thoại',email:'Email',branch_id:'Mã chi hội',role:'Vai trò',created_at:'Ngày tạo'})[k]||k;}
   let memberDirectoryRows=[];
