@@ -101,7 +101,7 @@
         </div>
         <div id="page-finance" class="page hidden">
           <div class="card"><div class="section-head"><h3>💰 Hội phí và tài chính</h3><button type="button" class="secondary" onclick="loadFinance()">Tải lại</button></div><p class="muted">Theo dõi hội phí hằng năm, thu chi và ý kiến của Ban Thường vụ.</p></div>
-          <div id="memberDuesPanel" class="card"><h3>Hội phí của tôi</h3><div id="memberDuesContent" class="muted">Đang tải tình trạng hội phí…</div></div>
+          <div id="memberDuesPanel" class="card"><h3>Hội phí của tôi</h3><p class="muted">Sau khi chuyển khoản hoặc nộp hội phí, hội viên gửi ảnh hóa đơn/biên nhận tại đây. Kế toán sẽ kiểm tra và xác nhận; trạng thái chỉ chuyển sang “Đã đóng” sau khi Kế toán duyệt.</p><div id="memberDuesContent" class="muted">Đang tải tình trạng hội phí…</div></div>
           <div id="duesRatePanel" class="card hidden"><h3>Mức hội phí hằng năm</h3><p class="muted">Ban Thường vụ hoặc ADMIN nhập mức thu. Mức này được áp dụng cho hội viên trong năm tương ứng; khoản đã ghi nhận đã đóng sẽ không bị thay đổi.</p><form id="duesRateForm" class="form-grid"><div><label>Năm</label><input id="duesRateYear" type="number" min="2000" max="2200" required></div><div><label>Mức hội phí (đồng/người/năm)</label><input id="duesRateAmount" type="number" min="0" step="1000" required placeholder="Nhập mức hội phí"></div><div class="full"><button type="submit">Lưu mức hội phí</button></div></form><div id="duesRateMessage" class="small" role="status"></div></div>
           <div id="accountantPanel" class="card hidden"><h3>Quản lý hội phí hội viên</h3><p class="muted">Chỉ tài khoản được phân quyền Kế toán mới được cập nhật trạng thái thu hội phí. Khi xác nhận đã đóng, khoản hội phí sẽ tự động ghi vào sổ thu – chi; không cần nhập lại khoản này ở phần thu – chi.</p><div id="accountantDuesContent" class="muted">Đang tải danh sách…</div></div>
           <div id="financeEntryPanel" class="card hidden"><h3>Ghi nhận thu – chi</h3><form id="financeTransactionForm" class="form-grid"><div><label>Ngày phát sinh</label><input id="financeDate" type="date" required></div><div><label>Loại</label><select id="financeDirection"><option value="income">Thu</option><option value="expense">Chi</option></select></div><div><label>Nhóm khoản</label><input id="financeCategory" required placeholder="VD: Hội phí, văn phòng phẩm"></div><div><label>Số tiền (đồng)</label><input id="financeAmount" type="number" min="1" step="1000" required></div><div class="full"><label>Nội dung</label><input id="financeDescription" required placeholder="Mô tả khoản thu hoặc chi"></div><div class="full"><label>Chứng từ / ghi chú</label><input id="financeReference" placeholder="Số phiếu thu, phiếu chi hoặc ghi chú"></div><div class="full"><button type="submit">Lưu khoản thu – chi</button></div></form><div id="financeEntryMessage" class="small" role="status"></div></div>
@@ -155,7 +155,7 @@
 <div><label>Chi hội (bắt buộc với Chi hội trưởng/Hội viên)</label><select id="adminRoleBranch"><option value="">Toàn Hội / Không áp dụng</option></select></div>
 <div class="full row-actions"><button type="submit">Cấp / cập nhật quyền</button><button type="button" class="danger" onclick="changeAdminRole(false)">Thu hồi vai trò đã chọn</button><button type="button" class="secondary" onclick="loadAccountDirectory()">Tải danh sách tài khoản</button></div>
 </form><div id="adminRoleMessage" class="small" role="status"></div>
-<hr><h4>Danh sách tài khoản hiện có</h4><div id="adminAccountsContent" class="muted">Chưa tải danh sách.</div></div><div class="item"><h4>Kho tệp bảo mật</h4><p class="muted">Tạo kho riêng tư để lưu chứng từ, hồ sơ và văn bản.</p><button onclick="setupPrivateStorage()">Khởi tạo kho tệp bảo mật</button><span id="storageSetupMessage" class="small"></span></div>
+<hr><h4>Danh sách tài khoản hiện có</h4><p class="muted">Danh sách lấy trực tiếp từ tài khoản đăng nhập. Khi ADMIN xóa tài khoản hội viên thành công, tài khoản đó sẽ tự biến mất khỏi danh sách này sau khi tải lại.</p><div class="row-actions"><button type="button" class="secondary" onclick="loadAccountDirectory()">🔄 Cập nhật danh sách tài khoản</button></div><div id="adminAccountsContent" class="muted">Chưa tải danh sách.</div></div><div class="item"><h4>Kho tệp bảo mật</h4><p class="muted">Tạo kho riêng tư để lưu chứng từ, hồ sơ và văn bản.</p><button onclick="setupPrivateStorage()">Khởi tạo kho tệp bảo mật</button><span id="storageSetupMessage" class="small"></span></div>
             <div class="item"><h4>Chức vụ kiêm nhiệm</h4><p class="muted">Chức vụ công tác tách biệt với quyền ADMIN/EXECUTIVE/COMMITTEE/BRANCH_HEAD/MEMBER.</p><form id="positionForm" class="form-grid"><div><label>Mã chức vụ</label><input id="positionCode" required placeholder="VD: DEPUTY_SECRETARY"></div><div><label>Tên chức vụ</label><input id="positionName" required placeholder="VD: Phó Thư ký"></div><div class="full"><label>Mô tả</label><input id="positionDescription" placeholder="Nhiệm vụ phụ trách"></div><div class="full"><button type="submit">Tạo chức vụ</button></div></form><hr><form id="assignPositionForm" class="form-grid"><div class="full"><label>Email tài khoản được phân công</label><input id="positionUserEmail" type="email" required placeholder="hoi.vien@example.com"></div><div><label>Chức vụ</label><select id="positionSelect" required><option value="">Đang tải…</option></select></div><div><label>Chi hội</label><select id="positionBranch"><option value="">Toàn Hội / Không chỉ định</option></select></div><div class="full"><button type="submit">Giao chức vụ</button></div></form><div id="positionsMessage" class="small"></div></div>
             <div class="item"><h4>Bàn giao quyền quản trị</h4><p class="muted">Nhập email tài khoản đã đăng ký. Sau khi chuyển, tài khoản hiện tại sẽ mất quyền ADMIN.</p><label>Email người nhận</label><input id="newAdminEmail" type="email" placeholder="email.nguoi.ke.nhiem@example.com"><button class="danger" onclick="transferAdmin()">Bàn giao quyền ADMIN</button></div><div class="section-head"><h3>Đăng ký hội viên chờ duyệt</h3><button onclick="loadPendingMembers()">Tải danh sách</button></div><div id="pendingMembersContent" class="muted">Chưa tải danh sách đăng ký.</div></div></div>
       </div>
@@ -485,7 +485,7 @@
       // Gỡ ngay khỏi dữ liệu đang hiển thị, sau đó tải lại danh sách chính thức từ máy chủ.
       memberDirectoryRows=memberDirectoryRows.filter(m=>Number(m.id)!==Number(memberId));
       renderMemberDirectory();
-      await Promise.all([loadMembers(),loadPendingMembers()]);
+      await Promise.all([loadMembers(),loadPendingMembers(),loadAccountDirectory()]);
       alert(data?.message||'Đã xóa hồ sơ hội viên và tài khoản đăng nhập liên kết. Danh sách đã được cập nhật.');
     }catch(e){alert('Không xóa được: '+(e.message||String(e)));}
   }
@@ -971,9 +971,17 @@ async function transferAdmin(){if(!currentRoles.includes('ADMIN'))return alert('
     try{
       const {data:m,error:me}=await sb.from('members').select('id').eq('user_id',currentUser.id).maybeSingle();if(me)throw me;
       if(!m){box.textContent='Tài khoản chưa được liên kết với hồ sơ hội viên.';return;}
-      const {data:rows,error}=await sb.from('member_dues').select('year,amount,status,paid_at,note').eq('member_id',m.id).order('year',{ascending:false});
+      const {data:rows,error}=await sb.from('member_dues').select('id,year,amount,status,paid_at,note').eq('member_id',m.id).order('year',{ascending:false});
       if(error)throw error;
-      box.innerHTML=rows?.length?'<div class="table-wrap"><table><thead><tr><th>Năm</th><th>Mức hội phí</th><th>Tình trạng</th><th>Ngày đóng</th></tr></thead><tbody>'+rows.map(d=>'<tr><td>'+d.year+'</td><td>'+money(d.amount)+'</td><td>'+(d.status==='paid'?'<span class="pill">Đã đóng</span>':'<span class="pill">Chưa đóng</span>')+'</td><td>'+esc(d.paid_at?new Date(d.paid_at).toLocaleDateString('vi-VN'):'—')+'</td></tr>').join('')+'</tbody></table></div>':'Chưa có dữ liệu hội phí. Ban Thường vụ/ADMIN sẽ thiết lập mức thu và Kế toán cập nhật dữ liệu.';
+      const {data:submissions,error:subError}=await sb.from('dues_payment_submissions').select('id,dues_id,year,status,created_at,review_note').eq('member_id',m.id).order('created_at',{ascending:false});
+      if(subError)throw subError;
+      const latest=new Map();(submissions||[]).forEach(s=>{if(!latest.has(Number(s.dues_id)))latest.set(Number(s.dues_id),s);});
+      box.innerHTML=rows?.length?'<div class="table-wrap"><table><thead><tr><th>Năm</th><th>Mức hội phí</th><th>Tình trạng</th><th>Ngày đóng</th><th>Gửi chứng từ</th></tr></thead><tbody>'+rows.map(d=>{
+        const s=latest.get(Number(d.id));
+        const status=d.status==='paid'?'<span class="pill">Đã đóng</span>':s?.status==='pending'?'<span class="pill">Chờ Kế toán xác nhận</span>':s?.status==='rejected'?'<span class="pill">Chứng từ bị từ chối</span>':'<span class="pill">Chưa đóng</span>';
+        const action=d.status==='paid'?'Đã hoàn tất':'<form class="form-grid" onsubmit="submitDuesPayment(event,'+Number(d.id)+','+Number(m.id)+','+Number(d.year)+','+Number(d.amount)+')"><div class="full"><input id="duesReceipt_'+Number(d.id)+'" type="file" accept="image/*,.pdf" required></div><div class="full"><input id="duesNote_'+Number(d.id)+'" placeholder="Ghi chú chuyển khoản (không bắt buộc)"></div><div class="full"><button type="submit">'+(s?.status==='pending'?'Đã gửi chứng từ':'Gửi chứng từ cho Kế toán')+'</button></div></form>'+(s?.review_note?'<div class="small muted">Phản hồi Kế toán: '+esc(s.review_note)+'</div>':'');
+        return '<tr><td>'+d.year+'</td><td>'+money(d.amount)+'</td><td>'+status+'</td><td>'+esc(d.paid_at?new Date(d.paid_at).toLocaleDateString('vi-VN'):'—')+'</td><td>'+(d.status==='paid'?'Đã xác nhận':action)+'</td></tr>';
+      }).join('')+'</tbody></table></div>':'Chưa có dữ liệu hội phí. Ban Thường vụ/ADMIN sẽ thiết lập mức thu và Kế toán cập nhật dữ liệu.';
     }catch(e){box.textContent='Không tải được hội phí: '+e.message;}
   }
   async function loadDuesRate(){
@@ -998,9 +1006,53 @@ async function transferAdmin(){if(!currentRoles.includes('ADMIN'))return alert('
     try{
       const year=financeYear();const {data:membersData,error:mErr}=await sb.from('members').select('id,member_code,full_name,phone,branch_id').eq('status','approved').order('full_name').limit(1500);if(mErr)throw mErr;
       const {data:dues,error:dErr}=await sb.from('member_dues').select('id,member_id,year,amount,status,paid_at').eq('year',year);if(dErr)throw dErr;
+      const {data:proofs,error:proofError}=await sb.from('dues_payment_submissions').select('id,dues_id,member_id,year,amount,storage_path,note,status,created_at,review_note').eq('year',year).order('created_at',{ascending:false});if(proofError)throw proofError;
       const byMember=new Map((dues||[]).map(d=>[Number(d.member_id),d]));
-      box.innerHTML='<p class="muted">Năm '+year+' · '+(membersData||[]).length+' hội viên đã duyệt</p><div class="table-wrap"><table><thead><tr><th>Mã hội viên</th><th>Họ tên</th><th>Mức thu</th><th>Tình trạng</th><th>Thao tác</th></tr></thead><tbody>'+(membersData||[]).map(m=>{const d=byMember.get(Number(m.id));return '<tr><td>'+esc(m.member_code||'—')+'</td><td>'+esc(m.full_name)+'</td><td>'+money(d?.amount||0)+'</td><td>'+(d?(d.status==='paid'?'Đã đóng':'Chưa đóng'):'Chưa có mức thu')+'</td><td>'+(d?'<button type="button" class="secondary" onclick="setMemberDuesStatus('+d.id+',\''+(d.status==='paid'?'unpaid':'paid')+'\')">'+(d.status==='paid'?'Đánh dấu chưa đóng':'Xác nhận đã đóng')+'</button>':'—')+'</td></tr>';}).join('')+'</tbody></table></div>';
+      const memberMap=new Map((membersData||[]).map(m=>[Number(m.id),m]));
+      const proofHtml=await Promise.all((proofs||[]).map(async s=>{
+        const mem=memberMap.get(Number(s.member_id));
+        const {data:signed,error:signedError}=await sb.storage.from('association-private').createSignedUrl(s.storage_path,3600);
+        const proofLink=!signedError&&signed?.signedUrl?'<a target="_blank" rel="noopener" href="'+esc(signed.signedUrl)+'">Xem hóa đơn / chứng từ</a>':'Không mở được tệp chứng từ';
+        const controls=s.status==='pending'?'<div class="row-actions"><button type="button" onclick="reviewDuesPayment('+Number(s.id)+','+Number(s.dues_id)+',\'approved\')">Xác nhận đã nhận tiền</button><button type="button" class="danger" onclick="reviewDuesPayment('+Number(s.id)+','+Number(s.dues_id)+',\'rejected\')">Từ chối chứng từ</button></div>':'<span class="pill">'+(s.status==='approved'?'Đã duyệt':'Đã từ chối')+'</span>'+(s.review_note?'<p class="muted small">Ghi chú: '+esc(s.review_note)+'</p>':'');
+        return '<div class="item"><h4>'+esc(mem?.full_name||'Hội viên không còn trong danh sách')+' · '+esc(mem?.member_code||'')+'</h4><p class="muted">Năm '+s.year+' · '+money(s.amount)+' · Gửi lúc '+esc(new Date(s.created_at).toLocaleString('vi-VN'))+'</p><p>'+proofLink+'</p><p>'+esc(s.note||'Không có ghi chú')+'</p>'+controls+'</div>';
+      }));
+      box.innerHTML='<p class="muted">Năm '+year+' · '+(membersData||[]).length+' hội viên đã duyệt</p><h4>Chứng từ hội phí hội viên gửi Kế toán</h4>'+(proofHtml.length?proofHtml.join(''):'<p class="muted">Chưa có chứng từ gửi trong năm này.</p>')+'<hr><h4>Danh sách theo dõi hội phí</h4><div class="table-wrap"><table><thead><tr><th>Mã hội viên</th><th>Họ tên</th><th>Mức thu</th><th>Tình trạng</th><th>Thao tác</th></tr></thead><tbody>'+(membersData||[]).map(m=>{const d=byMember.get(Number(m.id));return '<tr><td>'+esc(m.member_code||'—')+'</td><td>'+esc(m.full_name)+'</td><td>'+money(d?.amount||0)+'</td><td>'+(d?(d.status==='paid'?'Đã đóng':'Chưa đóng'):'Chưa có mức thu')+'</td><td>'+(d?'<button type="button" class="secondary" onclick="setMemberDuesStatus('+d.id+',\''+(d.status==='paid'?'unpaid':'paid')+'\')">'+(d.status==='paid'?'Đánh dấu chưa đóng':'Xác nhận đã đóng thủ công')+'</button>':'—')+'</td></tr>';}).join('')+'</tbody></table></div>';
     }catch(e){box.textContent='Không tải được danh sách hội phí: '+e.message;}
+  }
+  async function submitDuesPayment(event,duesId,memberId,year,amount){
+    event.preventDefault();
+    const file=$('duesReceipt_'+duesId)?.files?.[0],note=$('duesNote_'+duesId)?.value?.trim()||'';
+    if(!file)return alert('Vui lòng chọn ảnh hóa đơn, biên nhận hoặc tệp PDF.');
+    if(!file.type.startsWith('image/')&&file.type!=='application/pdf')return alert('Chỉ nhận ảnh hoặc tệp PDF.');
+    if(file.size>10*1024*1024)return alert('Tệp chứng từ không được vượt quá 10MB.');
+    try{
+      const path='dues-receipts/'+memberId+'/'+year+'/'+Date.now()+'_'+file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+      const {error:uploadError}=await sb.storage.from('association-private').upload(path,file,{upsert:false,contentType:file.type});
+      if(uploadError)throw uploadError;
+      const {error}=await sb.from('dues_payment_submissions').insert({dues_id:duesId,member_id:memberId,submitted_by:currentUser.id,year,amount,storage_path:path,note,status:'pending'});
+      if(error)throw error;
+      alert('Đã gửi báo cáo đóng hội phí và chứng từ cho Kế toán. Hội phí chỉ được xác nhận sau khi Kế toán kiểm tra.');
+      await loadMyDues();
+    }catch(e){alert('Không gửi được chứng từ: '+e.message);}
+  }
+  async function reviewDuesPayment(submissionId,duesId,decision){
+    if(!currentRoles.includes('ACCOUNTANT'))return alert('Chỉ Kế toán mới được xử lý chứng từ hội phí.');
+    if(!['approved','rejected'].includes(decision))return;
+    const note=prompt(decision==='approved'?'Ghi chú xác nhận (có thể để trống):':'Lý do từ chối chứng từ:');
+    if(note===null)return;
+    if(decision==='rejected'&&!note.trim())return alert('Vui lòng ghi lý do từ chối để hội viên biết và gửi lại.');
+    try{
+      const {data:proof,error:proofError}=await sb.from('dues_payment_submissions').select('id,status').eq('id',submissionId).single();
+      if(proofError)throw proofError;if(proof.status!=='pending')throw new Error('Chứng từ này đã được xử lý.');
+      const {error:updateProofError}=await sb.from('dues_payment_submissions').update({status:decision,reviewed_by:currentUser.id,reviewed_at:new Date().toISOString(),review_note:note.trim()||null}).eq('id',submissionId);
+      if(updateProofError)throw updateProofError;
+      if(decision==='approved'){
+        const {error:duesError}=await sb.from('member_dues').update({status:'paid',paid_at:new Date().toISOString(),recorded_by:currentUser.id,note:'Kế toán duyệt chứng từ hội viên gửi. '+(note.trim()||''),updated_at:new Date().toISOString()}).eq('id',duesId);
+        if(duesError)throw duesError;
+      }
+      alert(decision==='approved'?'Đã xác nhận đóng hội phí; sổ thu – chi được đồng bộ tự động.':'Đã từ chối chứng từ và lưu lý do để hội viên bổ sung.');
+      await loadAccountantDues();
+    }catch(e){alert('Không xử lý được chứng từ: '+e.message);}
   }
   async function setMemberDuesStatus(id,status){
     if(!currentRoles.includes('ACCOUNTANT'))return alert('Chỉ tài khoản được phân quyền Kế toán mới được cập nhật hội phí.');
