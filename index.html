@@ -781,7 +781,7 @@ async function transferAdmin(){if(!currentRoles.includes('ADMIN'))return alert('
       const byTask={};progressRows.forEach(p=>{(byTask[p.task_id] ||= []).push(p);});
       box.innerHTML=rows.length?rows.map(t=>{
         const isAssigned=t.assigned_to===currentUser.id
-          ||(t.assigned_role==='EXECUTIVE'&&currentRoles.includes('EXECUTIVE'))
+          ||(t.assigned_role==='EXECUTIVE'&&currentRoles.includes('EXECUTIVE')&&!currentRoles.includes('CHAIRPERSON'))
           ||(t.assigned_role==='COMMITTEE'&&currentRoles.includes('COMMITTEE'))
           ||(t.assigned_role==='BRANCH_HEAD'&&currentRoles.includes('BRANCH_HEAD'));
         const canUpdate=currentRoles.includes('ADMIN')||currentRoles.includes('EXECUTIVE')||t.created_by===currentUser.id||isAssigned;
