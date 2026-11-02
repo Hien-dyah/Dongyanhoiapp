@@ -305,7 +305,8 @@
       if(ids.length){
         const {data:roleRows,error:roleError}=await sb.from('roles').select('code').in('id',ids);
         if(roleError)throw roleError;
-        currentRoles=(roleRows||[]).map(x=>String(x.code||'').toUpperCase()).filter(Boolean);\n        if(currentRoles.includes('CHAIRPERSON')&&!currentRoles.includes('EXECUTIVE'))currentRoles.push('EXECUTIVE');
+        currentRoles=(roleRows||[]).map(x=>String(x.code||'').toUpperCase()).filter(Boolean);
+        if(currentRoles.includes('CHAIRPERSON')&&!currentRoles.includes('EXECUTIVE'))currentRoles.push('EXECUTIVE');
       }
     }catch(e){console.warn('Không đọc được vai trò:',e.message);}
     const role=currentRoles.includes('CHAIRPERSON')?'CHAIRPERSON – Chủ tịch Hội (quyền như Ban Thường vụ)':currentRoles.join(', ')||'Chưa đọc được vai trò';
