@@ -367,17 +367,20 @@
     $('welcomeTitle').textContent=isAdmin?'Bảng điều khiển quản trị':'Bảng điều khiển hội viên';
   }
   async function loadProfile(){
-    const box=$('profileContent');box.textContent='Đang tải hồ sơ cá nhân…';
+    const box=$('profileContent');
+    if(!currentUser){box.textContent='Phiên đăng nhập chưa sẵn sàng. Vui lòng đăng nhập lại.';return;}
+    box.textContent='Đang tải hồ sơ cá nhân…';
+    const profileRequest=(request)=>Promise.race([request,new Promise((_,reject)=>setTimeout(()=>reject(new Error('Kết nối tải hồ sơ quá lâu (15 giây). Vui lòng nhấn Tải lại; nếu vẫn gặp lỗi, hãy gửi thông báo này cho quản trị viên.')),15000))]);
     try{
-      const {data,error}=await sb.from('members').select('id,member_code,full_name,gender,birth_year,phone,email,address,education_level,professional_qualification,workplace,member_type,status,branch_id,photo_url').eq('user_id',currentUser.id).maybeSingle();
+      const {data,error}=await profileRequest(sb.from('members').select('id,member_code,full_name,gender,birth_year,phone,email,address,education_level,professional_qualification,workplace,member_type,status,branch_id,photo_url').eq('user_id',currentUser.id).maybeSingle());
       if(error)throw error;
       if(!data){
-        let {data:profile,error:profileError}=await sb.from('profiles').select('id,full_name,phone,email,avatar_url').eq('id',currentUser.id).maybeSingle();
+        let {data:profile,error:profileError}=await profileRequest(sb.from('profiles').select('id,full_name,phone,email,avatar_url').eq('id',currentUser.id).maybeSingle());
         if(profileError)throw profileError;
         if(!profile){
           const meta=currentUser.user_metadata||{};
           const initial={id:currentUser.id,full_name:meta.full_name||'',phone:meta.phone||'',email:currentUser.email||''};
-          const {data:created,error:createError}=await sb.from('profiles').upsert(initial,{onConflict:'id'}).select('id,full_name,phone,email,avatar_url').single();
+          const {data:created,error:createError}=await profileRequest(sb.from('profiles').upsert(initial,{onConflict:'id'}).select('id,full_name,phone,email,avatar_url').single());
           if(createError)throw createError;profile=created;
         }
         const fields=[['full_name','Họ và tên','text'],['phone','Số điện thoại','tel'],['email','Email','email']];
