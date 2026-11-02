@@ -51,6 +51,15 @@
     <div class="tabs"><button id="loginTab" class="active" onclick="setAuthMode('login')">Đăng nhập</button><button id="registerTab" onclick="setAuthMode('register')">Đăng ký mới</button></div>
     <div id="loginMethodPanel" style="margin:16px 0"><label for="loginMethod">Phương thức đăng nhập</label><select id="loginMethod"><option value="">-- Chọn Email hoặc số điện thoại --</option><option value="email">Email</option><option value="phone">Số điện thoại</option></select></div><form id="authForm" class="hidden" autocomplete="off">
       <div id="registerFields" class="hidden">
+        <div class="notice" style="display:block;margin:0 0 14px;background:#fff8e8;border:1px solid #e7c76b;color:#664b12;padding:14px;border-radius:12px">
+          <strong>THÔNG BÁO QUAN TRỌNG</strong>
+          <p style="margin:8px 0">Ứng dụng này dành riêng cho hội viên Hội Đông y phường An Hội. Chỉ đăng ký khi Ông/Bà là hội viên hoặc thuộc đối tượng được Hội cho phép sử dụng.</p>
+          <p style="margin:8px 0">Người đăng ký có trách nhiệm cung cấp thông tin chính xác, tự bảo mật email, mật khẩu và thông tin cá nhân của mình; chịu trách nhiệm trước pháp luật về tính chính xác, hợp pháp của thông tin do mình cung cấp và việc sử dụng tài khoản.</p>
+          <label style="display:flex;align-items:flex-start;gap:9px;margin-top:12px;font-weight:600">
+            <input id="regTermsAgree" type="checkbox" style="width:auto;min-width:18px;margin-top:3px">
+            <span>Tôi đã đọc, hiểu và đồng ý với nội dung thông báo trên.</span>
+          </label>
+        </div>
         <label>Họ và tên</label><input id="regName" autocomplete="name" placeholder="Nhập họ và tên">
         <label>Số điện thoại</label><input id="regPhone" autocomplete="tel" placeholder="Nhập số điện thoại">
         <label>Chi hội</label><select id="regBranch"><option value="">Đang tải danh sách chi hội…</option></select>
@@ -185,7 +194,7 @@
     $('authIntro').textContent=mode==='login'?'Chọn phương thức đăng nhập, sau đó nhập thông tin.':'Nhập thông tin để đăng ký tài khoản hội viên.';
     $('loginMethodPanel').classList.toggle('hidden',mode!=='login');$('authForm').classList.toggle('hidden',mode==='login');$('phoneLoginForm').classList.add('hidden');
     $('forgotPasswordRow').classList.add('hidden');$('authSubmit').textContent=mode==='login'?'Đăng nhập':'Đăng ký tài khoản';$('authPassword').autocomplete=mode==='login'?'current-password':'new-password';$('authMessage').classList.add('hidden');
-    $('regName').required=mode==='register';$('regPhone').required=mode==='register';$('regBranch').required=mode==='register';
+    $('regName').required=mode==='register';$('regPhone').required=mode==='register';$('regBranch').required=mode==='register';$('regTermsAgree').required=mode==='register';if(mode!=='register')$('regTermsAgree').checked=false;
     $('authEmail').required=mode==='register';$('authPassword').required=mode==='register';
     $('loginMethod').value='';$('authEmail').value='';$('authPassword').value='';$('phoneLoginPhone').value='';$('phoneLoginPassword').value='';
   }
@@ -295,6 +304,7 @@
         currentUser=data.user;await openApp();
       }else{
         const name=$('regName').value.trim(),phone=$('regPhone').value.trim(),branchId=$('regBranch').value;
+        if(!$('regTermsAgree').checked)throw new Error('Vui lòng đọc thông báo và xác nhận đồng ý trước khi đăng ký.');
         registrationInProgress=true;
         const {data,error}=await sb.auth.signUp({email,password,options:{data:{full_name:name,phone:phone,branch_id:branchId}}});if(error)throw error;
         if(data.user){
