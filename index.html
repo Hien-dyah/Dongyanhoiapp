@@ -184,7 +184,7 @@
     $('registerFields').classList.toggle('hidden',mode!=='register');$('authTitle').textContent=mode==='login'?'Đăng nhập hệ thống':'Đăng ký tài khoản hội viên';
     $('authIntro').textContent=mode==='login'?'Chọn phương thức đăng nhập, sau đó nhập thông tin.':'Nhập thông tin để đăng ký tài khoản hội viên.';
     $('loginMethodPanel').classList.toggle('hidden',mode!=='login');$('authForm').classList.toggle('hidden',mode==='login');$('phoneLoginForm').classList.add('hidden');
-    $('forgotPasswordRow').classList.add('hidden');$('authSubmit').textContent='Đăng ký tài khoản';$('authPassword').autocomplete='new-password';$('authMessage').classList.add('hidden');
+    $('forgotPasswordRow').classList.add('hidden');$('authSubmit').textContent=mode==='login'?'Đăng nhập':'Đăng ký tài khoản';$('authPassword').autocomplete=mode==='login'?'current-password':'new-password';$('authMessage').classList.add('hidden');
     $('regName').required=mode==='register';$('regPhone').required=mode==='register';$('regBranch').required=mode==='register';
     $('authEmail').required=mode==='register';$('authPassword').required=mode==='register';
     $('loginMethod').value='';$('authEmail').value='';$('authPassword').value='';$('phoneLoginPhone').value='';$('phoneLoginPassword').value='';
