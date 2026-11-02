@@ -132,7 +132,7 @@
 <p class="muted">ADMIN có thể cấp hoặc thu hồi các vai trò, bao gồm Kế toán. Tài khoản phải đăng ký trước; Chi hội trưởng và Hội viên cần gắn với một chi hội.</p>
 <form id="adminRoleForm" class="form-grid">
 <div class="full"><label>Email tài khoản đã đăng ký</label><input id="adminRoleEmail" type="email" required placeholder="nhap.email@..."></div>
-<div><label>Vai trò</label><select id="adminRoleCode" required><option value="ADMIN">ADMIN – Quản trị hệ thống</option><option value="EXECUTIVE">EXECUTIVE – Ban Thường vụ</option><option value="COMMITTEE">COMMITTEE – Ban Chấp hành</option><option value="BRANCH_HEAD">BRANCH_HEAD – Chi hội trưởng</option><option value="MEMBER">MEMBER – Hội viên</option><option value="ACCOUNTANT">ACCOUNTANT – Kế toán</option></select></div>
+<div><label>Vai trò</label><select id="adminRoleCode" required><option value="ADMIN">ADMIN – Quản trị hệ thống</option><option value="EXECUTIVE">EXECUTIVE – Ban Thường vụ</option><option value="CHAIRPERSON">CHAIRPERSON – Chủ tịch Hội (quyền như Ban Thường vụ)</option><option value="COMMITTEE">COMMITTEE – Ban Chấp hành</option><option value="BRANCH_HEAD">BRANCH_HEAD – Chi hội trưởng</option><option value="MEMBER">MEMBER – Hội viên</option><option value="ACCOUNTANT">ACCOUNTANT – Kế toán</option></select></div>
 <div><label>Chi hội (bắt buộc với Chi hội trưởng/Hội viên)</label><select id="adminRoleBranch"><option value="">Toàn Hội / Không áp dụng</option></select></div>
 <div class="full row-actions"><button type="submit">Cấp / cập nhật quyền</button><button type="button" class="danger" onclick="changeAdminRole(false)">Thu hồi vai trò đã chọn</button><button type="button" class="secondary" onclick="loadAccountDirectory()">Tải danh sách tài khoản</button></div>
 </form><div id="adminRoleMessage" class="small" role="status"></div>
@@ -305,10 +305,10 @@
       if(ids.length){
         const {data:roleRows,error:roleError}=await sb.from('roles').select('code').in('id',ids);
         if(roleError)throw roleError;
-        currentRoles=(roleRows||[]).map(x=>String(x.code||'').toUpperCase()).filter(Boolean);
+        currentRoles=(roleRows||[]).map(x=>String(x.code||'').toUpperCase()).filter(Boolean);\n        if(currentRoles.includes('CHAIRPERSON')&&!currentRoles.includes('EXECUTIVE'))currentRoles.push('EXECUTIVE');
       }
     }catch(e){console.warn('Không đọc được vai trò:',e.message);}
-    const role=currentRoles.join(', ')||'Chưa đọc được vai trò';
+    const role=currentRoles.includes('CHAIRPERSON')?'CHAIRPERSON – Chủ tịch Hội (quyền như Ban Thường vụ)':currentRoles.join(', ')||'Chưa đọc được vai trò';
     $('roleBadge').textContent=role;if($('statRole'))$('statRole').textContent=role;
     const isAdmin=currentRoles.includes('ADMIN');
     const isCommittee=currentRoles.includes('COMMITTEE');
@@ -489,7 +489,7 @@
     }catch(e){alert('Chưa gửi được ý kiến: '+e.message);}
   }
   async function approveMember(memberId){
-    if(!currentRoles.includes('ADMIN')&&!currentRoles.includes('EXECUTIVE'))return alert('Chỉ ADMIN hoặc Ban Thường vụ mới được duyệt hội viên.');
+    if(!currentRoles.includes('ADMIN')&&!currentRoles.includes('EXECUTIVE'))return alert('Chỉ ADMIN, Ban Thường vụ hoặc Chủ tịch Hội mới được duyệt hội viên.');
     if(!confirm('Xác nhận duyệt chính thức hồ sơ hội viên này?'))return;
     const note=prompt('Ý kiến phê duyệt (có thể để trống):');if(note===null)return;
     try{
@@ -500,7 +500,7 @@
     }catch(e){alert('Chưa duyệt được: '+e.message);}
   }
   async function rejectMember(memberId){
-    if(!currentRoles.includes('ADMIN')&&!currentRoles.includes('EXECUTIVE'))return alert('Chỉ Ban Thường vụ hoặc ADMIN được từ chối.');
+    if(!currentRoles.includes('ADMIN')&&!currentRoles.includes('EXECUTIVE'))return alert('Chỉ Ban Thường vụ, Chủ tịch Hội hoặc ADMIN được từ chối.');
     const note=prompt('Lý do từ chối:');if(note===null)return;
     try{const {error}=await sb.rpc('review_member_application',{p_member_id:memberId,p_action:'reject',p_comment:note});if(error)throw error;await loadPendingMembers();}
     catch(e){alert('Chưa cập nhật được hồ sơ: '+e.message);}
