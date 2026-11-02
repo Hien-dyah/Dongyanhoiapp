@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dong-y-an-hoi-v51';
+const CACHE_NAME = 'dong-y-an-hoi-v52';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));
@@ -14,4 +14,7 @@ self.addEventListener('fetch', event => {
     caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
     return response;
   }).catch(() => caches.match(event.request).then(cached => cached || caches.match('./index.html'))));
+});
+self.addEventListener('message', event => {
+  if (event.data === 'SKIP_WAITING') self.skipWaiting();
 });
