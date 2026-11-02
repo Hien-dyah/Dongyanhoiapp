@@ -18,7 +18,7 @@
     .login-wrap{max-width:440px;margin:42px auto}.login-wrap h2{margin-top:0}.muted{color:var(--muted);font-size:13px;line-height:1.5}.tabs{display:flex;background:#edf4f0;border-radius:10px;padding:4px;margin:18px 0}.tabs button{flex:1;background:transparent;color:var(--muted)}.tabs button.active{background:white;color:var(--green);box-shadow:0 1px 4px #0001}
     label{display:block;font-size:13px;font-weight:700;margin:12px 0 6px}input,select,textarea{width:100%;padding:11px 12px;border:1px solid #ccd9d3;border-radius:9px;font:inherit;background:white;color:var(--ink)}textarea{min-height:90px;resize:vertical}
     .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px}.full{grid-column:1/-1}.notice{padding:11px 13px;border-radius:9px;background:#edf7f2;color:#175a40;font-size:13px;margin:12px 0}.notice.error{background:#fff0ee;color:var(--red)}.hidden{display:none!important}
-    .layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:18px}.side{align-self:start}.side button{display:block;width:100%;text-align:left;margin:5px 0;background:transparent;color:var(--ink)}.side button.active,.side button:hover{background:#e7f4ed;color:var(--green)}
+    .layout{display:block;max-width:980px;margin:0 auto}.side{display:none!important}
     .welcome{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:18px}.welcome h2{margin:0 0 5px}.pill{display:inline-block;padding:5px 9px;border-radius:99px;background:#e8f3ee;color:var(--green);font-size:12px;font-weight:700}
     .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}.stat strong{display:block;font-size:25px;margin-top:8px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.section-head h3{margin:0}.item{border:1px solid var(--line);padding:13px;border-radius:10px;margin:9px 0}.item h4{margin:0 0 6px}.item p{margin:5px 0}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line);vertical-align:top}th{background:#f5f8f6}
     footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}.small{font-size:12px}.row-actions{display:flex;gap:7px;flex-wrap:wrap}
@@ -26,11 +26,13 @@
     .logout-icon{font-size:19px;line-height:1}.home-hero{position:relative;overflow:hidden;display:flex;align-items:center;gap:14px;margin-bottom:14px;padding:22px;background:linear-gradient(115deg,#075b3e,#0a9563 70%,#77b94c);color:#fff;border:0;min-height:132px}
     .home-hero-mark{width:62px;height:62px;flex:0 0 62px;border:2px solid #ffffffc9;border-radius:50%;display:grid;place-items:center;font-size:35px;background:#ffffff18}
     .home-kicker{font-size:11px;font-weight:700;letter-spacing:1.1px;opacity:.9}.home-hero h3{font-size:26px;margin:5px 0;color:#fff}.home-hero p{margin:0;font-size:12px;color:#e8fff3}.home-leaf{margin-left:auto;font-size:48px;opacity:.9}
-    .home-shortcuts-card{margin-bottom:16px}.home-shortcuts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-    .home-tile{min-height:132px;padding:14px 9px;border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;color:#17352c;border:1px solid transparent;font-size:14px;line-height:1.25;text-align:center;white-space:normal}
-    .home-tile .tile-icon{font-size:34px;line-height:1.1}.tile-blue{background:#e1f3ff;border-color:#c3e8ff}.tile-green{background:#e9f8dc;border-color:#d7efc5}.tile-orange{background:#fff0df;border-color:#ffe0c0}.tile-purple{background:#f0e8ff;border-color:#e3d4ff}.tile-pink{background:#ffe8f1;border-color:#ffd3e4}.tile-yellow{background:#fff6cf;border-color:#f8e9a1}.tile-teal{background:#dff8ef;border-color:#c4efe1}
-    @media(max-width:760px){header{padding:10px 12px;gap:8px}.brand{gap:8px;min-width:0}.logo{width:36px;height:36px;flex:0 0 36px}.brand h1{font-size:15px;line-height:1.2}.brand p{font-size:10px}.header-actions{gap:5px;flex:0 0 auto}.header-actions #headerUser{display:none}.header-actions #installBtn{font-size:11px;padding:7px 9px}.logout-button{min-height:34px;padding:6px 10px;font-size:12px}.logout-icon{font-size:17px}.home-hero{min-height:112px;padding:16px;gap:10px}.home-hero-mark{width:48px;height:48px;flex-basis:48px;font-size:28px}.home-hero h3{font-size:21px}.home-leaf{font-size:36px}.home-shortcuts{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.home-tile{min-height:108px;padding:10px 5px;border-radius:16px;font-size:12px}.home-tile .tile-icon{font-size:28px}.layout{grid-template-columns:1fr}.side{display:flex;overflow:auto;gap:4px}.side button{white-space:nowrap;width:auto}.stats{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.full{grid-column:auto}.welcome{align-items:flex-start;flex-direction:column}}
-    @media(max-width:380px){.brand p{display:none}.header-actions #installBtn{font-size:10px;padding:6px 7px}.logout-button{padding:6px 8px}.home-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr))}.home-tile{min-height:102px}}
+    .home-shortcuts-card{margin:0 auto;max-width:980px}.home-shortcuts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+    .home-tile{min-height:118px;padding:15px 10px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#17352c;border:1px solid var(--line);background:#f8fbf9;font-size:14px;font-weight:650;line-height:1.25;text-align:center;white-space:normal;box-shadow:none;transition:background .15s,border-color .15s}
+    .home-tile:hover{background:#edf7f1;border-color:#9bcbb4}.home-tile .tile-icon{font-size:30px;line-height:1.1}.tile-blue,.tile-green,.tile-orange,.tile-purple,.tile-pink,.tile-yellow,.tile-teal{background:#f8fbf9;border-color:var(--line)}
+    .home-tile.hidden{display:none!important}.home-back{display:inline-flex;align-items:center;gap:6px;margin-left:auto;padding:7px 12px;font-size:13px}
+    @media(max-width:760px){header{padding:10px 12px;gap:8px}.brand{gap:8px;min-width:0}.logo{width:36px;height:36px;flex:0 0 36px}.brand h1{font-size:15px;line-height:1.2}.brand p{font-size:10px}.header-actions{gap:5px;flex:0 0 auto}.header-actions #headerUser{display:none}.header-actions #installBtn{font-size:11px;padding:7px 9px}.logout-button{min-height:34px;padding:6px 10px;font-size:12px}.logout-icon{font-size:17px}.home-shortcuts{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.home-tile{min-height:104px;padding:10px 6px;font-size:12px}.home-tile .tile-icon{font-size:27px}.stats{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.full{grid-column:auto}.welcome{align-items:flex-start;flex-direction:column}}
+    @media(max-width:520px){.welcome{gap:8px}.welcome h2{font-size:20px}.home-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.home-tile{min-height:94px}.section-head{align-items:flex-start}}
+    @media(max-width:380px){.brand p{display:none}.header-actions #installBtn{font-size:10px;padding:6px 7px}.logout-button{padding:6px 8px}.home-tile{min-height:88px}}
   </style>
 </head>
 <body>
@@ -69,7 +71,7 @@
   </section>
 
   <section id="appView" class="hidden">
-    <div class="welcome"><div><h2 id="welcomeTitle">Bảng điều khiển</h2><div id="welcomeSub" class="muted"></div></div><span id="roleBadge" class="pill">Đang kiểm tra vai trò…</span></div>
+    <div class="welcome"><div><h2 id="welcomeTitle">Bảng điều khiển</h2><div id="welcomeSub" class="muted"></div></div><span id="roleBadge" class="pill">Đang kiểm tra vai trò…</span><button type="button" class="secondary home-back" onclick="showPage('home',document.querySelector('[data-page=home]'))">⌂ Trang chủ</button></div>
     <div class="layout">
       <nav class="side card">
         <button class="active" data-page="home" onclick="showPage('home',this)">🏠 Tổng quan</button>
@@ -82,19 +84,20 @@
       </nav>
       <div>
         <div id="page-home" class="page">
-          <div class="home-hero card"><div class="home-hero-mark">☯</div><div><div class="home-kicker">HỘI ĐÔNG Y PHƯỜNG AN HỘI</div><h3>Đồng y An Hội</h3><p>Đoàn kết · Kế thừa · Phát triển y học cổ truyền</p></div><div class="home-leaf" aria-hidden="true">🌿</div></div>
-          <div class="card home-shortcuts-card"><div class="section-head"><h3>Tiện ích nhanh</h3><span class="muted small">Chọn chức năng để sử dụng</span></div><div class="home-shortcuts">
-            <button class="home-tile tile-blue" type="button" onclick="showPage('profile',document.querySelector('[data-page=profile]'))"><span class="tile-icon">👤</span><span>Hồ sơ của tôi</span></button>
-            <button class="home-tile tile-green" type="button" onclick="showPage('reports',document.querySelector('[data-page=reports]'))"><span class="tile-icon">📋</span><span>Báo cáo công tác</span></button>
-            <button class="home-tile tile-orange" type="button" onclick="showPage('tasks',document.querySelector('[data-page=tasks]'))"><span class="tile-icon">🗂️</span><span>Nhiệm vụ được giao</span></button>
-            <button class="home-tile tile-purple" type="button" onclick="showPage('members',document.querySelector('[data-page=members]'))"><span class="tile-icon">👥</span><span>Danh sách hội viên</span></button>
-            <button class="home-tile tile-pink" type="button" onclick="showPage('news',document.querySelector('[data-page=news]'))"><span class="tile-icon">📰</span><span>Tin tức của Hội</span></button>
-            <button class="home-tile tile-yellow" type="button" onclick="showPage('news',document.querySelector('[data-page=news]'))"><span class="tile-icon">🌱</span><span>Tin tức y học cổ truyền</span></button>
-            <button class="home-tile tile-teal" type="button" onclick="showPage('tasks',document.querySelector('[data-page=tasks]'))"><span class="tile-icon">📈</span><span>Tiến độ công việc</span></button>
-            <button class="home-tile tile-blue" type="button" onclick="showPage('reports',document.querySelector('[data-page=reports]'))"><span class="tile-icon">💬</span><span>Ý kiến, kiến nghị</span></button>
-            <button class="home-tile tile-purple" type="button" onclick="showPage('documents',document.querySelector('[data-page=documents]'))"><span class="tile-icon">📚</span><span>Văn bản hướng dẫn</span></button>
-          </div><div id="homeMessage" class="notice">Đang tải dữ liệu…</div></div>
-          <div class="card"><div class="section-head"><h3>📰 Tin tức mới nhất</h3><button type="button" onclick="showPage('news',document.querySelector('[data-page=news]'))">Xem tất cả tin tức</button></div><p class="muted">Tin tức của Hội và thông tin y học cổ truyền đã được duyệt.</p><div id="homeNewsContent" class="muted">Đang tải tin tức mới…</div></div>
+          <div class="card home-shortcuts-card">
+            <div class="section-head"><div><h3>Chức năng chính</h3><p class="muted small">Chọn một mục để làm việc trong hệ thống Hội Đông y phường An Hội.</p></div></div>
+            <div class="home-shortcuts">
+              <button id="homeProfileTile" class="home-tile tile-blue" type="button" onclick="showPage('profile',document.querySelector('[data-page=profile]'))"><span class="tile-icon">👤</span><span>Hồ sơ của tôi</span></button>
+              <button id="homeFinanceTile" class="home-tile tile-green" type="button" onclick="showPage('finance',document.querySelector('[data-page=finance]'))"><span class="tile-icon">💰</span><span>Hội phí &amp; Tài chính</span></button>
+              <button id="homeMembersTile" class="home-tile tile-purple" type="button" onclick="showPage('members',document.querySelector('[data-page=members]'))"><span class="tile-icon">👥</span><span>Quản lý hội viên</span></button>
+              <button id="homeReportsTile" class="home-tile tile-blue" type="button" onclick="showPage('reports',document.querySelector('[data-page=reports]'))"><span class="tile-icon">📋</span><span>Báo cáo hoạt động</span></button>
+              <button id="homeTasksTile" class="home-tile tile-orange" type="button" onclick="showPage('tasks',document.querySelector('[data-page=tasks]'))"><span class="tile-icon">✅</span><span>Công việc &amp; tiến độ</span></button>
+              <button id="homeNewsTile" class="home-tile tile-pink" type="button" onclick="showPage('news',document.querySelector('[data-page=news]'))"><span class="tile-icon">📰</span><span>Tin tức Hội &amp; y học cổ truyền</span></button>
+              <button id="homeDocumentsTile" class="home-tile tile-teal" type="button" onclick="showPage('documents',document.querySelector('[data-page=documents]'))"><span class="tile-icon">📚</span><span>Văn bản hướng dẫn</span></button>
+              <button id="homeAdminTile" class="home-tile tile-orange hidden" type="button" onclick="showPage('admin',document.querySelector('[data-page=admin]'))"><span class="tile-icon">🛡️</span><span>Quản trị hệ thống</span></button>
+            </div>
+            <div id="homeMessage" class="notice">Đang tải dữ liệu…</div>
+          </div>
         </div>
         <div id="page-profile" class="page hidden">
           <div class="card"><div class="section-head"><h3>Hồ sơ của tôi</h3><button onclick="loadProfile()">Tải lại</button></div><div id="profileContent" class="muted">Đang tải hồ sơ…</div></div>
@@ -335,6 +338,10 @@
     const canViewMemberDirectory=['ADMIN','EXECUTIVE','COMMITTEE','BRANCH_HEAD'].some(r=>currentRoles.includes(r));
     const isMemberOnly=currentRoles.includes('MEMBER')&&!canViewMemberDirectory;
     $('adminMenuBtn').classList.toggle('hidden',!isAdmin);
+    $('homeAdminTile').classList.toggle('hidden',!isAdmin);
+    $('homeMembersTile').classList.toggle('hidden',!canViewMemberDirectory);
+    $('homeFinanceTile').classList.toggle('hidden',!['ADMIN','ACCOUNTANT','EXECUTIVE','COMMITTEE','MEMBER'].some(r=>currentRoles.includes(r)));
+    $('homeDocumentsTile').classList.toggle('hidden',isMemberOnly);
     $('membersMenuBtn').classList.toggle('hidden',!canViewMemberDirectory);
     $('membersMenuBtn').style.display=canViewMemberDirectory?'':'none';
     if(canViewMemberDirectory){$('membersMenuBtn').removeAttribute('aria-hidden');}
