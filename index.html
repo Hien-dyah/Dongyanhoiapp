@@ -33,6 +33,7 @@
     .home-tile{min-height:118px;padding:15px 10px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#17352c;border:1px solid var(--line);background:#f8fbf9;font-size:14px;font-weight:650;line-height:1.25;text-align:center;white-space:normal;box-shadow:none;transition:background .15s,border-color .15s}
     .home-tile:hover{background:#edf7f1;border-color:#9bcbb4}.home-tile .tile-icon{font-size:30px;line-height:1.1}.tile-blue,.tile-green,.tile-orange,.tile-purple,.tile-pink,.tile-yellow,.tile-teal{background:#f8fbf9;border-color:var(--line)}
     .home-tile.hidden{display:none!important}.home-back{display:inline-flex;align-items:center;gap:6px;margin-left:auto;padding:7px 12px;font-size:13px}
+    .page-return-bar{display:flex;justify-content:flex-start;margin:0 0 10px}.page-return-bar button{border:1px solid var(--line);box-shadow:0 1px 4px #00000008}
     @media(max-width:760px){header{padding:8px 12px;gap:8px}.brand{gap:8px;min-width:0}.logo{width:36px;height:36px;flex:0 0 36px}.brand h1{font-size:15px;line-height:1.2}.brand p{font-size:10px}.header-actions{gap:6px;flex:0 0 auto}.logout-stack{gap:3px}.header-role{font-size:9px;padding:2px 6px;max-width:155px}.header-actions #headerUser{display:none}.header-actions #installBtn{font-size:11px;padding:7px 9px}.logout-button{min-height:34px;padding:6px 10px;font-size:12px}.logout-icon{font-size:17px}.home-shortcuts{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.home-tile{min-height:104px;padding:10px 6px;font-size:12px}.home-tile .tile-icon{font-size:27px}.stats{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.full{grid-column:auto}.welcome{align-items:flex-start;flex-direction:column}}
     @media(max-width:520px){.welcome{gap:8px}.welcome h2{font-size:20px}.home-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.home-tile{min-height:94px}.section-head{align-items:flex-start}}
     @media(max-width:380px){.brand p{display:none}.header-actions #installBtn{font-size:10px;padding:6px 7px}.logout-button{padding:6px 8px}.home-tile{min-height:88px}}
@@ -40,7 +41,7 @@
 </head>
 <body>
 <header>
-  <div class="brand"><div class="logo">🌿</div><div><h1>Hội Đông y phường An Hội</h1><p>Hệ thống quản lý hội viên và báo cáo hoạt động</p></div></div>
+  <div class="brand"><div class="logo">🌿</div><div><h1>Hội Đông y phường An Hội</h1><p>Đoàn kết - Hợp tác - Khoa học - Sáng tạo - Phát triển</p></div></div>
   <div class="header-actions"><span id="headerUser" class="small hidden"></span><button id="installBtn" class="secondary" type="button" onclick="installApp()" style="background:#e8f3ee;color:#087653">＋ Cài ứng dụng</button><div class="logout-stack"><button id="logoutBtn" class="logout-button hidden" type="button" onclick="logout()" aria-label="Đăng xuất"><span class="logout-icon" aria-hidden="true">↪</span><span class="logout-label">Đăng xuất</span></button><span id="roleBadge" class="pill header-role hidden">Đang kiểm tra vai trò…</span></div></div>
 </header>
 <main>
@@ -85,6 +86,7 @@
         <button id="adminMenuBtn" class="hidden" data-page="admin" onclick="showPage('admin',this)">🛡️ Quản trị hệ thống</button>
       </nav>
       <div>
+        <div id="pageReturnBar" class="page-return-bar hidden"><button type="button" class="secondary" onclick="showPage('home',document.querySelector('[data-page=home]'))">← Trở về trang chính</button></div>
         <div id="page-home" class="page">
           <div class="card home-shortcuts-card">
             <div class="section-head"><div><h3>Chức năng chính</h3><p class="muted small">Chọn một mục để làm việc trong hệ thống Hội Đông y phường An Hội.</p></div></div>
@@ -1119,6 +1121,7 @@ async function transferAdmin(){if(!currentRoles.includes('ADMIN'))return alert('
     document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));
     target.classList.remove('hidden');
     target.style.display='block';
+    $('pageReturnBar')?.classList.toggle('hidden',name==='home');
     document.querySelectorAll('.side button').forEach(b=>b.classList.remove('active'));
     const navButton=btn||document.querySelector('.side [data-page="'+name+'"]');
     if(navButton)navButton.classList.add('active');
