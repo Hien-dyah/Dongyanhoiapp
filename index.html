@@ -14,7 +14,7 @@
     h1{font-size:18px;margin:0 0 4px}header p{margin:0;font-size:12px;opacity:.88}.header-actions{display:flex;align-items:center;gap:10px}
     button{border:0;border-radius:9px;padding:11px 15px;background:var(--green);color:#fff;font-weight:700;cursor:pointer}button:hover{filter:brightness(1.05)}button:disabled{opacity:.55;cursor:wait}
     button.secondary{background:#e8f3ee;color:var(--green)}button.ghost{background:transparent;border:1px solid #ffffff66;color:white}button.danger{background:#b42318}
-    main{max-width:1150px;margin:24px auto;padding:0 16px 40px}.card{background:white;border:1px solid var(--line);border-radius:15px;padding:20px;box-shadow:0 4px 16px #163d2a08}
+    main{max-width:1150px;margin:8px auto;padding:0 16px 40px}.card{background:white;border:1px solid var(--line);border-radius:15px;padding:20px;box-shadow:0 4px 16px #163d2a08}
     .login-wrap{max-width:440px;margin:42px auto}.login-wrap h2{margin-top:0}.muted{color:var(--muted);font-size:13px;line-height:1.5}.tabs{display:flex;background:#edf4f0;border-radius:10px;padding:4px;margin:18px 0}.tabs button{flex:1;background:transparent;color:var(--muted)}.tabs button.active{background:white;color:var(--green);box-shadow:0 1px 4px #0001}
     label{display:block;font-size:13px;font-weight:700;margin:12px 0 6px}input,select,textarea{width:100%;padding:11px 12px;border:1px solid #ccd9d3;border-radius:9px;font:inherit;background:white;color:var(--ink)}textarea{min-height:90px;resize:vertical}
     .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px}.full{grid-column:1/-1}.notice{padding:11px 13px;border-radius:9px;background:#edf7f2;color:#175a40;font-size:13px;margin:12px 0}.notice.error{background:#fff0ee;color:var(--red)}.hidden{display:none!important}
@@ -23,6 +23,9 @@
     .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}.stat strong{display:block;font-size:25px;margin-top:8px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.section-head h3{margin:0}.item{border:1px solid var(--line);padding:13px;border-radius:10px;margin:9px 0}.item h4{margin:0 0 6px}.item p{margin:5px 0}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line);vertical-align:top}th{background:#f5f8f6}
     footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}.small{font-size:12px}.row-actions{display:flex;gap:7px;flex-wrap:wrap}
     .logout-button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:8px 12px;border:1px solid #ffffffa8;border-radius:999px;background:#ffffff18;color:#fff;font-size:13px;white-space:nowrap}
+    .logout-stack{display:flex;flex-direction:column;align-items:flex-end;gap:4px}.header-role{font-size:10px;padding:3px 8px;line-height:1.2;background:#ffffff;color:#075b3e;border:1px solid #ffffffa8;max-width:220px;text-align:right}
+    .header-actions{display:flex;align-items:center;gap:10px}.header-actions #headerUser{display:none!important}
+    .welcome{display:none!important}
     .logout-icon{font-size:19px;line-height:1}.home-hero{position:relative;overflow:hidden;display:flex;align-items:center;gap:14px;margin-bottom:14px;padding:22px;background:linear-gradient(115deg,#075b3e,#0a9563 70%,#77b94c);color:#fff;border:0;min-height:132px}
     .home-hero-mark{width:62px;height:62px;flex:0 0 62px;border:2px solid #ffffffc9;border-radius:50%;display:grid;place-items:center;font-size:35px;background:#ffffff18}
     .home-kicker{font-size:11px;font-weight:700;letter-spacing:1.1px;opacity:.9}.home-hero h3{font-size:26px;margin:5px 0;color:#fff}.home-hero p{margin:0;font-size:12px;color:#e8fff3}.home-leaf{margin-left:auto;font-size:48px;opacity:.9}
@@ -30,7 +33,7 @@
     .home-tile{min-height:118px;padding:15px 10px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#17352c;border:1px solid var(--line);background:#f8fbf9;font-size:14px;font-weight:650;line-height:1.25;text-align:center;white-space:normal;box-shadow:none;transition:background .15s,border-color .15s}
     .home-tile:hover{background:#edf7f1;border-color:#9bcbb4}.home-tile .tile-icon{font-size:30px;line-height:1.1}.tile-blue,.tile-green,.tile-orange,.tile-purple,.tile-pink,.tile-yellow,.tile-teal{background:#f8fbf9;border-color:var(--line)}
     .home-tile.hidden{display:none!important}.home-back{display:inline-flex;align-items:center;gap:6px;margin-left:auto;padding:7px 12px;font-size:13px}
-    @media(max-width:760px){header{padding:10px 12px;gap:8px}.brand{gap:8px;min-width:0}.logo{width:36px;height:36px;flex:0 0 36px}.brand h1{font-size:15px;line-height:1.2}.brand p{font-size:10px}.header-actions{gap:5px;flex:0 0 auto}.header-actions #headerUser{display:none}.header-actions #installBtn{font-size:11px;padding:7px 9px}.logout-button{min-height:34px;padding:6px 10px;font-size:12px}.logout-icon{font-size:17px}.home-shortcuts{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.home-tile{min-height:104px;padding:10px 6px;font-size:12px}.home-tile .tile-icon{font-size:27px}.stats{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.full{grid-column:auto}.welcome{align-items:flex-start;flex-direction:column}}
+    @media(max-width:760px){header{padding:8px 12px;gap:8px}.brand{gap:8px;min-width:0}.logo{width:36px;height:36px;flex:0 0 36px}.brand h1{font-size:15px;line-height:1.2}.brand p{font-size:10px}.header-actions{gap:6px;flex:0 0 auto}.logout-stack{gap:3px}.header-role{font-size:9px;padding:2px 6px;max-width:155px}.header-actions #headerUser{display:none}.header-actions #installBtn{font-size:11px;padding:7px 9px}.logout-button{min-height:34px;padding:6px 10px;font-size:12px}.logout-icon{font-size:17px}.home-shortcuts{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.home-tile{min-height:104px;padding:10px 6px;font-size:12px}.home-tile .tile-icon{font-size:27px}.stats{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.full{grid-column:auto}.welcome{align-items:flex-start;flex-direction:column}}
     @media(max-width:520px){.welcome{gap:8px}.welcome h2{font-size:20px}.home-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.home-tile{min-height:94px}.section-head{align-items:flex-start}}
     @media(max-width:380px){.brand p{display:none}.header-actions #installBtn{font-size:10px;padding:6px 7px}.logout-button{padding:6px 8px}.home-tile{min-height:88px}}
   </style>
@@ -38,7 +41,7 @@
 <body>
 <header>
   <div class="brand"><div class="logo">🌿</div><div><h1>Hội Đông y phường An Hội</h1><p>Hệ thống quản lý hội viên và báo cáo hoạt động</p></div></div>
-  <div class="header-actions"><span id="headerUser" class="small"></span><button id="installBtn" class="secondary" type="button" onclick="installApp()" style="background:#e8f3ee;color:#087653">＋ Cài ứng dụng</button><button id="logoutBtn" class="logout-button hidden" type="button" onclick="logout()" aria-label="Đăng xuất"><span class="logout-icon" aria-hidden="true">↪</span><span class="logout-label">Đăng xuất</span></button></div>
+  <div class="header-actions"><span id="headerUser" class="small hidden"></span><button id="installBtn" class="secondary" type="button" onclick="installApp()" style="background:#e8f3ee;color:#087653">＋ Cài ứng dụng</button><div class="logout-stack"><button id="logoutBtn" class="logout-button hidden" type="button" onclick="logout()" aria-label="Đăng xuất"><span class="logout-icon" aria-hidden="true">↪</span><span class="logout-label">Đăng xuất</span></button><span id="roleBadge" class="pill header-role hidden">Đang kiểm tra vai trò…</span></div></div>
 </header>
 <main>
   <section id="authView" class="login-wrap card">
@@ -71,7 +74,6 @@
   </section>
 
   <section id="appView" class="hidden">
-    <div class="welcome"><div><h2 id="welcomeTitle">Bảng điều khiển</h2><div id="welcomeSub" class="muted"></div></div><span id="roleBadge" class="pill">Đang kiểm tra vai trò…</span><button type="button" class="secondary home-back" onclick="showPage('home',document.querySelector('[data-page=home]'))">⌂ Trang chủ</button></div>
     <div class="layout">
       <nav class="side card">
         <button class="active" data-page="home" onclick="showPage('home',this)">🏠 Tổng quan</button>
@@ -314,8 +316,8 @@
   function friendlyError(e){const m=e?.message||'Có lỗi xảy ra.';if(/Invalid login credentials/i.test(m))return 'Email hoặc mật khẩu chưa đúng.';if(/Email not confirmed/i.test(m))return 'Tài khoản chưa xác nhận email. Hãy kiểm tra hộp thư.';return m;}
   async function openApp(){
     if(!currentUser){const {data}=await sb.auth.getUser();currentUser=data.user;}if(!currentUser)return;
-    $('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('logoutBtn').classList.remove('hidden');
-    $('headerUser').textContent=currentUser.email||'';$('welcomeTitle').textContent='Xin chào';$('welcomeSub').textContent=currentUser.email||'Tài khoản đã đăng nhập';
+    $('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('logoutBtn').classList.remove('hidden');$('roleBadge').classList.remove('hidden');
+    $('headerUser').textContent='';
     await loadRoles();await loadProfile();await loadHomeNews();await loadNews();$('homeMessage').textContent='Đăng nhập thành công. Dữ liệu được đọc theo quyền của tài khoản.';
   }
   async function loadRoles(){
@@ -332,7 +334,7 @@
       }
     }catch(e){console.warn('Không đọc được vai trò:',e.message);}
     const role=currentRoles.includes('CHAIRPERSON')?'CHAIRPERSON – Chủ tịch Hội (quyền như Ban Thường vụ)':currentRoles.join(', ')||'Chưa đọc được vai trò';
-    $('roleBadge').textContent=role;if($('statRole'))$('statRole').textContent=role;
+    $('roleBadge').textContent=role;$('roleBadge').classList.remove('hidden');if($('statRole'))$('statRole').textContent=role;
     const isAdmin=currentRoles.includes('ADMIN');
     const isCommittee=currentRoles.includes('COMMITTEE');
     const canViewMemberDirectory=['ADMIN','EXECUTIVE','COMMITTEE','BRANCH_HEAD'].some(r=>currentRoles.includes(r));
