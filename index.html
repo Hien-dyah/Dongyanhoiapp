@@ -89,7 +89,7 @@
           <div class="card home-shortcuts-card">
             <div class="section-head"><div><h3>Chức năng chính</h3><p class="muted small">Chọn một mục để làm việc trong hệ thống Hội Đông y phường An Hội.</p></div></div>
             <div class="home-shortcuts">
-              <button id="homeProfileTile" class="home-tile tile-blue" type="button" onclick="showPage('profile',document.querySelector('[data-page=profile]'))"><span class="tile-icon">👤</span><span>Hồ sơ của tôi</span></button>
+              <button id="homeProfileTile" class="home-tile tile-blue" type="button" onclick="showPage('profile',this)"><span class="tile-icon">👤</span><span>Hồ sơ của tôi</span></button>
               <button id="homeFinanceTile" class="home-tile tile-green" type="button" onclick="showPage('finance',document.querySelector('[data-page=finance]'))"><span class="tile-icon">💰</span><span>Hội phí &amp; Tài chính</span></button>
               <button id="homeMembersTile" class="home-tile tile-purple" type="button" onclick="showPage('members',document.querySelector('[data-page=members]'))"><span class="tile-icon">👥</span><span>Quản lý hội viên</span></button>
               <button id="homeReportsTile" class="home-tile tile-blue" type="button" onclick="showPage('reports',document.querySelector('[data-page=reports]'))"><span class="tile-icon">📋</span><span>Báo cáo hoạt động</span></button>
@@ -1096,6 +1096,8 @@ async function transferAdmin(){if(!currentRoles.includes('ADMIN'))return alert('
   });
 
   function showPage(name,btn){
+    // Nếu gọi từ ô chức năng trên trang chủ, dùng nút điều hướng ẩn làm trạng thái phụ.
+    if(!btn)btn=document.querySelector('[data-page="'+name+'"]');
     // Chan quyen truoc khi hien bat ky noi dung nao cua trang quan tri.
     if(name==='admin'&&!currentRoles.includes('ADMIN')){
       $('page-admin').classList.add('hidden');
@@ -1112,14 +1114,22 @@ async function transferAdmin(){if(!currentRoles.includes('ADMIN'))return alert('
       message($('homeMessage'),'Mục này không dành cho tài khoản Hội viên.',true);
       name='home';btn=document.querySelector('[data-page=home]');
     }
-    const target=$('page-'+name);if(!target)return;
+    const target=$('page-'+name);
+    if(!target){console.error('Không tìm thấy trang:',name);return;}
     document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));
     target.classList.remove('hidden');
-    document.querySelectorAll('.side button').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');
+    target.style.display='block';
+    document.querySelectorAll('.side button').forEach(b=>b.classList.remove('active'));
+    const navButton=btn||document.querySelector('.side [data-page="'+name+'"]');
+    if(navButton)navButton.classList.add('active');
     if(name==='members'){loadMembers();loadPendingMembers();}
     if(name==='reports'){loadReports();if(currentRoles.includes('BRANCH_HEAD')||currentRoles.includes('EXECUTIVE')||currentRoles.includes('ADMIN'))loadBranchSummaries();}
     if(name==='news')loadNews();
-    if(name==='profile')loadProfile();
+    if(name==='profile'){
+      const profileBox=$('profileContent');
+      if(profileBox)profileBox.textContent='Đang tải hồ sơ cá nhân…';
+      loadProfile();
+    }
     if(name==='finance')loadFinance();
     if(name==='tasks'){loadTasks();prepareTaskForm();}
     if(name==='documents')loadDocuments();
