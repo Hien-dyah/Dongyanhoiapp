@@ -776,9 +776,13 @@ async function transferAdmin(){if(!currentRoles.includes('ADMIN'))return alert('
       const {data:memberRows}=await sb.from('members').select('user_id,full_name');
       const memberNames=new Map((memberRows||[]).map(m=>[m.user_id,m.full_name]));
       const taskIds=rows.map(t=>t.id);
-      let progressRows=[];
-      if(taskIds.length){const {data:updates,error:progressError}=await sb.from('task_progress').select('id,task_id,user_id,progress_note,progress_percent,created_at').in('task_id',taskIds).order('created_at',{ascending:false});if(progressError)throw progressError;progressRows=updates||[];}
+      let progressRows=[],commentRows=[];
+      if(taskIds.length){
+        const {data:updates,error:progressError}=await sb.from('task_progress').select('id,task_id,user_id,progress_note,progress_percent,created_at').in('task_id',taskIds).order('created_at',{ascending:false});if(progressError)throw progressError;progressRows=updates||[];
+        const {data:comments,error:commentError}=await sb.from('task_comments').select('id,task_id,user_id,comment,created_at').in('task_id',taskIds).order('created_at',{ascending:false});if(commentError)throw commentError;commentRows=comments||[];
+      }
       const byTask={};progressRows.forEach(p=>{(byTask[p.task_id] ||= []).push(p);});
+      const commentsByTask={};commentRows.forEach(c=>{(commentsByTask[c.task_id] ||= []).push(c);});
       box.innerHTML=rows.length?rows.map(t=>{
         const isAssigned=t.assigned_to===currentUser.id
           ||(t.assigned_role==='EXECUTIVE'&&currentRoles.includes('EXECUTIVE')&&!currentRoles.includes('CHAIRPERSON'))
@@ -791,7 +795,9 @@ async function transferAdmin(){if(!currentRoles.includes('ADMIN'))return alert('
         const targetLabel=t.assigned_to?'Giao cho: '+(memberNames.get(t.assigned_to)||'Hội viên được giao'):{BRANCH_HEAD:'Chi hội trưởng',COMMITTEE:'Ban Chấp hành',EXECUTIVE:'Ban Thường vụ'}[t.assigned_role]?'Giao cho: '+({BRANCH_HEAD:'Chi hội trưởng',COMMITTEE:'Ban Chấp hành',EXECUTIVE:'Ban Thường vụ'}[t.assigned_role]):'';
         const updates=(byTask[t.id]||[]).map(p=>'<div class="item"><p>'+esc(p.progress_note)+'</p><p class="muted small">'+esc(memberNames.get(p.user_id)||'Người thực hiện')+' · '+esc(new Date(p.created_at).toLocaleString('vi-VN'))+(p.progress_percent!==null?' · '+p.progress_percent+'%':'')+'</p></div>').join('');
         const reportForm=isAssigned?'<form class="form-grid" onsubmit="submitTaskProgress(event,'+Number(t.id)+')"><div class="full"><label>Báo cáo tiến độ / kết quả</label><textarea id="taskProgressNote_'+Number(t.id)+'" required placeholder="Nêu công việc đã thực hiện, kết quả, khó khăn hoặc kiến nghị"></textarea></div><div><label>Tiến độ (%)</label><input id="taskProgressPercent_'+Number(t.id)+'" type="number" min="0" max="100" placeholder="VD: 50"></div><div class="full"><button type="submit">Gửi báo cáo tiến độ cho Chủ tịch Hội / người giao việc</button></div></form>':'';
-        return '<div class="item"><h4>'+esc(t.title)+'</h4><p>'+esc(t.description||'')+'</p><p class="muted">'+esc(t.status)+' · '+esc(t.priority)+' · '+esc(t.due_at||'Chưa đặt hạn')+(targetLabel?' · '+esc(targetLabel):'')+'</p><div class="row-actions">'+action+'</div><hr><h4>Báo cáo tiến độ</h4>'+(updates||'<p class="muted small">Chưa có báo cáo tiến độ.</p>')+reportForm+'</div>';
+        const feedback=(commentsByTask[t.id]||[]).map(c=>'<div class="item"><p>'+esc(c.comment)+'</p><p class="muted small">Ý kiến Chủ tịch Hội · '+esc(new Date(c.created_at).toLocaleString('vi-VN'))+'</p></div>').join('');
+        const feedbackForm=currentRoles.includes('CHAIRPERSON')?'<form class="form-grid" onsubmit="submitTaskComment(event,'+Number(t.id)+')"><div class="full"><label>Ý kiến chỉ đạo / phản hồi của Chủ tịch Hội</label><textarea id="taskComment_'+Number(t.id)+'" required placeholder="Nhập ý kiến chỉ đạo, yêu cầu bổ sung hoặc hướng xử lý"></textarea></div><div class="full"><button type="submit">Gửi ý kiến chỉ đạo</button></div></form>':'';
+        return '<div class="item"><h4>'+esc(t.title)+'</h4><p>'+esc(t.description||'')+'</p><p class="muted">'+esc(t.status)+' · '+esc(t.priority)+' · '+esc(t.due_at||'Chưa đặt hạn')+(targetLabel?' · '+esc(targetLabel):'')+'</p><div class="row-actions">'+action+'</div><hr><h4>Báo cáo tiến độ</h4>'+(updates||'<p class="muted small">Chưa có báo cáo tiến độ.</p>')+reportForm+'<hr><h4>Ý kiến chỉ đạo của Chủ tịch Hội</h4>'+(feedback||'<p class="muted small">Chưa có ý kiến chỉ đạo.</p>')+feedbackForm+'</div>';
       }).join(''):'Chưa có công việc được giao.';
     }catch(e){box.textContent='Không tải được công việc: '+e.message;}
   }
@@ -805,6 +811,17 @@ async function transferAdmin(){if(!currentRoles.includes('ADMIN'))return alert('
       if(error)throw error;
       await loadTasks();
     }catch(e){alert('Không gửi được báo cáo tiến độ: '+e.message);}
+  }
+  async function submitTaskComment(event,taskId){
+    event.preventDefault();
+    if(!currentRoles.includes('CHAIRPERSON'))return alert('Chỉ Chủ tịch Hội mới được gửi ý kiến chỉ đạo.');
+    const comment=$('taskComment_'+taskId).value.trim();
+    if(!comment)return alert('Vui lòng nhập nội dung ý kiến.');
+    try{
+      const {error}=await sb.from('task_comments').insert({task_id:taskId,user_id:currentUser.id,comment});
+      if(error)throw error;
+      await loadTasks();
+    }catch(e){alert('Không gửi được ý kiến chỉ đạo: '+e.message);}
   }
   async function updateTaskStatus(id,status){if(!['open','in_progress','completed'].includes(status))return;try{const {error}=await sb.from('tasks').update({status,updated_at:new Date().toISOString()}).eq('id',id);if(error)throw error;await loadTasks();}catch(e){alert('Không cập nhật được công việc: '+e.message);}}
   async function setupPrivateStorage(){if(!currentRoles.includes('ADMIN'))return alert('Chỉ ADMIN được khởi tạo kho tệp.');const el=$('storageSetupMessage');el.textContent='Đang khởi tạo…';try{const {data,error}=await sb.functions.invoke('storage-admin-setup',{body:{}});if(error)throw error;el.textContent='Đã sẵn sàng kho riêng tư: '+(data?.bucket||'association-private');}catch(e){el.textContent='Không khởi tạo được kho: '+e.message;}}
