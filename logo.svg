@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<circle cx="256" cy="256" r="246" fill="#07539a"/>
+<circle cx="256" cy="256" r="220" fill="#fff"/>
+<circle cx="256" cy="256" r="212" fill="#e3181e"/>
+<path d="M256 40l10 27 29 1-23 18 8 28-24-16-24 16 8-28-23-18 29-1z" fill="#ffeb00"/>
+<g fill="#ffeb00" stroke="#078c39" stroke-width="5" stroke-linejoin="round">
+<path d="M135 376Q65 270 120 130Q145 95 180 86Q145 130 135 190Q112 280 166 360Z"/>
+<path d="M377 376Q447 270 392 130Q367 95 332 86Q367 130 377 190Q400 280 346 360Z"/>
+<path d="M127 328l-37-8 25 29 31 1z M112 285l-38-10 26 31 31 1z M108 240l-35-17 20 36 30 7z M119 196l-28-27 9 40 28 17z M140 157l-18-35-3 41 22 28z M165 124l-4-39-19 35 7 30z M385 328l37-8-25 29-31 1z M400 285l38-10-26 31-31 1z M404 240l35-17-20 36-30 7z M393 196l28-27-9 40-28 17z M372 157l18-35 3 41-22 28z M347 124l4-39 19 35-7 30z"/>
+</g>
+<circle cx="256" cy="229" r="116" fill="#111"/>
+<path d="M256 113a116 116 0 0 1 0 232 58 58 0 0 0 0-116 58 58 0 0 1 0-116" fill="#fff"/>
+<circle cx="256" cy="171" r="12" fill="#111"/><circle cx="256" cy="287" r="12" fill="#fff"/>
+<path d="M104 349Q178 330 256 372Q334 330 408 349L402 454Q330 433 256 474Q182 433 110 454Z" fill="#ffeb00" stroke="#fff" stroke-width="8" stroke-linejoin="round"/>
+<path d="M110 454Q180 438 256 474Q332 438 402 454" fill="none" stroke="#fff" stroke-width="7"/>
+<g fill="#d71920" font-family="Arial,Helvetica,sans-serif" font-weight="700" text-anchor="middle">
+<text x="256" y="397" font-size="32">HỘI ĐÔNG Y</text>
+<text x="256" y="440" font-size="29">PHƯỜNG AN HỘI</text>
+</g>
+</svg>
