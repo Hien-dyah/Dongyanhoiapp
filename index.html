@@ -467,8 +467,15 @@
       const {data,error}=await sb.functions.invoke('admin-delete-member',{body:{member_id:memberId}});
       if(error)throw error;
       if(data?.error)throw new Error(data.error);
-      alert(data?.message||'Đã xóa hồ sơ và tài khoản đăng nhập liên kết.');
-      await loadMembers();await loadPendingMembers();
+      // Xác minh trực tiếp trong cơ sở dữ liệu trước khi báo xóa thành công.
+      const {data:remaining,error:verifyError}=await sb.from('members').select('id').eq('id',memberId).maybeSingle();
+      if(verifyError)throw new Error('Yêu cầu xóa đã gửi nhưng chưa xác minh được hồ sơ: '+verifyError.message);
+      if(remaining)throw new Error('Hệ thống vẫn còn hồ sơ này. Danh sách chưa được cập nhật; vui lòng thử tải lại hoặc liên hệ quản trị.');
+      // Gỡ ngay khỏi dữ liệu đang hiển thị, sau đó tải lại danh sách chính thức từ máy chủ.
+      memberDirectoryRows=memberDirectoryRows.filter(m=>Number(m.id)!==Number(memberId));
+      renderMemberDirectory();
+      await Promise.all([loadMembers(),loadPendingMembers()]);
+      alert(data?.message||'Đã xóa hồ sơ hội viên và tài khoản đăng nhập liên kết. Danh sách đã được cập nhật.');
     }catch(e){alert('Không xóa được: '+(e.message||String(e)));}
   }
   async function loadPendingMembers(){
