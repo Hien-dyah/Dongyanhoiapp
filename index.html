@@ -405,7 +405,7 @@
       if($('statMember'))$('statMember').textContent='Đã có hồ sơ';
       const fields=[['full_name','Họ và tên','text'],['gender','Giới tính','text'],['birth_year','Năm sinh','number'],['phone','Số điện thoại','tel'],['email','Email','email'],['address','Địa chỉ thường trú','text'],['education_level','Trình độ văn hóa','text'],['professional_qualification','Văn bằng chuyên môn','text'],['workplace','Nơi hành nghề','text']];
       const photoMarkup=data.photo_url?'<img id="memberPhotoPreview" src="'+esc(data.photo_url)+'" alt="Ảnh hội viên" style="width:132px;height:132px;object-fit:cover;border-radius:12px;border:1px solid var(--line)">':'<div id="memberPhotoPreview" class="muted" style="width:132px;height:132px;border:1px dashed var(--line);border-radius:12px;display:flex;align-items:center;justify-content:center;text-align:center;padding:8px">Chưa có ảnh</div>';
-      box.innerHTML='<form id="memberProfileForm" class="form-grid"><div class="full"><h4>Ảnh đại diện</h4><div class="row" style="align-items:center;gap:16px">'+photoMarkup+'<div><label for="profilePhotoFile">Chọn ảnh đại diện</label><input id="profilePhotoFile" type="file" accept="image/jpeg,image/png,image/webp"><p class="muted small">Ảnh JPG, PNG hoặc WEBP; tối đa 5MB.</p></div></div></div>'+fields.map(([key,label,type])=>'<div><label for="profile_'+key+'">'+label+'</label><input id="profile_'+key+'" name="'+key+'" type="'+type+'" value="'+esc(data[key]??'')+'"></div>').join('')+'<div><label>Loại hội viên</label><input value="'+esc(data.member_type||'')+'" disabled></div><div><label>Trạng thái hồ sơ</label><input value="'+esc(data.status||'')+'" disabled></div><div class="full"><p class="muted">Mã hội viên: '+esc(data.member_code||'Chưa cấp')+' · Chi hội: '+esc(branches.find(b=>String(b.id)===String(data.branch_id))?.name||data.branch_id||'')+'</p><p class="muted small">Bạn được sửa thông tin cá nhân của mình. Mã hội viên, chi hội và trạng thái duyệt do Hội quản lý.</p><button type="submit">Lưu thay đổi hồ sơ</button></div></form>';
+      box.innerHTML='<form id="memberProfileForm" class="form-grid"><div class="full"><h4>Ảnh đại diện</h4><div class="row" style="align-items:center;gap:16px">'+photoMarkup+'<div><label for="profilePhotoFile">Chọn ảnh đại diện</label><input id="profilePhotoFile" type="file" accept="image/jpeg,image/png,image/webp"><p class="muted small">Ảnh JPG, PNG hoặc WEBP; tối đa 5MB.</p></div></div></div>'+fields.map(([key,label,type])=>'<div><label for="profile_'+key+'">'+label+'</label><input id="profile_'+key+'" name="'+key+'" type="'+type+'" value="'+esc(data[key]??'')+'"></div>').join('')+'<div><label>Loại hội viên</label><input value="'+esc(memberTypeLabel(data.member_type))+'" disabled></div><div><label>Trạng thái hồ sơ</label><input value="'+esc(data.status||'')+'" disabled></div><div class="full"><p class="muted">Mã hội viên: '+esc(data.member_code||'Chưa cấp')+' · Chi hội: '+esc(branches.find(b=>String(b.id)===String(data.branch_id))?.name||data.branch_id||'')+'</p><p class="muted small">Bạn được sửa thông tin cá nhân của mình. Mã hội viên, chi hội và trạng thái duyệt do Hội quản lý.</p><button type="submit">Lưu thay đổi hồ sơ</button></div></form>';
       $('profilePhotoFile').addEventListener('change',ev=>{const file=ev.target.files?.[0];if(!file)return;const preview=$('memberPhotoPreview');if(!file.type.startsWith('image/'))return alert('Vui lòng chọn tệp hình ảnh.');preview.outerHTML='<img id="memberPhotoPreview" alt="Ảnh xem trước" style="width:132px;height:132px;object-fit:cover;border-radius:12px;border:1px solid var(--line)" src="'+URL.createObjectURL(file)+'">';});
       $('memberProfileForm').addEventListener('submit',async ev=>{ev.preventDefault();const btn=ev.submitter;btn.disabled=true;try{
         const update={};fields.forEach(([key])=>{const value=$('profile_'+key).value.trim();update[key]=value===''?null:value;});if(update.birth_year!==null)update.birth_year=Number(update.birth_year);update.updated_at=new Date().toISOString();
@@ -454,18 +454,42 @@
       const hay=[m.full_name,m.member_code,m.phone,m.email].join(' ').toLocaleLowerCase('vi');
       return (!q||hay.includes(q))&&(!branch||String(m.branch_id)===branch)&&(!status||m.status===status);
     });
-    target.innerHTML='<p class="muted">Hiển thị '+rows.length+' / '+memberDirectoryRows.length+' hồ sơ.</p>'+(!rows.length?'<p>Không tìm thấy hội viên phù hợp.</p>':'<div class="table-wrap"><table><thead><tr><th>Ảnh</th><th>Mã hội viên</th><th>Họ tên</th><th>Điện thoại</th><th>Email</th><th>Chi hội</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>'+rows.map(m=>{
+    target.innerHTML='<p class="muted">Hiển thị '+rows.length+' / '+memberDirectoryRows.length+' hồ sơ.</p>'+(!rows.length?'<p>Không tìm thấy hội viên phù hợp.</p>':'<div class="table-wrap"><table><thead><tr><th>Ảnh</th><th>Mã hội viên</th><th>Họ tên</th><th>Điện thoại</th><th>Email</th><th>Chi hội</th><th>Loại hội viên</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>'+rows.map(m=>{
       const branchName=branches.find(b=>String(b.id)===String(m.branch_id))?.name||('Chi hội '+(m.branch_id??'—'));
       const detailButton='<button class="secondary" onclick="viewMemberDetail('+Number(m.id)+')">Chi tiết</button>';
       const deleteButton=currentRoles.includes('ADMIN')?'<button class="danger" onclick="deleteMember('+Number(m.id)+',\''+esc(m.full_name||'Hội viên').replace(/'/g,"&#39;")+'\')">Xóa</button>':'';
       const photoCell=m.photo_url?'<img src="'+esc(m.photo_url)+'" alt="Ảnh '+esc(m.full_name||'hội viên')+'" loading="lazy" style="width:52px;height:52px;object-fit:cover;border-radius:8px;border:1px solid var(--line)">':'<span class="muted small">Chưa có ảnh</span>';
-       return '<tr><td>'+photoCell+'</td><td>'+esc(m.member_code||'—')+'</td><td>'+esc(m.full_name||'—')+'</td><td>'+esc(m.phone||'—')+'</td><td>'+esc(m.email||'—')+'</td><td>'+esc(branchName)+'</td><td>'+esc(memberStatusLabel(m.status))+'</td><td><div class="row-actions">'+detailButton+deleteButton+'</div></td></tr>';
+       const typeCell=currentRoles.includes('ADMIN')
+        ?'<select id="memberType_'+Number(m.id)+'" aria-label="Loại hội viên của '+esc(m.full_name||'')+'" onchange="saveMemberType('+Number(m.id)+',this.value)"><option value="official" '+(m.member_type==='official'?'selected':'')+'>Chính thức</option><option value="associate" '+(m.member_type==='associate'?'selected':'')+'>Liên kết</option><option value="honorary" '+(m.member_type==='honorary'?'selected':'')+'>Danh dự</option></select>'
+        :'<span>'+esc(memberTypeLabel(m.member_type))+'</span>';
+      return '<tr><td>'+photoCell+'</td><td>'+esc(m.member_code||'—')+'</td><td>'+esc(m.full_name||'—')+'</td><td>'+esc(m.phone||'—')+'</td><td>'+esc(m.email||'—')+'</td><td>'+esc(branchName)+'</td><td>'+typeCell+'</td><td>'+esc(memberStatusLabel(m.status))+'</td><td><div class="row-actions">'+detailButton+deleteButton+'</div></td></tr>';
     }).join('')+'</tbody></table></div>');
+  }
+  function memberTypeLabel(type){
+    return ({official:'Chính thức',associate:'Liên kết',honorary:'Danh dự'})[type]||'Chưa phân loại';
+  }
+  async function saveMemberType(memberId,newType){
+    if(!currentRoles.includes('ADMIN'))return alert('Chỉ ADMIN mới được thay đổi loại hội viên.');
+    const member=memberDirectoryRows.find(x=>Number(x.id)===Number(memberId));
+    if(!member)return alert('Không tìm thấy hồ sơ hội viên.');
+    if(!['official','associate','honorary'].includes(newType))return alert('Loại hội viên không hợp lệ.');
+    const previous=member.member_type;
+    if(previous===newType)return;
+    const select=$('memberType_'+memberId);if(select)select.disabled=true;
+    try{
+      const {error}=await sb.from('members').update({member_type:newType,updated_at:new Date().toISOString()}).eq('id',memberId);
+      if(error)throw error;
+      member.member_type=newType;
+      alert('Đã cập nhật loại hội viên thành: '+memberTypeLabel(newType)+'.');
+    }catch(e){
+      if(select)select.value=previous||'official';
+      alert('Không thay đổi được loại hội viên: '+e.message);
+    }finally{if(select)select.disabled=false;}
   }
   function viewMemberDetail(memberId){
     const m=memberDirectoryRows.find(x=>Number(x.id)===Number(memberId));if(!m)return alert('Không tìm thấy hồ sơ.');
     const branchName=branches.find(b=>String(b.id)===String(m.branch_id))?.name||'—';
-    const lines=[['Mã hội viên',m.member_code],['Họ và tên',m.full_name],['Giới tính',m.gender],['Năm sinh',m.birth_year],['Điện thoại',m.phone],['Email',m.email],['Chi hội',branchName],['Địa chỉ thường trú',m.address],['Trình độ văn hóa',m.education_level],['Văn bằng chuyên môn',m.professional_qualification],['Nơi hành nghề',m.workplace],['Loại hội viên',m.member_type],['Ngày vào Hội',m.join_date],['Trạng thái',memberStatusLabel(m.status)]];
+    const lines=[['Mã hội viên',m.member_code],['Họ và tên',m.full_name],['Giới tính',m.gender],['Năm sinh',m.birth_year],['Điện thoại',m.phone],['Email',m.email],['Chi hội',branchName],['Địa chỉ thường trú',m.address],['Trình độ văn hóa',m.education_level],['Văn bằng chuyên môn',m.professional_qualification],['Nơi hành nghề',m.workplace],['Loại hội viên',memberTypeLabel(m.member_type)],['Ngày vào Hội',m.join_date],['Trạng thái',memberStatusLabel(m.status)]];
     alert(lines.map(([k,v])=>k+': '+(v??'—')).join('\n'));
   }
   function exportMembersCSV(){
