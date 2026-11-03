@@ -120,7 +120,8 @@
           <div id="memberDuesPanel" class="card"><h3>Hội phí của tôi</h3><p class="muted">Sau khi chuyển khoản hoặc nộp hội phí, hội viên gửi ảnh hóa đơn/biên nhận tại đây. Kế toán sẽ kiểm tra và xác nhận; trạng thái chỉ chuyển sang “Đã đóng” sau khi Kế toán duyệt.</p><div id="memberDuesContent" class="muted">Đang tải tình trạng hội phí…</div></div>
           <div id="duesRatePanel" class="card hidden"><h3>Mức hội phí hằng năm</h3><p class="muted">Ban Thường vụ hoặc ADMIN nhập mức thu. Mức này được áp dụng cho hội viên trong năm tương ứng; khoản đã ghi nhận đã đóng sẽ không bị thay đổi.</p><form id="duesRateForm" class="form-grid"><div><label>Năm</label><input id="duesRateYear" type="number" min="2000" max="2200" required></div><div><label>Mức hội phí (đồng/người/năm)</label><input id="duesRateAmount" type="number" min="0" step="1000" required placeholder="Nhập mức hội phí"></div><div class="full"><button type="submit">Lưu mức hội phí</button></div></form><div id="duesRateMessage" class="small" role="status"></div></div>
           <div id="accountantPanel" class="card hidden"><h3>Quản lý hội phí hội viên</h3><p class="muted">Chỉ tài khoản được phân quyền Kế toán mới được cập nhật trạng thái thu hội phí. Khi xác nhận đã đóng, khoản hội phí sẽ tự động ghi vào sổ thu – chi; không cần nhập lại khoản này ở phần thu – chi.</p><div id="accountantDuesContent" class="muted">Đang tải danh sách…</div></div>
-          <div id="financeEntryPanel" class="card hidden"><h3>Ghi nhận thu – chi</h3><form id="financeTransactionForm" class="form-grid"><div><label>Ngày phát sinh</label><input id="financeDate" type="date" required></div><div><label>Loại</label><select id="financeDirection"><option value="income">Thu</option><option value="expense">Chi</option></select></div><div><label>Nhóm khoản</label><input id="financeCategory" required placeholder="VD: Hội phí, văn phòng phẩm"></div><div><label>Số tiền (đồng)</label><input id="financeAmount" type="number" min="1" step="1000" required></div><div class="full"><label>Nội dung</label><input id="financeDescription" required placeholder="Mô tả khoản thu hoặc chi"></div><div class="full"><label>Chứng từ / ghi chú</label><input id="financeReference" placeholder="Số phiếu thu, phiếu chi hoặc ghi chú"></div><div class="full"><button type="submit">Lưu khoản thu – chi</button></div></form><div id="financeEntryMessage" class="small" role="status"></div></div>
+          <div id="financeEntryPanel" class="card hidden"><h3>Ghi nhận thu – chi</h3><p class="muted">Phiếu do Kế toán lập sẽ ở trạng thái chờ Chủ tịch xem xét. Chỉ phiếu được duyệt mới được tính vào tổng thu – chi chính thức.</p><form id="financeTransactionForm" class="form-grid"><div><label>Ngày phát sinh</label><input id="financeDate" type="date" required></div><div><label>Loại</label><select id="financeDirection"><option value="income">Thu</option><option value="expense">Chi</option></select></div><div><label>Nhóm khoản</label><input id="financeCategory" required placeholder="VD: Hội phí, văn phòng phẩm"></div><div><label>Số tiền (đồng)</label><input id="financeAmount" type="number" min="1" step="1000" required></div><div class="full"><label>Nội dung</label><input id="financeDescription" required placeholder="Mô tả khoản thu hoặc chi"></div><div class="full"><label>Chứng từ / ghi chú</label><input id="financeReference" placeholder="Số phiếu thu, phiếu chi hoặc ghi chú"></div><div class="full"><button type="submit">Gửi phiếu chờ Chủ tịch duyệt</button></div></form><div id="financeEntryMessage" class="small" role="status"></div></div>
+          <div id="financeApprovalPanel" class="card hidden"><div class="section-head"><h3>🧾 Phiếu thu – chi chờ Chủ tịch duyệt</h3><button type="button" class="secondary" onclick="loadPendingFinanceApprovals()">Tải lại</button></div><p class="muted">Chủ tịch kiểm tra nội dung, số tiền và chứng từ; có thể duyệt hoặc từ chối kèm lý do. Phiếu đã xử lý không thể được Kế toán sửa lại.</p><div id="financeApprovalContent" class="muted">Đang tải phiếu chờ duyệt…</div></div>
           <div id="financeReportPanel" class="card hidden"><div class="section-head"><h3>Báo cáo thu – chi tổng hợp</h3><div><label for="financeReportYear">Năm</label><input id="financeReportYear" type="number" min="2000" max="2200" style="width:110px" onchange="loadFinanceYear()"></div></div><div id="financeReportContent" class="muted">Đang tải báo cáo…</div></div>
           <div id="financeCommentsPanel" class="card hidden"><h3>Ý kiến trao đổi với Kế toán</h3><p class="muted">Ban Thường vụ gửi ý kiến; Kế toán có thể phản hồi. Nội dung được lưu cùng người gửi và thời gian.</p><form id="financeCommentForm" class="form-grid"><div class="full"><label>Nội dung ý kiến / phản hồi</label><textarea id="financeCommentText" rows="3" required></textarea></div><div class="full"><button type="submit">Gửi ý kiến</button></div></form><div id="financeCommentsContent" class="muted">Đang tải ý kiến…</div></div>
         </div>
@@ -1085,18 +1086,20 @@ async function transferAdmin(){
   function money(value){return Number(value||0).toLocaleString('vi-VN')+' đ';}
   function financeYear(){return Number($('financeReportYear')?.value||new Date().getFullYear());}
   async function loadFinance(){
-    const year=new Date().getFullYear(),isAdmin=currentRoles.includes('ADMIN'),isAccountant=currentRoles.includes('ACCOUNTANT'),isExecutive=currentRoles.includes('EXECUTIVE'),isCommittee=currentRoles.includes('COMMITTEE');
-    const canViewReport=isAdmin||isAccountant||isExecutive||isCommittee;
+    const year=new Date().getFullYear(),isAdmin=currentRoles.includes('ADMIN'),isAccountant=currentRoles.includes('ACCOUNTANT'),isExecutive=currentRoles.includes('EXECUTIVE'),isCommittee=currentRoles.includes('COMMITTEE'),isChairperson=currentRoles.includes('CHAIRPERSON');
+    const canViewReport=isAdmin||isAccountant||isExecutive||isCommittee||isChairperson;
     $('memberDuesPanel').classList.toggle('hidden',!currentRoles.includes('MEMBER'));
     $('duesRatePanel').classList.toggle('hidden',!(isAdmin||isExecutive));
     $('accountantPanel').classList.toggle('hidden',!isAccountant);
     $('financeEntryPanel').classList.toggle('hidden',!isAccountant);
+    $('financeApprovalPanel').classList.toggle('hidden',!isChairperson);
     $('financeReportPanel').classList.toggle('hidden',!canViewReport);
     $('financeCommentsPanel').classList.toggle('hidden',!(isAdmin||isAccountant||isExecutive));
     $('duesRateYear').value=year;$('financeReportYear').value=year;$('financeDate').value=new Date().toISOString().slice(0,10);
     if(currentRoles.includes('MEMBER'))await loadMyDues();
     if(isAdmin||isExecutive)await loadDuesRate();
     if(isAccountant)await loadAccountantDues();
+    if(isChairperson)await loadPendingFinanceApprovals();
     if(canViewReport)await loadFinanceReport();
     if(isAdmin||isAccountant||isExecutive)await loadFinanceComments();
   }
@@ -1125,6 +1128,7 @@ async function transferAdmin(){
   $('duesRateYear')?.addEventListener('change',loadDuesRate);
   async function loadFinanceYear(){
     if(currentRoles.includes('ACCOUNTANT')||currentRoles.includes('ADMIN'))await loadAccountantDues();
+    if(currentRoles.includes('CHAIRPERSON'))await loadPendingFinanceApprovals();
     if(['ADMIN','ACCOUNTANT','EXECUTIVE','COMMITTEE'].some(r=>currentRoles.includes(r)))await loadFinanceReport();
     if(['ADMIN','ACCOUNTANT','EXECUTIVE'].some(r=>currentRoles.includes(r)))await loadFinanceComments();
     if(currentRoles.includes('ADMIN')||currentRoles.includes('EXECUTIVE'))await loadDuesRate();
@@ -1191,7 +1195,7 @@ async function transferAdmin(){
   $('financeTransactionForm')?.addEventListener('submit',async e=>{
     e.preventDefault();if(!currentRoles.includes('ACCOUNTANT'))return;
     const btn=e.submitter;btn.disabled=true;
-    try{const payload={transaction_date:$('financeDate').value,direction:$('financeDirection').value,category:$('financeCategory').value.trim(),description:$('financeDescription').value.trim(),amount:Number($('financeAmount').value),reference_note:$('financeReference').value.trim()||null,created_by:currentUser.id};const {error}=await sb.from('finance_transactions').insert(payload);if(error)throw error;$('financeEntryMessage').textContent='Đã lưu khoản thu – chi.';$('financeTransactionForm').reset();$('financeDate').value=new Date().toISOString().slice(0,10);await loadFinanceReport();}catch(err){$('financeEntryMessage').textContent='Không lưu được: '+err.message;}finally{btn.disabled=false;}
+    try{const payload={transaction_date:$('financeDate').value,direction:$('financeDirection').value,category:$('financeCategory').value.trim(),description:$('financeDescription').value.trim(),amount:Number($('financeAmount').value),reference_note:$('financeReference').value.trim()||null,created_by:currentUser.id,approval_status:'pending_approval'};const {error}=await sb.from('finance_transactions').insert(payload);if(error)throw error;$('financeEntryMessage').textContent='Đã gửi phiếu. Phiếu đang chờ Chủ tịch duyệt.';$('financeTransactionForm').reset();$('financeDate').value=new Date().toISOString().slice(0,10);await loadFinanceReport();}catch(err){$('financeEntryMessage').textContent='Không gửi được phiếu: '+err.message;}finally{btn.disabled=false;}
   });
   async function loadFinanceReport(){
     const box=$('financeReportContent');if(!box)return;const year=financeYear();box.textContent='Đang tổng hợp…';
@@ -1203,10 +1207,52 @@ async function transferAdmin(){
         box.innerHTML='<div class="stats-grid"><div class="item"><div class="muted">Tổng thu</div><h3>'+money(income)+'</h3></div><div class="item"><div class="muted">Tổng chi</div><h3>'+money(expense)+'</h3></div><div class="item"><div class="muted">Chênh lệch thu – chi</div><h3>'+money(income-expense)+'</h3></div></div><h4>Tổng hợp theo nhóm khoản năm '+year+'</h4>'+(rows.length?'<div class="table-wrap"><table><thead><tr><th>Loại</th><th>Nhóm khoản</th><th>Số khoản</th><th>Tổng tiền</th></tr></thead><tbody>'+rows.map(x=>'<tr><td>'+(x.direction==='income'?'Thu':'Chi')+'</td><td>'+esc(x.category)+'</td><td>'+Number(x.transaction_count||0)+'</td><td>'+money(x.total_amount)+'</td></tr>').join('')+'</tbody></table></div>':'Chưa có khoản thu – chi trong năm này.');
         return;
       }
-      const start=year+'-01-01',end=(year+1)+'-01-01';const {data,error}=await sb.from('finance_transactions').select('id,transaction_date,direction,category,description,amount,reference_note').gte('transaction_date',start).lt('transaction_date',end).order('transaction_date',{ascending:false});if(error)throw error;
+      const start=year+'-01-01',end=(year+1)+'-01-01';const {data,error}=await sb.from('finance_transactions').select('id,transaction_date,direction,category,description,amount,reference_note,approval_status').eq('approval_status','approved').gte('transaction_date',start).lt('transaction_date',end).order('transaction_date',{ascending:false});if(error)throw error;
       const rows=data||[],income=rows.filter(x=>x.direction==='income').reduce((a,x)=>a+Number(x.amount||0),0),expense=rows.filter(x=>x.direction==='expense').reduce((a,x)=>a+Number(x.amount||0),0);
       box.innerHTML='<div class="stats-grid"><div class="item"><div class="muted">Tổng thu</div><h3>'+money(income)+'</h3></div><div class="item"><div class="muted">Tổng chi</div><h3>'+money(expense)+'</h3></div><div class="item"><div class="muted">Chênh lệch thu – chi</div><h3>'+money(income-expense)+'</h3></div></div><h4>Sổ thu – chi năm '+year+'</h4>'+(rows.length?'<div class="table-wrap"><table><thead><tr><th>Ngày</th><th>Loại</th><th>Nhóm</th><th>Nội dung</th><th>Số tiền</th></tr></thead><tbody>'+rows.map(x=>'<tr><td>'+esc(x.transaction_date)+'</td><td>'+(x.direction==='income'?'Thu':'Chi')+'</td><td>'+esc(x.category)+'</td><td>'+esc(x.description)+(x.reference_note?'<div class="muted small">'+esc(x.reference_note)+'</div>':'')+'</td><td>'+money(x.amount)+'</td></tr>').join('')+'</tbody></table></div>':'Chưa có khoản thu – chi trong năm này.');
     }catch(e){box.textContent='Không tải được báo cáo: '+e.message;}
+  }
+  async function loadPendingFinanceApprovals(){
+    const box=$('financeApprovalContent');
+    if(!box||!currentRoles.includes('CHAIRPERSON'))return;
+    box.textContent='Đang tải danh sách phiếu chờ duyệt…';
+    try{
+      const year=financeYear(),start=year+'-01-01',end=(year+1)+'-01-01';
+      const {data,error}=await sb.from('finance_transactions')
+        .select('id,transaction_date,direction,category,description,amount,reference_note,created_at')
+        .eq('approval_status','pending_approval')
+        .gte('transaction_date',start).lt('transaction_date',end)
+        .order('transaction_date',{ascending:false});
+      if(error)throw error;
+      const rows=data||[];
+      if(!rows.length){box.innerHTML='<p class="muted">Không có phiếu thu – chi nào đang chờ duyệt trong năm '+year+'.</p>';return;}
+      box.innerHTML=rows.map(t=>{
+        const kind=t.direction==='income'?'Phiếu thu':'Phiếu chi';
+        const actions='<div class="row-actions"><button type="button" onclick="decideFinanceTransaction('+Number(t.id)+',\\'approved\\')">Duyệt phiếu</button><button type="button" class="danger" onclick="decideFinanceTransaction('+Number(t.id)+',\\'rejected\\')">Từ chối</button></div>';
+        return '<div class="item"><h4>'+kind+' · '+money(t.amount)+'</h4><p><strong>'+esc(t.category)+'</strong> · '+esc(t.description)+'</p><p class="muted small">Ngày: '+esc(t.transaction_date)+' · Mã phiếu: '+Number(t.id)+'</p>'+(t.reference_note?'<p>Chứng từ / ghi chú: '+esc(t.reference_note)+'</p>':'')+actions+'</div>';
+      }).join('');
+    }catch(e){box.textContent='Không tải được phiếu chờ duyệt: '+e.message;}
+  }
+  async function decideFinanceTransaction(id,decision){
+    if(!currentRoles.includes('CHAIRPERSON'))return alert('Chỉ Chủ tịch Hội mới được duyệt hoặc từ chối phiếu thu – chi.');
+    if(!Number.isInteger(Number(id))||!['approved','rejected'].includes(decision))return;
+    const isReject=decision==='rejected';
+    const note=prompt(isReject?'Nhập lý do từ chối phiếu:':'Ghi chú duyệt phiếu (có thể để trống):');
+    if(note===null)return;
+    if(isReject&&!note.trim())return alert('Vui lòng ghi lý do từ chối.');
+    const action=isReject?'Từ chối':'Duyệt';
+    if(!confirm(action+' phiếu thu – chi số '+id+'?'))return;
+    try{
+      const {error}=await sb.rpc('decide_finance_transaction',{
+        p_transaction_id:Number(id),
+        p_decision:decision,
+        p_note:note.trim()||null
+      });
+      if(error)throw error;
+      alert('Đã '+(isReject?'từ chối':'duyệt')+' phiếu thu – chi số '+id+'.');
+      await loadPendingFinanceApprovals();
+      await loadFinanceReport();
+    }catch(e){alert('Không xử lý được phiếu: '+e.message);}
   }
   async function loadFinanceComments(){
     const box=$('financeCommentsContent');if(!box)return;box.textContent='Đang tải…';
