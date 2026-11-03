@@ -440,7 +440,7 @@
     if(!canViewMemberDirectory){memberDirectoryRows=[];box.textContent='Tài khoản Hội viên không có quyền xem danh sách hội viên.';return;}
     box.textContent='Đang tải…';
     try{
-      const {data,error}=await sb.from('members').select('id,member_code,full_name,gender,birth_year,phone,email,address,branch_id,status,education_level,professional_qualification,workplace,member_type,join_date,photo_url').neq('status','archived').order('full_name').limit(1000);
+      const {data,error}=await sb.from('members').select('id,user_id,member_code,full_name,gender,birth_year,phone,email,address,branch_id,status,education_level,professional_qualification,workplace,member_type,join_date,photo_url').neq('status','archived').order('full_name').limit(1000);
       if(error)throw error;
       memberDirectoryRows=data||[];
       if(!memberDirectoryRows.length){box.innerHTML='<p>Chưa có hội viên hoặc tài khoản không có quyền xem danh sách.</p>';return;}
@@ -490,6 +490,28 @@
       if(select)select.value=previous||'official';
       alert('Không thay đổi được loại hội viên: '+e.message);
     }finally{if(select)select.disabled=false;}
+  }
+  async function revokeMemberRole(memberId){
+    if(!currentRoles.includes('ADMIN'))return alert('Chỉ ADMIN được thu hồi vai trò.');
+    const m=memberDirectoryRows.find(x=>Number(x.id)===Number(memberId));
+    if(!m||!m.user_id)return alert('Hội viên chưa được liên kết với tài khoản đăng nhập.');
+    const {data:assigned,error}=await sb.from('user_roles').select('role_id,roles(code)').eq('user_id',m.user_id);
+    if(error)return alert('Không tải được vai trò tài khoản: '+error.message);
+    const removable=(assigned||[]).map(x=>x.roles?.code).filter(code=>code&&code!=='ADMIN'&&code!=='MEMBER');
+    if(!removable.length)return alert('Tài khoản này không có vai trò lãnh đạo/nghiệp vụ nào cần thu hồi.');
+    const labels={EXECUTIVE:'Ban Thường vụ',CHAIRPERSON:'Chủ tịch',COMMITTEE:'Ban Chấp hành',BRANCH_HEAD:'Chi hội trưởng',SECRETARY:'Thư ký Hội',ACCOUNTANT:'Kế toán'};
+    const choice=prompt('Chọn mã vai trò cần thu hồi của '+(m.full_name||'hội viên')+':\n'+removable.map((c,i)=>(i+1)+'. '+c+' – '+(labels[c]||c)).join('\n')+'\n\nNhập đúng mã vai trò:');
+    if(choice===null)return;
+    const role=choice.trim().toUpperCase();
+    if(!removable.includes(role))return alert('Mã vai trò không hợp lệ. Không có thay đổi nào được thực hiện.');
+    if(!confirm('Thu hồi vai trò '+(labels[role]||role)+' khỏi '+m.full_name+'? Quyền MEMBER – Hội viên sẽ được giữ lại để người này tiếp tục đăng nhập và sử dụng tài khoản Hội viên.'))return;
+    try{
+      const branch=branches.find(b=>String(b.id)===String(m.branch_id))?.code||null;
+      const {data,error:rpcError}=await sb.rpc('admin_set_user_role',{p_email:m.email,p_role_code:role,p_branch_code:branch,p_enabled:false});
+      if(rpcError)throw rpcError;
+      alert(Array.isArray(data)?(data[0]||'Đã thu hồi vai trò.'):String(data||'Đã thu hồi vai trò. Người dùng đăng xuất rồi đăng nhập lại để cập nhật quyền.'));
+      await loadMembers();await loadAccountDirectory();
+    }catch(e){alert('Không thu hồi được vai trò: '+e.message);}
   }
   async function editMemberProfile(memberId){
     if(!['ADMIN','EXECUTIVE','CHAIRPERSON'].some(r=>currentRoles.includes(r)))return alert('Tài khoản không có quyền sửa hồ sơ hội viên.');
