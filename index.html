@@ -838,9 +838,9 @@ async function changeAdminRole(enabled){
  if(!currentRoles.includes('ADMIN'))return alert('Chỉ ADMIN được phân quyền.');
  const email=$('adminRoleEmail').value.trim(),role=$('adminRoleCode').value,branch=$('adminRoleBranch').value;
  if(!email)return alert('Nhập hoặc chọn email tài khoản.');
- if(enabled&&!confirm(['ACCOUNTANT','SECRETARY'].includes(role)?'Bổ sung quyền '+(role==='SECRETARY'?'THƯ KÝ HỘI':'KẾ TOÁN')+' cho '+email+'? Các vai trò hiện có, bao gồm Hội viên, sẽ được giữ nguyên.':'LƯU Ý: Khi lưu, toàn bộ quyền cũ của tài khoản '+email+' sẽ bị xóa và chỉ còn quyền mới: '+role+'. Bạn có muốn tiếp tục không?'))return;
+ if(enabled&&!confirm('Xác nhận cấp/bổ sung vai trò '+role+' cho '+email+'? Hệ thống sẽ GIỮ NGUYÊN tất cả vai trò hiện có (bao gồm Hội viên) và cộng thêm vai trò mới. Người được cấp quyền cần đăng xuất/đăng nhập lại hoặc tải lại ứng dụng để nhận quyền.'))return;
  if(!enabled&&!confirm('Thu hồi riêng vai trò '+role+' khỏi '+email+'?'))return;
- const out=$('adminRoleMessage');out.textContent=enabled?(['ACCOUNTANT','SECRETARY'].includes(role)?'Đang bổ sung quyền kiêm nhiệm…':'Đang thay thế quyền cũ bằng quyền mới…'):'Đang thu hồi quyền…';
+ const out=$('adminRoleMessage');out.textContent=enabled?'Đang bổ sung vai trò, giữ nguyên các quyền hiện có…':'Đang thu hồi riêng vai trò đã chọn…';
  try{
   const {data,error}=await sb.rpc('admin_set_user_role',{p_email:email,p_role_code:role,p_branch_code:branch||null,p_enabled:enabled});
   if(error)throw error;
