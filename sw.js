@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dong-y-an-hoi-v80';
+const CACHE_NAME = 'dong-y-an-hoi-v81';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg', './logo.svg', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));
