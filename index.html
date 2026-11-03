@@ -1156,7 +1156,7 @@ async function transferAdmin(){
         const controls=currentRoles.includes('ACCOUNTANT')&&s.status==='pending'?'<div class="row-actions"><button type="button" onclick="reviewDuesPayment('+Number(s.id)+','+Number(s.dues_id)+',\'approved\')">Xác nhận đã nhận tiền</button><button type="button" class="danger" onclick="reviewDuesPayment('+Number(s.id)+','+Number(s.dues_id)+',\'rejected\')">Từ chối chứng từ</button></div>':'<span class="pill">'+(s.status==='approved'?'Đã duyệt':s.status==='rejected'?'Đã từ chối':'Chờ Kế toán kiểm tra')+'</span>'+(s.review_note?'<p class="muted small">Ghi chú: '+esc(s.review_note)+'</p>':'');
         return '<div class="item"><h4>'+esc(mem?.full_name||'Hội viên không còn trong danh sách')+' · '+esc(mem?.member_code||'')+'</h4><p class="muted">Năm '+s.year+' · '+money(s.amount)+' · Gửi lúc '+esc(new Date(s.created_at).toLocaleString('vi-VN'))+'</p><p>'+proofLink+'</p><p>'+esc(s.note||'Không có ghi chú')+'</p>'+controls+'</div>';
       }));
-      box.innerHTML='<p class="muted">Năm '+year+' · '+(membersData||[]).length+' hội viên đã duyệt</p><h4>Chứng từ hội phí hội viên gửi Kế toán</h4>'+(proofHtml.length?proofHtml.join(''):'<p class="muted">Chưa có chứng từ gửi trong năm này.</p>')+'<hr><h4>Danh sách theo dõi hội phí</h4><div class="table-wrap"><table><thead><tr><th>Mã hội viên</th><th>Họ tên</th><th>Mức thu</th><th>Tình trạng</th><th>Thao tác</th></tr></thead><tbody>'+(membersData||[]).map(m=>{const d=byMember.get(Number(m.id));return '<tr><td>'+esc(m.member_code||'—')+'</td><td>'+esc(m.full_name)+'</td><td>'+money(d?.amount||0)+'</td><td>'+(d?(d.status==='paid'?'Đã đóng':'Chưa đóng'):'Chưa có mức thu')+'</td><td>'+(d&&currentRoles.includes('ACCOUNTANT')?'<button type="button" class="secondary" onclick="setMemberDuesStatus('+d.id+',\''+(d.status==='paid'?'unpaid':'paid')+'\')">'+(d.status==='paid'?'Đánh dấu chưa đóng':'Xác nhận đã đóng thủ công')+'</button>':'—')+'</td></tr>';}).join('')+'</tbody></table></div>';
+      box.innerHTML='<p class="muted">Năm '+year+' · '+(membersData||[]).length+' hội viên đã duyệt</p><h4>Chứng từ hội phí hội viên gửi Kế toán</h4>'+(proofHtml.length?proofHtml.join(''):'<p class="muted">Chưa có chứng từ gửi trong năm này.</p>')+'<hr><h4>Danh sách theo dõi hội phí</h4><div class="table-wrap"><table><thead><tr><th>Mã hội viên</th><th>Họ tên</th><th>Mức thu</th><th>Tình trạng</th><th>Thao tác</th></tr></thead><tbody>'+(membersData||[]).map(m=>{const d=byMember.get(Number(m.id));return '<tr><td>'+esc(m.member_code||'—')+'</td><td>'+esc(m.full_name)+'</td><td>'+money(d?.amount||0)+'</td><td>'+(d?(d.status==='paid'?'Đã đóng':d.collection_status==='reported'?'Chi hội đã báo – chờ Kế toán':'Chưa báo thu'):'Chưa có mức thu')+'</td><td>'+(d&&currentRoles.includes('BRANCH_HEAD')&&d.status!=='paid'&&d.collection_status!=='reported'?'<button type="button" class="secondary" onclick="reportBranchDues('+d.id+')">Báo đã thu</button>':d&&currentRoles.includes('ACCOUNTANT')&&d.collection_status==='reported'?'<button type="button" onclick="confirmBranchDues('+d.id+')">Kiểm tra và xác nhận</button>':'—')+'</td></tr>';}).join('')+'</tbody></table></div>';
     }catch(e){box.textContent='Không tải được danh sách hội phí: '+e.message;}
   }
   async function submitDuesPayment(event,duesId,memberId,year,amount){
@@ -1187,6 +1187,16 @@ async function transferAdmin(){
       alert(Array.isArray(data)?(data[0]||'Đã xử lý chứng từ.'):String(data||'Đã xử lý chứng từ.'));
       await loadAccountantDues();
     }catch(e){alert('Không xử lý được chứng từ: '+e.message);}
+  }
+  async function reportBranchDues(id){
+    if(!currentRoles.includes('BRANCH_HEAD'))return alert('Chỉ Chi hội trưởng mới được báo cáo thu hội phí.');
+    const note=prompt('Ghi chú về số hội phí đã thu (có thể để trống):');if(note===null)return;
+    try{const {data,error}=await sb.rpc('branch_head_report_member_dues',{p_dues_id:id,p_note:note.trim()||null});if(error)throw error;alert(data||'Đã gửi báo cáo cho Kế toán.');await loadAccountantDues();}catch(e){alert('Không gửi được báo cáo: '+e.message);}
+  }
+  async function confirmBranchDues(id){
+    if(!currentRoles.includes('ACCOUNTANT'))return alert('Chỉ Kế toán mới được xác nhận.');
+    const note=prompt('Ghi chú kiểm tra (có thể để trống):');if(note===null)return;
+    try{const {data,error}=await sb.rpc('accountant_confirm_branch_dues',{p_dues_id:id,p_note:note.trim()||null});if(error)throw error;alert(data||'Đã xác nhận.');await loadAccountantDues();await loadFinanceReport();}catch(e){alert('Không xác nhận được: '+e.message);}
   }
   async function setMemberDuesStatus(id,status){
     if(!currentRoles.includes('ACCOUNTANT'))return alert('Chỉ tài khoản được phân quyền Kế toán mới được cập nhật hội phí.');
