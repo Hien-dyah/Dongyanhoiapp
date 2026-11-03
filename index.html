@@ -167,7 +167,7 @@
 <p class="muted">ADMIN có thể cấp hoặc thu hồi các vai trò, bao gồm Kế toán. Tài khoản phải đăng ký trước; Chi hội trưởng và Hội viên cần gắn với một chi hội.</p>
 <form id="adminRoleForm" class="form-grid">
 <div class="full"><label>Email tài khoản đã đăng ký</label><input id="adminRoleEmail" type="email" required placeholder="nhap.email@..."></div>
-<div><label>Vai trò</label><select id="adminRoleCode" required><option value="ADMIN">ADMIN – Quản trị hệ thống</option><option value="EXECUTIVE">EXECUTIVE – Ban Thường vụ</option><option value="CHAIRPERSON">CHAIRPERSON – Chủ tịch Hội (quyền như Ban Thường vụ)</option><option value="COMMITTEE">COMMITTEE – Ban Chấp hành</option><option value="BRANCH_HEAD">BRANCH_HEAD – Chi hội trưởng</option><option value="MEMBER">MEMBER – Hội viên</option><option value="ACCOUNTANT">ACCOUNTANT – Kế toán</option></select></div>
+<div><label>Vai trò</label><select id="adminRoleCode" required><option value="ADMIN">ADMIN – Quản trị hệ thống</option><option value="EXECUTIVE">EXECUTIVE – Ban Thường vụ</option><option value="CHAIRPERSON">CHAIRPERSON – Chủ tịch Hội (quyền như Ban Thường vụ)</option><option value="SECRETARY">SECRETARY – Thư ký Hội</option><option value="COMMITTEE">COMMITTEE – Ban Chấp hành</option><option value="BRANCH_HEAD">BRANCH_HEAD – Chi hội trưởng</option><option value="MEMBER">MEMBER – Hội viên</option><option value="ACCOUNTANT">ACCOUNTANT – Kế toán</option></select></div>
 <div><label>Chi hội (bắt buộc với Chi hội trưởng/Hội viên)</label><select id="adminRoleBranch"><option value="">Toàn Hội / Không áp dụng</option></select></div>
 <div class="full row-actions"><button type="submit">Cấp / cập nhật quyền</button><button type="button" class="danger" onclick="changeAdminRole(false)">Thu hồi vai trò đã chọn</button><button type="button" class="secondary" onclick="loadAccountDirectory()">Tải danh sách tài khoản</button></div>
 </form><div id="adminRoleMessage" class="small" role="status"></div>
@@ -345,18 +345,19 @@
         if(currentRoles.includes('CHAIRPERSON')&&!currentRoles.includes('EXECUTIVE'))currentRoles.push('EXECUTIVE');
       }
     }catch(e){console.warn('Không đọc được vai trò:',e.message);}
-    const role=currentRoles.includes('CHAIRPERSON')?'CHAIRPERSON – Chủ tịch Hội (quyền như Ban Thường vụ)':currentRoles.join(', ')||'Chưa đọc được vai trò';
+    const role=currentRoles.includes('CHAIRPERSON')?'CHAIRPERSON – Chủ tịch Hội (quyền như Ban Thường vụ)':currentRoles.includes('SECRETARY')?'SECRETARY – Thư ký Hội':currentRoles.join(', ')||'Chưa đọc được vai trò';
     $('roleBadge').textContent=role;$('roleBadge').classList.remove('hidden');if($('statRole'))$('statRole').textContent=role;
     const isAdmin=currentRoles.includes('ADMIN');
+    const isSecretary=currentRoles.includes('SECRETARY');
     const isCommittee=currentRoles.includes('COMMITTEE');
-    const canViewMemberDirectory=['ADMIN','EXECUTIVE','COMMITTEE','BRANCH_HEAD','CHAIRPERSON'].some(r=>currentRoles.includes(r));
+    const canViewMemberDirectory=['ADMIN','EXECUTIVE','COMMITTEE','BRANCH_HEAD','CHAIRPERSON','SECRETARY'].some(r=>currentRoles.includes(r));
     const isMemberOnly=currentRoles.includes('MEMBER')&&!canViewMemberDirectory;
     $('adminMenuBtn').classList.toggle('hidden',!isAdmin);
     $('homeAdminTile').classList.toggle('hidden',!isAdmin);
     $('homeMembersTile').classList.toggle('hidden',!canViewMemberDirectory);
     $('homeFinanceTile').classList.toggle('hidden',!['ADMIN','ACCOUNTANT','EXECUTIVE','COMMITTEE','MEMBER'].some(r=>currentRoles.includes(r)));
     $('homeDocumentsTile').classList.toggle('hidden',isMemberOnly);
-    $('chairpersonMemberTypeReport').classList.toggle('hidden',!currentRoles.includes('CHAIRPERSON'));
+    $('chairpersonMemberTypeReport').classList.toggle('hidden',!(currentRoles.includes('CHAIRPERSON')||currentRoles.includes('SECRETARY')));
     $('membersMenuBtn').classList.toggle('hidden',!canViewMemberDirectory);
     $('membersMenuBtn').style.display=canViewMemberDirectory?'':'none';
     if(canViewMemberDirectory){$('membersMenuBtn').removeAttribute('aria-hidden');}
@@ -496,7 +497,7 @@
   let memberTypeReportData=null;
   function memberTypeReportLabel(type){return ({official:'Chính thức',associate:'Liên kết',honorary:'Danh dự'})[type]||'Chưa phân loại';}
   async function loadMemberTypeReport(){
-    if(!currentRoles.includes('CHAIRPERSON'))return alert('Chỉ tài khoản Chủ tịch Hội mới được xem báo cáo tổng hợp này.');
+    if(!['CHAIRPERSON','SECRETARY'].some(r=>currentRoles.includes(r)))return alert('Chỉ Chủ tịch Hội hoặc Thư ký Hội mới được xem báo cáo tổng hợp này.');
     const box=$('memberTypeReportContent');box.textContent='Đang tổng hợp số liệu hội viên…';
     try{
       const {data,error}=await sb.from('members').select('id,branch_id,member_type,status').eq('status','approved').limit(5000);
@@ -521,7 +522,7 @@
     return String(value??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
   }
   function exportMemberTypeExcel(){
-    if(!currentRoles.includes('CHAIRPERSON'))return alert('Chỉ tài khoản Chủ tịch Hội mới được xuất báo cáo này.');
+    if(!['CHAIRPERSON','SECRETARY'].some(r=>currentRoles.includes(r)))return alert('Chỉ Chủ tịch Hội hoặc Thư ký Hội mới được xuất báo cáo này.');
     if(!memberTypeReportData)return alert('Vui lòng cập nhật số liệu trước khi xuất Excel.');
     const d=memberTypeReportData;
     const rows=[
@@ -796,7 +797,7 @@
   }
   async function loadNews(){
     const box=$('newsContent');if(!box)return;box.textContent='Đang tải tin tức…';
-    const isAdmin=currentRoles.includes('ADMIN');$('newsAdminTools').classList.toggle('hidden',!isAdmin);
+    const isAdmin=currentRoles.includes('ADMIN');$('newsAdminTools').classList.toggle('hidden',!(isAdmin||isSecretary));
     try{const {data,error}=await sb.from('news').select('*').eq('published',true).order('created_at',{ascending:false}).limit(50);if(error)throw error;
       if(!data?.length){box.innerHTML='<p>Chưa có tin tức đã xuất bản.</p>';}else{
         box.innerHTML=data.map(n=>{const source=(n.source_url&&String(n.source_url).startsWith('https://'))?'<p class="small">Nguồn: '+esc(n.source_name||'Trang tin')+' · <a href="'+esc(n.source_url)+'" target="_blank" rel="noopener">Đọc bài gốc</a></p>':'';return '<article class="item"><h4>'+esc(n.title||'Tin tức')+'</h4><p class="muted">'+esc(n.created_at||'')+'</p><p>'+esc(n.content||'')+'</p>'+source+(isAdmin?'<div class="row-actions"><button type="button" class="danger" onclick="unpublishNews('+Number(n.id)+')">Gỡ bài xuống</button></div>':'')+'</article>';}).join('');
