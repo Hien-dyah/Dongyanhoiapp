@@ -1212,8 +1212,26 @@ async function transferAdmin(){
       const start=year+'-01-01',end=(year+1)+'-01-01';const {data,error}=await sb.from('finance_transactions').select('id,transaction_date,direction,category,description,amount,reference_note,approval_status,decision_note,created_at,decided_at').gte('transaction_date',start).lt('transaction_date',end).order('transaction_date',{ascending:false});if(error)throw error;
       const rows=data||[],approvedRows=rows.filter(x=>x.approval_status==='approved'),income=approvedRows.filter(x=>x.direction==='income').reduce((a,x)=>a+Number(x.amount||0),0),expense=approvedRows.filter(x=>x.direction==='expense').reduce((a,x)=>a+Number(x.amount||0),0);
       const statusLabel=x=>({pending_approval:'Chờ Chủ tịch duyệt',approved:'Đã duyệt',rejected:'Đã từ chối'})[x]||x;
-      box.innerHTML='<div class="stats-grid"><div class="item"><div class="muted">Tổng thu đã duyệt</div><h3>'+money(income)+'</h3></div><div class="item"><div class="muted">Tổng chi đã duyệt</div><h3>'+money(expense)+'</h3></div><div class="item"><div class="muted">Chênh lệch thu – chi</div><h3>'+money(income-expense)+'</h3></div></div><h4>Toàn bộ sổ thu – chi năm '+year+'</h4>'+(rows.length?'<div class="table-wrap"><table><thead><tr><th>Ngày</th><th>Loại</th><th>Nhóm</th><th>Nội dung</th><th>Số tiền</th><th>Trạng thái</th><th>Ghi chú quyết định</th></tr></thead><tbody>'+rows.map(x=>'<tr><td>'+esc(x.transaction_date)+'</td><td>'+(x.direction==='income'?'Thu':'Chi')+'</td><td>'+esc(x.category)+'</td><td>'+esc(x.description)+(x.reference_note?'<div class="muted small">'+esc(x.reference_note)+'</div>':'')+'</td><td>'+money(x.amount)+'</td><td>'+esc(statusLabel(x.approval_status))+'</td><td>'+esc(x.decision_note||'—')+'</td></tr>').join('')+'</tbody></table></div>':'Chưa có khoản thu – chi trong năm này.');
+      box.innerHTML='<div class="stats-grid"><div class="item"><div class="muted">Tổng thu đã duyệt</div><h3>'+money(income)+'</h3></div><div class="item"><div class="muted">Tổng chi đã duyệt</div><h3>'+money(expense)+'</h3></div><div class="item"><div class="muted">Chênh lệch thu – chi</div><h3>'+money(income-expense)+'</h3></div></div><h4>Toàn bộ sổ thu – chi năm '+year+'</h4>'+(rows.length?'<div class="table-wrap"><table><thead><tr><th>Ngày</th><th>Loại</th><th>Nhóm</th><th>Nội dung</th><th>Số tiền</th><th>Trạng thái</th><th>Ghi chú quyết định</th><th>Thao tác</th></tr></thead><tbody>'+rows.map(x=>'<tr><td>'+esc(x.transaction_date)+'</td><td>'+(x.direction==='income'?'Thu':'Chi')+'</td><td>'+esc(x.category)+'</td><td>'+esc(x.description)+(x.reference_note?'<div class="muted small">'+esc(x.reference_note)+'</div>':'')+'</td><td>'+money(x.amount)+'</td><td>'+esc(statusLabel(x.approval_status))+'</td><td>'+esc(x.decision_note||'—')+'</td><td>'+(currentRoles.includes('ACCOUNTANT')&&x.approval_status==='pending_approval'?'<button type="button" class="secondary" onclick="editFinanceTransaction('+Number(x.id)+')">Sửa phiếu</button>':'—')+'</td></tr>').join('')+'</tbody></table></div>':'Chưa có khoản thu – chi trong năm này.');
     }catch(e){box.textContent='Không tải được báo cáo: '+e.message;}
+  }
+  async function editFinanceTransaction(id){
+    if(!currentRoles.includes('ACCOUNTANT'))return alert('Chỉ Kế toán được sửa phiếu đang chờ duyệt.');
+    const {data:t,error}=await sb.from('finance_transactions').select('id,transaction_date,direction,category,description,amount,reference_note,approval_status').eq('id',id).maybeSingle();
+    if(error)return alert('Không tải được phiếu: '+error.message);
+    if(!t||t.approval_status!=='pending_approval')return alert('Phiếu đã được xử lý hoặc không còn ở trạng thái chờ duyệt.');
+    const date=prompt('Ngày phát sinh (YYYY-MM-DD):',t.transaction_date);if(date===null)return;
+    const direction=prompt('Loại phiếu: income = Thu, expense = Chi',t.direction);if(direction===null)return;
+    if(!['income','expense'].includes(direction))return alert('Loại phiếu không hợp lệ.');
+    const category=prompt('Nhóm khoản:',t.category);if(category===null)return;
+    const description=prompt('Nội dung:',t.description);if(description===null)return;
+    const amount=Number(prompt('Số tiền (đồng):',String(t.amount)));if(!Number.isFinite(amount)||amount<=0)return alert('Số tiền không hợp lệ.');
+    const reference_note=prompt('Chứng từ / ghi chú:',t.reference_note||'');if(reference_note===null)return;
+    try{
+      const {error:updateError}=await sb.from('finance_transactions').update({transaction_date:date,direction,category:category.trim(),description:description.trim(),amount,reference_note:reference_note.trim()||null,updated_at:new Date().toISOString()}).eq('id',id).eq('approval_status','pending_approval');
+      if(updateError)throw updateError;
+      alert('Đã cập nhật phiếu đang chờ duyệt.');await loadFinanceReport();
+    }catch(e){alert('Không cập nhật được phiếu: '+e.message);}
   }
   async function loadPendingFinanceApprovals(){
     const box=$('financeApprovalContent');
