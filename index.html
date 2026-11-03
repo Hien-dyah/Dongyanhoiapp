@@ -125,7 +125,7 @@
           <div id="financeCommentsPanel" class="card hidden"><h3>Ý kiến trao đổi với Kế toán</h3><p class="muted">Ban Thường vụ gửi ý kiến; Kế toán có thể phản hồi. Nội dung được lưu cùng người gửi và thời gian.</p><form id="financeCommentForm" class="form-grid"><div class="full"><label>Nội dung ý kiến / phản hồi</label><textarea id="financeCommentText" rows="3" required></textarea></div><div class="full"><button type="submit">Gửi ý kiến</button></div></form><div id="financeCommentsContent" class="muted">Đang tải ý kiến…</div></div>
         </div>
         <div id="page-members" class="page hidden">
-          <div class="card"><div class="section-head"><h3>Quản lý hội viên</h3><div class="row-actions"><button class="secondary" onclick="exportMembersCSV()">Xuất danh sách CSV</button><button onclick="loadMembers()">Tải danh sách</button></div></div><p class="muted">Tìm kiếm theo họ tên, mã hội viên, số điện thoại hoặc email. Danh sách tuân theo quyền của từng vai trò.</p><div id="membersContent" class="muted">Chưa tải dữ liệu.</div><hr><div class="section-head"><h3>Hồ sơ chờ xem xét / phê duyệt</h3><button onclick="loadPendingMembers()">Tải hồ sơ</button></div><div id="pendingMembersContent" class="muted">Chưa tải danh sách đăng ký.</div></div>
+          <div class="card"><div class="section-head"><h3>Quản lý hội viên</h3><div class="row-actions"><button class="secondary" onclick="exportMembersCSV()">Xuất danh sách CSV</button><button onclick="loadMembers()">Tải danh sách</button></div></div><p class="muted">Tìm kiếm theo họ tên, mã hội viên, số điện thoại hoặc email. Danh sách tuân theo quyền của từng vai trò.</p><section id="chairpersonMemberTypeReport" class="item hidden"><div class="section-head"><h3>Tổng hợp loại hội viên toàn Hội</h3><div class="row-actions"><button class="secondary" type="button" onclick="loadMemberTypeReport()">Cập nhật số liệu</button><button type="button" onclick="exportMemberTypeExcel()">Xuất Excel báo cáo tỉnh</button></div></div><p class="muted small">Báo cáo thống kê hội viên đã được duyệt, tổng hợp theo 3 loại và từng chi hội.</p><div id="memberTypeReportContent" class="muted">Nhấn “Cập nhật số liệu” để tải báo cáo.</div></section><div id="membersContent" class="muted">Chưa tải dữ liệu.</div><hr><div class="section-head"><h3>Hồ sơ chờ xem xét / phê duyệt</h3><button onclick="loadPendingMembers()">Tải hồ sơ</button></div><div id="pendingMembersContent" class="muted">Chưa tải danh sách đăng ký.</div></div>
         </div>
         <div id="page-reports" class="page hidden">
           <div class="card"><div class="section-head"><h3>Báo cáo hoạt động</h3><div class="row-actions"><button class="secondary" onclick="exportReportsCSV()">Xuất Excel (CSV)</button><button class="secondary" onclick="printReports()">In / Lưu PDF</button><button onclick="loadReports()">Tải báo cáo</button></div></div>
@@ -349,13 +349,14 @@
     $('roleBadge').textContent=role;$('roleBadge').classList.remove('hidden');if($('statRole'))$('statRole').textContent=role;
     const isAdmin=currentRoles.includes('ADMIN');
     const isCommittee=currentRoles.includes('COMMITTEE');
-    const canViewMemberDirectory=['ADMIN','EXECUTIVE','COMMITTEE','BRANCH_HEAD'].some(r=>currentRoles.includes(r));
+    const canViewMemberDirectory=['ADMIN','EXECUTIVE','COMMITTEE','BRANCH_HEAD','CHAIRPERSON'].some(r=>currentRoles.includes(r));
     const isMemberOnly=currentRoles.includes('MEMBER')&&!canViewMemberDirectory;
     $('adminMenuBtn').classList.toggle('hidden',!isAdmin);
     $('homeAdminTile').classList.toggle('hidden',!isAdmin);
     $('homeMembersTile').classList.toggle('hidden',!canViewMemberDirectory);
     $('homeFinanceTile').classList.toggle('hidden',!['ADMIN','ACCOUNTANT','EXECUTIVE','COMMITTEE','MEMBER'].some(r=>currentRoles.includes(r)));
     $('homeDocumentsTile').classList.toggle('hidden',isMemberOnly);
+    $('chairpersonMemberTypeReport').classList.toggle('hidden',!currentRoles.includes('CHAIRPERSON'));
     $('membersMenuBtn').classList.toggle('hidden',!canViewMemberDirectory);
     $('membersMenuBtn').style.display=canViewMemberDirectory?'':'none';
     if(canViewMemberDirectory){$('membersMenuBtn').removeAttribute('aria-hidden');}
@@ -491,6 +492,56 @@
     const branchName=branches.find(b=>String(b.id)===String(m.branch_id))?.name||'—';
     const lines=[['Mã hội viên',m.member_code],['Họ và tên',m.full_name],['Giới tính',m.gender],['Năm sinh',m.birth_year],['Điện thoại',m.phone],['Email',m.email],['Chi hội',branchName],['Địa chỉ thường trú',m.address],['Trình độ văn hóa',m.education_level],['Văn bằng chuyên môn',m.professional_qualification],['Nơi hành nghề',m.workplace],['Loại hội viên',memberTypeLabel(m.member_type)],['Ngày vào Hội',m.join_date],['Trạng thái',memberStatusLabel(m.status)]];
     alert(lines.map(([k,v])=>k+': '+(v??'—')).join('\n'));
+  }
+  let memberTypeReportData=null;
+  function memberTypeReportLabel(type){return ({official:'Chính thức',associate:'Liên kết',honorary:'Danh dự'})[type]||'Chưa phân loại';}
+  async function loadMemberTypeReport(){
+    if(!currentRoles.includes('CHAIRPERSON'))return alert('Chỉ tài khoản Chủ tịch Hội mới được xem báo cáo tổng hợp này.');
+    const box=$('memberTypeReportContent');box.textContent='Đang tổng hợp số liệu hội viên…';
+    try{
+      const {data,error}=await sb.from('members').select('id,branch_id,member_type,status').eq('status','approved').limit(5000);
+      if(error)throw error;
+      const rows=data||[];
+      const types=['official','associate','honorary'];
+      const branchesSorted=[...branches].sort((a,b)=>String(a.name).localeCompare(String(b.name),'vi'));
+      const counts={};types.forEach(t=>counts[t]=0);
+      const byBranch=branchesSorted.map(b=>({id:b.id,name:b.name,total:0,counts:{official:0,associate:0,honorary:0,other:0}}));
+      rows.forEach(m=>{
+        const t=types.includes(m.member_type)?m.member_type:'other';
+        if(t!=='other')counts[t]++;
+        const br=byBranch.find(x=>String(x.id)===String(m.branch_id));
+        if(br){br.total++;br.counts[t]=(br.counts[t]||0)+1;}
+      });
+      const other=rows.filter(m=>!types.includes(m.member_type)).length;
+      memberTypeReportData={createdAt:new Date(),total:rows.length,counts,other,byBranch};
+      box.innerHTML='<p><strong>Tổng số hội viên đã được duyệt: '+rows.length+'</strong></p><div class="table-wrap"><table><thead><tr><th>Chi hội</th><th>Chính thức</th><th>Liên kết</th><th>Danh dự</th><th>Chưa phân loại</th><th>Tổng cộng</th></tr></thead><tbody>'+byBranch.map(b=>'<tr><td>'+esc(b.name)+'</td><td>'+b.counts.official+'</td><td>'+b.counts.associate+'</td><td>'+b.counts.honorary+'</td><td>'+b.counts.other+'</td><td><strong>'+b.total+'</strong></td></tr>').join('')+'<tr><th>Toàn Hội</th><th>'+counts.official+'</th><th>'+counts.associate+'</th><th>'+counts.honorary+'</th><th>'+other+'</th><th>'+rows.length+'</th></tr></tbody></table></div><p class="muted small">Số liệu chỉ tính hồ sơ có trạng thái Đã duyệt. Thời điểm tổng hợp: '+memberTypeReportData.createdAt.toLocaleString('vi-VN')+'.</p>';
+    }catch(e){box.textContent='Không tổng hợp được số liệu: '+e.message;}
+  }
+  function xmlEscape(value){
+    return String(value??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+  }
+  function exportMemberTypeExcel(){
+    if(!currentRoles.includes('CHAIRPERSON'))return alert('Chỉ tài khoản Chủ tịch Hội mới được xuất báo cáo này.');
+    if(!memberTypeReportData)return alert('Vui lòng cập nhật số liệu trước khi xuất Excel.');
+    const d=memberTypeReportData;
+    const rows=[
+      ['HỘI ĐÔNG Y PHƯỜNG AN HỘI'],
+      ['BÁO CÁO TỔNG HỢP SỐ LƯỢNG HỘI VIÊN THEO LOẠI'],
+      ['Thời điểm tổng hợp',d.createdAt.toLocaleString('vi-VN')],
+      ['Phạm vi','Hội viên đã được duyệt'],
+      ['Chi hội','Chính thức','Liên kết','Danh dự','Chưa phân loại','Tổng cộng'],
+      ...d.byBranch.map(b=>[b.name,b.counts.official,b.counts.associate,b.counts.honorary,b.counts.other,b.total]),
+      ['TOÀN HỘI',d.counts.official,d.counts.associate,d.counts.honorary,d.other,d.total]
+    ];
+    const xmlRows=rows.map((row,ri)=>'<Row>'+row.map((v,ci)=>{
+      const numeric=typeof v==='number';
+      const style=ri<2?' ss:StyleID="Title"':ri===4||ri===rows.length-1?' ss:StyleID="Header"':'';
+      return '<Cell'+style+'><Data ss:Type="'+(numeric?'Number':'String')+'">'+xmlEscape(v)+'</Data></Cell>';
+    }).join('')+'</Row>').join('');
+    const workbook='<?xml version="1.0" encoding="UTF-8"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Styles><Style ss:ID="Title"><Font ss:Bold="1" ss:Size="14"/></Style><Style ss:ID="Header"><Font ss:Bold="1"/><Interior ss:Color="#DDEFE7" ss:Pattern="Solid"/></Style></Styles><Worksheet ss:Name="Tong hop hoi vien"><Table>'+xmlRows+'</Table></Worksheet></Workbook>';
+    const blob=new Blob(['\uFEFF',workbook],{type:'application/vnd.ms-excel;charset=utf-8;'});
+    const url=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=url;a.download='Bao-cao-loai-hoi-vien-An-Hoi.xls';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
   }
   function exportMembersCSV(){
     const rows=memberDirectoryRows.filter(m=>{
