@@ -167,7 +167,7 @@
 <p class="muted">ADMIN có thể cấp hoặc thu hồi các vai trò, bao gồm Kế toán. Tài khoản phải đăng ký trước; Chi hội trưởng và Hội viên cần gắn với một chi hội.</p>
 <form id="adminRoleForm" class="form-grid">
 <div class="full"><label>Email tài khoản đã đăng ký</label><input id="adminRoleEmail" type="email" required placeholder="nhap.email@..."></div>
-<div><label>Vai trò</label><select id="adminRoleCode" required><option value="ADMIN">ADMIN – Quản trị hệ thống</option><option value="EXECUTIVE">EXECUTIVE – Ban Thường vụ</option><option value="CHAIRPERSON">CHAIRPERSON – Chủ tịch Hội (quyền như Ban Thường vụ)</option><option value="SECRETARY">SECRETARY – Thư ký Hội</option><option value="COMMITTEE">COMMITTEE – Ban Chấp hành</option><option value="BRANCH_HEAD">BRANCH_HEAD – Chi hội trưởng</option><option value="MEMBER">MEMBER – Hội viên</option><option value="ACCOUNTANT">ACCOUNTANT – Kế toán</option></select></div>
+<div><label>Vai trò</label><select id="adminRoleCode" required><option value="ADMIN">ADMIN – Quản trị hệ thống</option><option value="EXECUTIVE">EXECUTIVE – Ban Thường vụ</option><option value="CHAIRPERSON">CHAIRPERSON – Chủ tịch Hội (điều hành nghiệp vụ toàn Hội)</option><option value="SECRETARY">SECRETARY – Thư ký Hội</option><option value="COMMITTEE">COMMITTEE – Ban Chấp hành</option><option value="BRANCH_HEAD">BRANCH_HEAD – Chi hội trưởng</option><option value="MEMBER">MEMBER – Hội viên</option><option value="ACCOUNTANT">ACCOUNTANT – Kế toán</option></select></div>
 <div><label>Chi hội (bắt buộc với Chi hội trưởng/Hội viên)</label><select id="adminRoleBranch"><option value="">Toàn Hội / Không áp dụng</option></select></div>
 <div class="full row-actions"><button type="submit">Cấp / cập nhật quyền</button><button type="button" class="danger" onclick="changeAdminRole(false)">Thu hồi vai trò đã chọn</button><button type="button" class="secondary" onclick="loadAccountDirectory()">Tải danh sách tài khoản</button></div>
 </form><div id="adminRoleMessage" class="small" role="status"></div>
@@ -345,7 +345,7 @@
         if(currentRoles.includes('CHAIRPERSON')&&!currentRoles.includes('EXECUTIVE'))currentRoles.push('EXECUTIVE');
       }
     }catch(e){console.warn('Không đọc được vai trò:',e.message);}
-    const role=currentRoles.includes('CHAIRPERSON')?'CHAIRPERSON – Chủ tịch Hội (quyền như Ban Thường vụ)':currentRoles.includes('SECRETARY')?'SECRETARY – Thư ký Hội':currentRoles.join(', ')||'Chưa đọc được vai trò';
+    const role=currentRoles.includes('CHAIRPERSON')?'CHAIRPERSON – Chủ tịch Hội (điều hành nghiệp vụ toàn Hội)':currentRoles.includes('SECRETARY')?'SECRETARY – Thư ký Hội':currentRoles.join(', ')||'Chưa đọc được vai trò';
     $('roleBadge').textContent=role;$('roleBadge').classList.remove('hidden');if($('statRole'))$('statRole').textContent=role;
     const isAdmin=currentRoles.includes('ADMIN');
     const isSecretary=currentRoles.includes('SECRETARY');
