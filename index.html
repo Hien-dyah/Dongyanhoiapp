@@ -1144,8 +1144,8 @@ async function transferAdmin(){
   async function loadAccountantDues(){
     const box=$('accountantDuesContent');box.textContent='Đang tải danh sách hội viên…';
     try{
-      const year=financeYear();const {data:membersData,error:mErr}=await sb.from('members').select('id,member_code,full_name,phone,branch_id').eq('status','approved').order('full_name').limit(1500);if(mErr)throw mErr;
-      const {data:dues,error:dErr}=await sb.from('member_dues').select('id,member_id,year,amount,status,paid_at').eq('year',year);if(dErr)throw dErr;
+      const year=financeYear();let memberQuery=sb.from('members').select('id,member_code,full_name,phone,branch_id').eq('status','approved').order('full_name').limit(1500);if(currentRoles.includes('BRANCH_HEAD')&&!currentRoles.some(r=>['ADMIN','ACCOUNTANT','CHAIRPERSON','EXECUTIVE'].includes(r))){const {data:links,error:linkError}=await sb.from('user_roles').select('branch_id').eq('user_id',currentUser.id).not('branch_id','is',null);if(linkError)throw linkError;const branchIds=[...new Set((links||[]).map(x=>Number(x.branch_id)).filter(Number.isFinite))];if(!branchIds.length){box.textContent='Tài khoản Chi hội trưởng chưa được gán Chi hội.';return;}memberQuery=memberQuery.in('branch_id',branchIds);}const {data:membersData,error:mErr}=await memberQuery;if(mErr)throw mErr;
+      const {data:dues,error:dErr}=await sb.from('member_dues').select('id,member_id,year,amount,status,paid_at,collection_status').eq('year',year);if(dErr)throw dErr;
       let proofs=[];if(currentRoles.includes('ACCOUNTANT')||currentRoles.includes('CHAIRPERSON')||currentRoles.includes('ADMIN')){const {data:proofRows,error:proofError}=await sb.from('dues_payment_submissions').select('id,dues_id,member_id,year,amount,storage_path,note,status,created_at,review_note').eq('year',year).order('created_at',{ascending:false});if(proofError)throw proofError;proofs=proofRows||[];}
       const byMember=new Map((dues||[]).map(d=>[Number(d.member_id),d]));
       const memberMap=new Map((membersData||[]).map(m=>[Number(m.id),m]));
