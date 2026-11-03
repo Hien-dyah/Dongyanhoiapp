@@ -572,7 +572,7 @@
   }
   async function deleteMember(memberId,memberName){
     if(!currentRoles.includes('ADMIN'))return alert('Chỉ ADMIN mới được xóa hội viên.');
-    if(!confirm('CẢNH BÁO: Xóa tài khoản đăng nhập và thông tin cá nhân của '+memberName+'. Hồ sơ lịch sử sẽ được ẩn danh để giữ nguyên báo cáo, hội phí, chứng từ và số liệu tài chính của Hội. Không thể khôi phục tài khoản đã xóa.'))return;
+    if(!confirm('CẢNH BÁO: ADMIN sẽ xóa tài khoản đăng nhập và toàn bộ vai trò đang được cấp (kể cả Chi hội trưởng/Thư ký/Kế toán), đồng thời xóa thông tin cá nhân. Hồ sơ lịch sử được ẩn danh để giữ nguyên báo cáo, hội phí, chứng từ và số liệu tài chính của Hội. Không thể khôi phục tài khoản đã xóa. Tài khoản ADMIN khác không thể bị xóa.'))return;
     const confirmText=prompt('Nhập XOA TAI KHOAN để xác nhận xóa tài khoản và thông tin cá nhân:');
     if(confirmText!=='XOA TAI KHOAN')return alert('Đã hủy thao tác xóa.');
     try{
