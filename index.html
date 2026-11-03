@@ -1386,13 +1386,13 @@ async function transferAdmin(){
     document.querySelectorAll('.side button').forEach(b=>b.classList.remove('active'));
     const navButton=btn||document.querySelector('.side [data-page="'+name+'"]');
     if(navButton)navButton.classList.add('active');
-    if(name==='members'){loadMembers();loadPendingMembers();}
+    if(name==='members'){loadMembers();loadPendingMembers();loadBranchTransferQueue();}
     if(name==='reports'){loadReports();if(currentRoles.includes('BRANCH_HEAD')||currentRoles.includes('EXECUTIVE')||currentRoles.includes('ADMIN')||currentRoles.includes('CHAIRPERSON'))loadBranchSummaries();}
     if(name==='news')loadNews();
     if(name==='profile'){
       const profileBox=$('profileContent');
       if(profileBox)profileBox.textContent='Đang tải hồ sơ cá nhân…';
-      loadProfile();
+      loadProfile();loadBranchTransferPanel();
     }
     if(name==='finance')loadFinance();
     if(name==='tasks'){loadTasks();prepareTaskForm();}
