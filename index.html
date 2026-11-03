@@ -1228,7 +1228,7 @@ async function transferAdmin(){
       if(!rows.length){box.innerHTML='<p class="muted">Không có phiếu thu – chi nào đang chờ duyệt trong năm '+year+'.</p>';return;}
       box.innerHTML=rows.map(t=>{
         const kind=t.direction==='income'?'Phiếu thu':'Phiếu chi';
-        const actions='<div class="row-actions"><button type="button" onclick="decideFinanceTransaction('+Number(t.id)+',\\'approved\\')">Duyệt phiếu</button><button type="button" class="danger" onclick="decideFinanceTransaction('+Number(t.id)+',\\'rejected\\')">Từ chối</button></div>';
+        const actions='<div class="row-actions"><button type="button" onclick="decideFinanceTransaction('+Number(t.id)+',\'approved\')">Duyệt phiếu</button><button type="button" class="danger" onclick="decideFinanceTransaction('+Number(t.id)+',\'rejected\')">Từ chối</button></div>';
         return '<div class="item"><h4>'+kind+' · '+money(t.amount)+'</h4><p><strong>'+esc(t.category)+'</strong> · '+esc(t.description)+'</p><p class="muted small">Ngày: '+esc(t.transaction_date)+' · Mã phiếu: '+Number(t.id)+'</p>'+(t.reference_note?'<p>Chứng từ / ghi chú: '+esc(t.reference_note)+'</p>':'')+actions+'</div>';
       }).join('');
     }catch(e){box.textContent='Không tải được phiếu chờ duyệt: '+e.message;}
