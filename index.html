@@ -171,7 +171,7 @@
 <div class="full"><label>Email tài khoản đã đăng ký</label><input id="adminRoleEmail" type="email" required placeholder="nhap.email@..."></div>
 <div><label>Vai trò</label><select id="adminRoleCode" required><option value="ADMIN">ADMIN – Quản trị hệ thống</option><option value="EXECUTIVE">EXECUTIVE – Ban Thường vụ</option><option value="CHAIRPERSON">CHAIRPERSON – Chủ tịch Hội (điều hành nghiệp vụ toàn Hội)</option><option value="SECRETARY">SECRETARY – Thư ký Hội</option><option value="COMMITTEE">COMMITTEE – Ban Chấp hành</option><option value="BRANCH_HEAD">BRANCH_HEAD – Chi hội trưởng</option><option value="MEMBER">MEMBER – Hội viên</option><option value="ACCOUNTANT">ACCOUNTANT – Kế toán</option></select></div>
 <div><label>Chi hội (bắt buộc với Chi hội trưởng/Hội viên)</label><select id="adminRoleBranch"><option value="">Toàn Hội / Không áp dụng</option></select></div>
-<div class="full row-actions"><button type="submit">Cấp / cập nhật quyền</button><button type="button" class="danger" onclick="changeAdminRole(false)">Thu hồi vai trò đã chọn</button><button type="button" class="secondary" onclick="loadAccountDirectory()">Tải danh sách tài khoản</button></div>
+<div class="full row-actions"><button type="submit">Cấp / cập nhật quyền</button><button type="button" class="danger" onclick="changeAdminRole(false)">Thu hồi vai trò đã chọn</button><button type="button" class="secondary" onclick="loadAccountDirectory()">Tải danh sách tài khoản</button><button type="button" class="secondary" onclick="changeMemberBranch()">Chuyển chi hội hội viên</button></div>
 </form><div id="adminRoleMessage" class="small" role="status"></div>
 <hr><h4>Danh sách tài khoản hiện có</h4><p class="muted">Danh sách lấy trực tiếp từ tài khoản đăng nhập. Khi ADMIN xóa tài khoản hội viên thành công, tài khoản đó sẽ tự biến mất khỏi danh sách này sau khi tải lại.</p><div class="row-actions"><button type="button" class="secondary" onclick="loadAccountDirectory()">🔄 Cập nhật danh sách tài khoản</button></div><div id="adminAccountsContent" class="muted">Chưa tải danh sách.</div></div><div class="item"><h4>Kho tệp bảo mật</h4><p class="muted">Tạo kho riêng tư để lưu chứng từ, hồ sơ và văn bản.</p><button onclick="setupPrivateStorage()">Khởi tạo kho tệp bảo mật</button><span id="storageSetupMessage" class="small"></span></div>
             <div class="item"><h4>Chức vụ kiêm nhiệm</h4><p class="muted">Chức vụ công tác tách biệt với quyền ADMIN/EXECUTIVE/COMMITTEE/BRANCH_HEAD/MEMBER.</p><form id="positionForm" class="form-grid"><div><label>Mã chức vụ</label><input id="positionCode" required placeholder="VD: DEPUTY_SECRETARY"></div><div><label>Tên chức vụ</label><input id="positionName" required placeholder="VD: Phó Thư ký"></div><div class="full"><label>Mô tả</label><input id="positionDescription" placeholder="Nhiệm vụ phụ trách"></div><div class="full"><button type="submit">Tạo chức vụ</button></div></form><hr><form id="assignPositionForm" class="form-grid"><div class="full"><label>Email tài khoản được phân công</label><input id="positionUserEmail" type="email" required placeholder="hoi.vien@example.com"></div><div><label>Chức vụ</label><select id="positionSelect" required><option value="">Đang tải…</option></select></div><div><label>Chi hội</label><select id="positionBranch"><option value="">Toàn Hội / Không chỉ định</option></select></div><div class="full"><button type="submit">Giao chức vụ</button></div></form><div id="positionsMessage" class="small"></div></div>
@@ -834,6 +834,21 @@
  }catch(e){box.textContent='Không tải được danh sách: '+e.message;}
 }
 function selectAdminAccount(email){$('adminRoleEmail').value=email;}
+async function changeMemberBranch(){
+ if(!currentRoles.includes('ADMIN'))return alert('Chỉ ADMIN được thay đổi chi hội hội viên.');
+ const email=$('adminRoleEmail').value.trim(),branch=$('adminRoleBranch').value;
+ if(!email)return alert('Hãy chọn tài khoản hội viên trong danh sách trước.');
+ if(!branch)return alert('Hãy chọn chi hội mới trong ô Chi hội.');
+ const branchName=branches.find(b=>b.code===branch)?.name||branch;
+ if(!confirm('Chuyển hồ sơ hội viên '+email+' sang '+branchName+'? Vai trò Hội viên sẽ được cập nhật chi hội mới; các vai trò lãnh đạo/kiêm nhiệm khác được giữ nguyên.'))return;
+ const out=$('adminRoleMessage');out.textContent='Đang chuyển chi hội hội viên…';
+ try{
+  const {data,error}=await sb.rpc('admin_move_member_branch',{p_email:email,p_branch_code:branch});
+  if(error)throw error;
+  out.textContent=Array.isArray(data)?(data[0]||'Đã chuyển chi hội.'):String(data||'Đã chuyển chi hội.');
+  await loadAccountDirectory();
+ }catch(e){out.textContent='Không chuyển được chi hội: '+e.message;}
+}
 async function changeAdminRole(enabled){
  if(!currentRoles.includes('ADMIN'))return alert('Chỉ ADMIN được phân quyền.');
  const email=$('adminRoleEmail').value.trim(),role=$('adminRoleCode').value,branch=$('adminRoleBranch').value;
