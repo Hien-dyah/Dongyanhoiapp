@@ -118,10 +118,11 @@
         <div id="page-finance" class="page hidden">
           <div class="card"><div class="section-head"><h3>💰 Hội phí và tài chính</h3><button type="button" class="secondary" onclick="loadFinance()">Tải lại</button></div><p class="muted">Theo dõi hội phí hằng năm, thu chi và ý kiến của Ban Thường vụ.</p></div>
           <div id="memberDuesPanel" class="card"><h3>Hội phí của tôi</h3><p class="muted">Sau khi chuyển khoản hoặc nộp hội phí, hội viên gửi ảnh hóa đơn/biên nhận tại đây. Kế toán sẽ kiểm tra và xác nhận; trạng thái chỉ chuyển sang “Đã đóng” sau khi Kế toán duyệt.</p><div id="memberDuesContent" class="muted">Đang tải tình trạng hội phí…</div></div>
-          <div id="duesRatePanel" class="card hidden"><h3>Mức hội phí hằng năm</h3><p class="muted">Ban Thường vụ hoặc ADMIN nhập mức thu. Mức này được áp dụng cho hội viên trong năm tương ứng; khoản đã ghi nhận đã đóng sẽ không bị thay đổi.</p><form id="duesRateForm" class="form-grid"><div><label>Năm</label><input id="duesRateYear" type="number" min="2000" max="2200" required></div><div><label>Mức hội phí (đồng/người/năm)</label><input id="duesRateAmount" type="number" min="0" step="1000" required placeholder="Nhập mức hội phí"></div><div class="full"><button type="submit">Lưu mức hội phí</button></div></form><div id="duesRateMessage" class="small" role="status"></div></div>
+          <div id="duesRatePanel" class="card hidden"><h3>Mức hội phí hằng năm</h3><p class="muted">Chủ tịch hoặc ADMIN thiết lập mức thu; Kế toán không được thay đổi mức hội phí. Mức này được áp dụng cho hội viên trong năm tương ứng; khoản đã ghi nhận đã đóng sẽ không bị thay đổi.</p><form id="duesRateForm" class="form-grid"><div><label>Năm</label><input id="duesRateYear" type="number" min="2000" max="2200" required></div><div><label>Mức hội phí (đồng/người/năm)</label><input id="duesRateAmount" type="number" min="0" step="1000" required placeholder="Nhập mức hội phí"></div><div class="full"><button type="submit">Lưu mức hội phí</button></div></form><div id="duesRateMessage" class="small" role="status"></div></div>
           <div id="accountantPanel" class="card hidden"><h3>Quản lý hội phí hội viên</h3><p class="muted">Chỉ tài khoản được phân quyền Kế toán mới được cập nhật trạng thái thu hội phí. Khi xác nhận đã đóng, khoản hội phí sẽ tự động ghi vào sổ thu – chi; không cần nhập lại khoản này ở phần thu – chi.</p><div id="accountantDuesContent" class="muted">Đang tải danh sách…</div></div>
           <div id="financeEntryPanel" class="card hidden"><h3>Ghi nhận thu – chi</h3><p class="muted">Phiếu do Kế toán lập sẽ ở trạng thái chờ Chủ tịch xem xét. Chỉ phiếu được duyệt mới được tính vào tổng thu – chi chính thức.</p><form id="financeTransactionForm" class="form-grid"><div><label>Ngày phát sinh</label><input id="financeDate" type="date" required></div><div><label>Loại</label><select id="financeDirection"><option value="income">Thu</option><option value="expense">Chi</option></select></div><div><label>Nhóm khoản</label><input id="financeCategory" required placeholder="VD: Hội phí, văn phòng phẩm"></div><div><label>Số tiền (đồng)</label><input id="financeAmount" type="number" min="1" step="1000" required></div><div class="full"><label>Nội dung</label><input id="financeDescription" required placeholder="Mô tả khoản thu hoặc chi"></div><div class="full"><label>Chứng từ / ghi chú</label><input id="financeReference" placeholder="Số phiếu thu, phiếu chi hoặc ghi chú"></div><div class="full"><button type="submit">Gửi phiếu chờ Chủ tịch duyệt</button></div></form><div id="financeEntryMessage" class="small" role="status"></div></div>
           <div id="financeApprovalPanel" class="card hidden"><div class="section-head"><h3>🧾 Phiếu thu – chi chờ Chủ tịch duyệt</h3><button type="button" class="secondary" onclick="loadPendingFinanceApprovals()">Tải lại</button></div><p class="muted">Chủ tịch kiểm tra nội dung, số tiền và chứng từ; có thể duyệt hoặc từ chối kèm lý do. Phiếu đã xử lý không thể được Kế toán sửa lại.</p><div id="financeApprovalContent" class="muted">Đang tải phiếu chờ duyệt…</div></div>
+          <div id="financeAuditPanel" class="card hidden"><div class="section-head"><h3>📜 Nhật ký hoạt động tài chính</h3><button type="button" class="secondary" onclick="loadFinanceAudit()">Tải nhật ký</button></div><p class="muted">Theo dõi việc lập, chỉnh sửa và quyết định phiếu thu – chi; lịch sử không được xóa.</p><div id="financeAuditContent" class="muted">Đang tải nhật ký…</div></div>
           <div id="financeReportPanel" class="card hidden"><div class="section-head"><h3>Báo cáo thu – chi tổng hợp</h3><div><label for="financeReportYear">Năm</label><input id="financeReportYear" type="number" min="2000" max="2200" style="width:110px" onchange="loadFinanceYear()"></div></div><div id="financeReportContent" class="muted">Đang tải báo cáo…</div></div>
           <div id="financeCommentsPanel" class="card hidden"><h3>Ý kiến trao đổi với Kế toán</h3><p class="muted">Ban Thường vụ gửi ý kiến; Kế toán có thể phản hồi. Nội dung được lưu cùng người gửi và thời gian.</p><form id="financeCommentForm" class="form-grid"><div class="full"><label>Nội dung ý kiến / phản hồi</label><textarea id="financeCommentText" rows="3" required></textarea></div><div class="full"><button type="submit">Gửi ý kiến</button></div></form><div id="financeCommentsContent" class="muted">Đang tải ý kiến…</div></div>
         </div>
@@ -1093,13 +1094,14 @@ async function transferAdmin(){
     $('accountantPanel').classList.toggle('hidden',!(isAccountant||isChairperson));
     $('financeEntryPanel').classList.toggle('hidden',!isAccountant);
     $('financeApprovalPanel').classList.toggle('hidden',!isChairperson);
+    $('financeAuditPanel').classList.toggle('hidden',!isChairperson);
     $('financeReportPanel').classList.toggle('hidden',!canViewReport);
     $('financeCommentsPanel').classList.toggle('hidden',!(isAdmin||isAccountant||isExecutive||isChairperson));
     $('duesRateYear').value=year;$('financeReportYear').value=year;$('financeDate').value=new Date().toISOString().slice(0,10);
     if(currentRoles.includes('MEMBER'))await loadMyDues();
     if(isAdmin||isChairperson)await loadDuesRate();
     if(isAccountant||isChairperson)await loadAccountantDues();
-    if(isChairperson)await loadPendingFinanceApprovals();
+    if(isChairperson){await loadPendingFinanceApprovals();await loadFinanceAudit();}
     if(canViewReport)await loadFinanceReport();
     if(isAdmin||isAccountant||isExecutive||isChairperson)await loadFinanceComments();
   }
@@ -1128,7 +1130,7 @@ async function transferAdmin(){
   $('duesRateYear')?.addEventListener('change',loadDuesRate);
   async function loadFinanceYear(){
     if(['ACCOUNTANT','ADMIN','CHAIRPERSON'].some(r=>currentRoles.includes(r)))await loadAccountantDues();
-    if(currentRoles.includes('CHAIRPERSON'))await loadPendingFinanceApprovals();
+    if(currentRoles.includes('CHAIRPERSON')){await loadPendingFinanceApprovals();await loadFinanceAudit();}
     if(['ADMIN','ACCOUNTANT','EXECUTIVE','COMMITTEE','CHAIRPERSON'].some(r=>currentRoles.includes(r)))await loadFinanceReport();
     if(['ADMIN','ACCOUNTANT','EXECUTIVE','CHAIRPERSON'].some(r=>currentRoles.includes(r)))await loadFinanceComments();
     if(currentRoles.includes('ADMIN')||currentRoles.includes('CHAIRPERSON'))await loadDuesRate();
@@ -1255,6 +1257,20 @@ async function transferAdmin(){
       await loadFinanceReport();
     }catch(e){alert('Không xử lý được phiếu: '+e.message);}
   }
+  async function loadFinanceAudit(){
+    if(!currentRoles.includes('CHAIRPERSON'))return;
+    const box=$('financeAuditContent');if(!box)return;box.textContent='Đang tải nhật ký…';
+    try{
+      const {data,error}=await sb.from('audit_logs').select('id,record_id,operation,actor_id,changed_fields,old_status,new_status,created_at').eq('table_name','finance_transactions').order('created_at',{ascending:false}).limit(200);
+      if(error)throw error;
+      const rows=data||[];
+      if(!rows.length){box.innerHTML='<p>Chưa có hoạt động tài chính được ghi nhận.</p>';return;}
+      const actorIds=[...new Set(rows.map(x=>x.actor_id).filter(Boolean))];
+      let names={};
+      if(actorIds.length){const {data:profiles}=await sb.from('profiles').select('id,full_name').in('id',actorIds);names=Object.fromEntries((profiles||[]).map(p=>[p.id,p.full_name]));}
+      box.innerHTML='<div class="table-wrap"><table><thead><tr><th>Thời điểm</th><th>Mã phiếu</th><th>Hoạt động</th><th>Người thực hiện</th><th>Trường thay đổi</th><th>Trạng thái</th></tr></thead><tbody>'+rows.map(x=>'<tr><td>'+esc(new Date(x.created_at).toLocaleString('vi-VN'))+'</td><td>#'+esc(x.record_id)+'</td><td>'+esc(x.operation)+'</td><td>'+esc(names[x.actor_id]||x.actor_id||'Hệ thống')+'</td><td>'+esc((x.changed_fields||[]).join(', '))+'</td><td>'+esc((x.old_status||'—')+' → '+(x.new_status||'—'))+'</td></tr>').join('')+'</tbody></table></div>';
+    }catch(e){box.textContent='Không tải được nhật ký tài chính: '+e.message;}
+  }
   async function loadFinanceComments(){
     const box=$('financeCommentsContent');if(!box)return;box.textContent='Đang tải…';
     try{const year=financeYear();const {data,error}=await sb.from('finance_comments').select('id,year,comment,created_by,created_at').eq('year',year).order('created_at',{ascending:false});if(error)throw error;
@@ -1280,7 +1296,7 @@ async function transferAdmin(){
     const hasManagementRole=canViewMemberDirectory;
     const isMemberOnly=currentRoles.includes('MEMBER')&&!hasManagementRole;
     if(name==='members'&&!canViewMemberDirectory){message($('homeMessage'),'Tài khoản này không có quyền xem danh sách hội viên.',true);name='home';btn=document.querySelector('[data-page=home]');}
-    const canUseFinance=['ADMIN','ACCOUNTANT','EXECUTIVE','COMMITTEE','MEMBER'].some(r=>currentRoles.includes(r));
+    const canUseFinance=['ADMIN','ACCOUNTANT','EXECUTIVE','CHAIRPERSON','COMMITTEE','MEMBER'].some(r=>currentRoles.includes(r));
     if(name==='finance'&&!canUseFinance){message($('homeMessage'),'Tài khoản này không có quyền truy cập tài chính.',true);name='home';btn=document.querySelector('[data-page=home]');}
     if(isMemberOnly&&(name==='members'||name==='documents')){
       message($('homeMessage'),'Mục này không dành cho tài khoản Hội viên.',true);
