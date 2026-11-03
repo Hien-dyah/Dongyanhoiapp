@@ -368,7 +368,7 @@
     if(!canUseFinance)$('page-finance').classList.add('hidden');
     $('page-admin').classList.add('hidden');
     $('reportForm').classList.toggle('hidden',isCommittee&&!currentRoles.includes('MEMBER'));
-    $('branchSummarySection').classList.toggle('hidden',!(currentRoles.includes('BRANCH_HEAD')||isAdmin||currentRoles.includes('EXECUTIVE')));
+    $('branchSummarySection').classList.toggle('hidden',!(currentRoles.includes('BRANCH_HEAD')||isAdmin||currentRoles.includes('EXECUTIVE')||currentRoles.includes('CHAIRPERSON')));
     const pendingBox=$('pendingMembersContent');
     if(pendingBox){
       pendingBox.classList.toggle('hidden',isCommittee);
@@ -459,12 +459,13 @@
     target.innerHTML='<p class="muted">Hiển thị '+rows.length+' / '+memberDirectoryRows.length+' hồ sơ.</p>'+(!rows.length?'<p>Không tìm thấy hội viên phù hợp.</p>':'<div class="table-wrap"><table><thead><tr><th>Ảnh</th><th>Mã hội viên</th><th>Họ tên</th><th>Điện thoại</th><th>Email</th><th>Chi hội</th><th>Loại hội viên</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>'+rows.map(m=>{
       const branchName=branches.find(b=>String(b.id)===String(m.branch_id))?.name||('Chi hội '+(m.branch_id??'—'));
       const detailButton='<button class="secondary" onclick="viewMemberDetail('+Number(m.id)+')">Chi tiết</button>';
+      const editButton=['ADMIN','EXECUTIVE','CHAIRPERSON'].some(r=>currentRoles.includes(r))?'<button onclick="editMemberProfile('+Number(m.id)+')">Sửa hồ sơ</button>':'';
       const deleteButton=currentRoles.includes('ADMIN')?'<button class="danger" onclick="deleteMember('+Number(m.id)+',\''+esc(m.full_name||'Hội viên').replace(/'/g,"&#39;")+'\')">Xóa</button>':'';
       const photoCell=m.photo_url?'<img src="'+esc(m.photo_url)+'" alt="Ảnh '+esc(m.full_name||'hội viên')+'" loading="lazy" style="width:52px;height:52px;object-fit:cover;border-radius:8px;border:1px solid var(--line)">':'<span class="muted small">Chưa có ảnh</span>';
        const typeCell=currentRoles.includes('ADMIN')
         ?'<select id="memberType_'+Number(m.id)+'" aria-label="Loại hội viên của '+esc(m.full_name||'')+'" onchange="saveMemberType('+Number(m.id)+',this.value)"><option value="official" '+(m.member_type==='official'?'selected':'')+'>Chính thức</option><option value="associate" '+(m.member_type==='associate'?'selected':'')+'>Liên kết</option><option value="honorary" '+(m.member_type==='honorary'?'selected':'')+'>Danh dự</option></select>'
         :'<span>'+esc(memberTypeLabel(m.member_type))+'</span>';
-      return '<tr><td>'+photoCell+'</td><td>'+esc(m.member_code||'—')+'</td><td>'+esc(m.full_name||'—')+'</td><td>'+esc(m.phone||'—')+'</td><td>'+esc(m.email||'—')+'</td><td>'+esc(branchName)+'</td><td>'+typeCell+'</td><td>'+esc(memberStatusLabel(m.status))+'</td><td><div class="row-actions">'+detailButton+deleteButton+'</div></td></tr>';
+      return '<tr><td>'+photoCell+'</td><td>'+esc(m.member_code||'—')+'</td><td>'+esc(m.full_name||'—')+'</td><td>'+esc(m.phone||'—')+'</td><td>'+esc(m.email||'—')+'</td><td>'+esc(branchName)+'</td><td>'+typeCell+'</td><td>'+esc(memberStatusLabel(m.status))+'</td><td><div class="row-actions">'+detailButton+editButton+deleteButton+'</div></td></tr>';
     }).join('')+'</tbody></table></div>');
   }
   function memberTypeLabel(type){
@@ -487,6 +488,15 @@
       if(select)select.value=previous||'official';
       alert('Không thay đổi được loại hội viên: '+e.message);
     }finally{if(select)select.disabled=false;}
+  }
+  async function editMemberProfile(memberId){
+    if(!['ADMIN','EXECUTIVE','CHAIRPERSON'].some(r=>currentRoles.includes(r)))return alert('Tài khoản không có quyền sửa hồ sơ hội viên.');
+    const m=memberDirectoryRows.find(x=>Number(x.id)===Number(memberId));if(!m)return alert('Không tìm thấy hồ sơ.');
+    const fields=[['full_name','Họ và tên'],['gender','Giới tính'],['birth_year','Năm sinh'],['phone','Số điện thoại'],['email','Email'],['address','Địa chỉ thường trú'],['education_level','Trình độ văn hóa'],['professional_qualification','Văn bằng chuyên môn'],['workplace','Nơi hành nghề']];
+    const updates={};
+    for(const [key,label] of fields){const value=prompt(label+' của '+(m.full_name||'hội viên')+':',m[key]??'');if(value===null)return;updates[key]=value.trim()||null;}
+    try{const {error}=await sb.from('members').update({...updates,updated_at:new Date().toISOString()}).eq('id',memberId);if(error)throw error;Object.assign(m,updates);renderMemberDirectory();alert('Đã cập nhật hồ sơ hội viên. Loại hội viên, trạng thái duyệt và chi hội không thay đổi.');}
+    catch(e){alert('Không cập nhật được hồ sơ: '+e.message);}
   }
   function viewMemberDetail(memberId){
     const m=memberDirectoryRows.find(x=>Number(x.id)===Number(memberId));if(!m)return alert('Không tìm thấy hồ sơ.');
@@ -715,7 +725,7 @@
     }catch(err){alert('Chưa lưu được báo cáo: '+err.message);}
     finally{btn.disabled=false;}
   });
-  $('newsForm')?.addEventListener('submit',async e=>{e.preventDefault();if(!currentRoles.includes('ADMIN'))return alert('Chỉ ADMIN mới được soạn tin.');const btn=e.submitter;btn.disabled=true;try{const {error}=await sb.from('news').insert({title:$('newsTitle').value.trim(),content:$('newsBody').value.trim(),category:$('newsCategory').value,published:false,review_status:'pending_review',created_by:currentUser.id});if(error)throw error;alert('Đã lưu tin vào danh sách chờ duyệt. Hội viên chưa nhìn thấy tin này.');$('newsForm').reset();await loadPendingNews();}catch(err){alert('Không lưu được tin: '+err.message);}finally{btn.disabled=false;}});
+  $('newsForm')?.addEventListener('submit',async e=>{e.preventDefault();if(!['ADMIN','CHAIRPERSON'].some(r=>currentRoles.includes(r)))return alert('Chỉ Chủ tịch hoặc ADMIN mới được soạn tin.');const btn=e.submitter;btn.disabled=true;try{const {error}=await sb.from('news').insert({title:$('newsTitle').value.trim(),content:$('newsBody').value.trim(),category:$('newsCategory').value,published:false,review_status:'pending_review',created_by:currentUser.id});if(error)throw error;alert('Đã lưu tin vào danh sách chờ duyệt. Hội viên chưa nhìn thấy tin này.');$('newsForm').reset();await loadPendingNews();}catch(err){alert('Không lưu được tin: '+err.message);}finally{btn.disabled=false;}});
   async function fetchTraditionalNews(){
     if(!currentRoles.includes('ADMIN'))return alert('Chỉ ADMIN được lấy tin.');
     const out=$('newsFetchMessage');out.classList.remove('hidden','error');out.textContent='Đang kết nối nguồn tin y học cổ truyền…';
@@ -725,7 +735,7 @@
     }catch(e){out.classList.add('error');out.textContent='Không lấy được tin: '+(e.message||e);}
   }
   async function loadPendingNews(){
-    const box=$('pendingNewsContent');if(!box||!currentRoles.includes('ADMIN'))return;
+    const box=$('pendingNewsContent');if(!box||!['ADMIN','CHAIRPERSON'].some(r=>currentRoles.includes(r)))return;
     box.textContent='Đang tải danh sách chờ duyệt…';
     try{const {data,error}=await sb.from('news').select('*').eq('review_status','pending_review').order('created_at',{ascending:false}).limit(50);if(error)throw error;
       if(!data?.length){box.innerHTML='<p>Không có tin nào đang chờ duyệt.</p>';return;}
@@ -733,14 +743,14 @@
     }catch(e){box.textContent='Không tải được tin chờ duyệt: '+e.message;}
   }
   async function savePendingNews(id){
-    if(!currentRoles.includes('ADMIN'))return;
+    if(!['ADMIN','CHAIRPERSON'].some(r=>currentRoles.includes(r)))return;
     const content=$('pendingNewsBody_'+id)?.value.trim();if(!content)return alert('Nội dung không được để trống.');
     const {error}=await sb.from('news').update({content}).eq('id',id).eq('review_status','pending_review');
     if(error)return alert('Không lưu được: '+error.message);
     alert('Đã lưu nội dung biên tập.');await loadPendingNews();
   }
   async function approvePendingNews(id){
-    if(!currentRoles.includes('ADMIN'))return;
+    if(!['ADMIN','CHAIRPERSON'].some(r=>currentRoles.includes(r)))return;
     if(!confirm('Duyệt bài này và cho toàn thể hội viên nhìn thấy?'))return;
     const content=$('pendingNewsBody_'+id)?.value.trim();if(!content)return alert('Nội dung không được để trống.');
     const {error}=await sb.from('news').update({content,published:true,review_status:'approved',reviewed_by:currentUser.id,reviewed_at:new Date().toISOString(),rejection_note:null}).eq('id',id).eq('review_status','pending_review');
@@ -748,14 +758,14 @@
     alert('Đã duyệt và đăng tin.');await loadPendingNews();await loadNews();
   }
   async function rejectPendingNews(id){
-    if(!currentRoles.includes('ADMIN'))return;
+    if(!['ADMIN','CHAIRPERSON'].some(r=>currentRoles.includes(r)))return;
     const note=prompt('Lý do từ chối (không bắt buộc):');if(note===null)return;
     const {error}=await sb.from('news').update({published:false,review_status:'rejected',reviewed_by:currentUser.id,reviewed_at:new Date().toISOString(),rejection_note:note||null}).eq('id',id).eq('review_status','pending_review');
     if(error)return alert('Không từ chối được: '+error.message);
     await loadPendingNews();
   }
   async function unpublishNews(id){
-    if(!currentRoles.includes('ADMIN'))return;
+    if(!['ADMIN','CHAIRPERSON'].some(r=>currentRoles.includes(r)))return;
     if(!confirm('Gỡ bài này khỏi trang tin hội viên? Bài vẫn được lưu và có thể đăng lại.'))return;
     const {error}=await sb.from('news').update({published:false,review_status:'withdrawn',reviewed_by:currentUser.id,reviewed_at:new Date().toISOString()}).eq('id',id).eq('published',true);
     if(error)return alert('Không gỡ được bài: '+error.message);
@@ -763,7 +773,7 @@
     await loadNews();
   }
   async function loadWithdrawnNews(){
-    const box=$('withdrawnNewsContent');if(!box||!currentRoles.includes('ADMIN'))return;
+    const box=$('withdrawnNewsContent');if(!box||!['ADMIN','CHAIRPERSON'].some(r=>currentRoles.includes(r)))return;
     box.textContent='Đang tải bài đã gỡ…';
     try{
       const {data,error}=await sb.from('news').select('*').eq('review_status','withdrawn').order('reviewed_at',{ascending:false}).limit(50);
@@ -772,7 +782,7 @@
     }catch(e){box.textContent='Không tải được bài đã gỡ: '+e.message;}
   }
   async function republishNews(id){
-    if(!currentRoles.includes('ADMIN'))return;
+    if(!['ADMIN','CHAIRPERSON'].some(r=>currentRoles.includes(r)))return;
     if(!confirm('Đăng lại bài này để hội viên xem?'))return;
     const {error}=await sb.from('news').update({published:true,review_status:'approved',reviewed_by:currentUser.id,reviewed_at:new Date().toISOString(),rejection_note:null}).eq('id',id).eq('review_status','withdrawn');
     if(error)return alert('Không đăng lại được: '+error.message);
@@ -797,10 +807,11 @@
   }
   async function loadNews(){
     const box=$('newsContent');if(!box)return;box.textContent='Đang tải tin tức…';
-    const isAdmin=currentRoles.includes('ADMIN');$('newsAdminTools').classList.toggle('hidden',!(isAdmin||isSecretary));
+    const isAdmin=currentRoles.includes('ADMIN'),canManageNews=isAdmin||currentRoles.includes('CHAIRPERSON');$('newsAdminTools').classList.toggle('hidden',!(isAdmin||currentRoles.includes('CHAIRPERSON')||currentRoles.includes('SECRETARY')));
+    const newsForm=$('newsForm');if(newsForm)newsForm.classList.toggle('hidden',!(isAdmin||currentRoles.includes('CHAIRPERSON')));
     try{const {data,error}=await sb.from('news').select('*').eq('published',true).order('created_at',{ascending:false}).limit(50);if(error)throw error;
       if(!data?.length){box.innerHTML='<p>Chưa có tin tức đã xuất bản.</p>';}else{
-        box.innerHTML=data.map(n=>{const source=(n.source_url&&String(n.source_url).startsWith('https://'))?'<p class="small">Nguồn: '+esc(n.source_name||'Trang tin')+' · <a href="'+esc(n.source_url)+'" target="_blank" rel="noopener">Đọc bài gốc</a></p>':'';return '<article class="item"><h4>'+esc(n.title||'Tin tức')+'</h4><p class="muted">'+esc(n.created_at||'')+'</p><p>'+esc(n.content||'')+'</p>'+source+(isAdmin?'<div class="row-actions"><button type="button" class="danger" onclick="unpublishNews('+Number(n.id)+')">Gỡ bài xuống</button></div>':'')+'</article>';}).join('');
+        box.innerHTML=data.map(n=>{const source=(n.source_url&&String(n.source_url).startsWith('https://'))?'<p class="small">Nguồn: '+esc(n.source_name||'Trang tin')+' · <a href="'+esc(n.source_url)+'" target="_blank" rel="noopener">Đọc bài gốc</a></p>':'';return '<article class="item"><h4>'+esc(n.title||'Tin tức')+'</h4><p class="muted">'+esc(n.created_at||'')+'</p><p>'+esc(n.content||'')+'</p>'+source+(canManageNews?'<div class="row-actions"><button type="button" class="danger" onclick="unpublishNews('+Number(n.id)+')">Gỡ bài xuống</button></div>':'')+'</article>';}).join('');
       }
       if(isAdmin){await loadPendingNews();await loadWithdrawnNews();}
     }catch(e){box.textContent='Không tải được tin tức: '+e.message;}
@@ -1238,7 +1249,7 @@ async function transferAdmin(){
     const navButton=btn||document.querySelector('.side [data-page="'+name+'"]');
     if(navButton)navButton.classList.add('active');
     if(name==='members'){loadMembers();loadPendingMembers();}
-    if(name==='reports'){loadReports();if(currentRoles.includes('BRANCH_HEAD')||currentRoles.includes('EXECUTIVE')||currentRoles.includes('ADMIN'))loadBranchSummaries();}
+    if(name==='reports'){loadReports();if(currentRoles.includes('BRANCH_HEAD')||currentRoles.includes('EXECUTIVE')||currentRoles.includes('ADMIN')||currentRoles.includes('CHAIRPERSON'))loadBranchSummaries();}
     if(name==='news')loadNews();
     if(name==='profile'){
       const profileBox=$('profileContent');
