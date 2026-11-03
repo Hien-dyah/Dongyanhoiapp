@@ -572,9 +572,9 @@
   }
   async function deleteMember(memberId,memberName){
     if(!currentRoles.includes('ADMIN'))return alert('Chỉ ADMIN mới được xóa hội viên.');
-    if(!confirm('CẢNH BÁO: Khóa tài khoản đăng nhập của '+memberName+' và lưu trữ hồ sơ hội viên khỏi danh sách hoạt động. Lịch sử báo cáo, hội phí và tài chính được giữ nguyên. Tài khoản có vai trò quản lý phải bàn giao/thu hồi vai trò trước.'))return;
-    const confirmText=prompt('Nhập KHOA TAI KHOAN để xác nhận khóa tài khoản và lưu trữ hồ sơ:');
-    if(confirmText!=='KHOA TAI KHOAN')return alert('Đã hủy thao tác xóa.');
+    if(!confirm('CẢNH BÁO: XÓA VĨNH VIỄN tài khoản đăng nhập và hồ sơ của '+memberName+'. Chỉ xóa được khi không còn báo cáo, hội phí, phiếu thu chi hoặc vai trò quản lý. Thao tác không thể hoàn tác.'))return;
+    const confirmText=prompt('Nhập XOA TAI KHOAN để xác nhận xóa vĩnh viễn tài khoản và hồ sơ:');
+    if(confirmText!=='XOA TAI KHOAN')return alert('Đã hủy thao tác xóa.');
     try{
       const {data,error}=await sb.functions.invoke('admin-delete-member',{body:{member_id:memberId}});
       if(error){
@@ -591,14 +591,14 @@
       }
       if(data?.error)throw new Error(data.error);
       // Xác minh trực tiếp trong cơ sở dữ liệu trước khi báo xóa thành công.
-      const {data:remaining,error:verifyError}=await sb.from('members').select('id,status').eq('id',memberId).maybeSingle();
+      const {data:remaining,error:verifyError}=await sb.from('members').select('id').eq('id',memberId).maybeSingle();
       if(verifyError)throw new Error('Yêu cầu xóa đã gửi nhưng chưa xác minh được hồ sơ: '+verifyError.message);
-      if(!remaining||remaining.status!=='archived')throw new Error('Hồ sơ chưa được lưu trữ. Vui lòng tải lại hoặc liên hệ quản trị.');
+      if(remaining)throw new Error('Hồ sơ vẫn còn trong hệ thống. Vui lòng tải lại hoặc liên hệ quản trị.');
       // Gỡ ngay khỏi dữ liệu đang hiển thị, sau đó tải lại danh sách chính thức từ máy chủ.
       memberDirectoryRows=memberDirectoryRows.filter(m=>Number(m.id)!==Number(memberId));
       renderMemberDirectory();
       await Promise.all([loadMembers(),loadPendingMembers(),loadAccountDirectory()]);
-      alert(data?.message||'Đã khóa tài khoản và lưu trữ hồ sơ hội viên. Danh sách đã được cập nhật.');
+      alert(data?.message||'Đã xóa tài khoản và hồ sơ hội viên. Danh sách đã được cập nhật.');
     }catch(e){alert('Không xóa được: '+(e.message||String(e)));}
   }
   async function loadPendingMembers(){
