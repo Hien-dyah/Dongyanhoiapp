@@ -833,7 +833,23 @@
   box.innerHTML='<div class="table-wrap"><table><thead><tr><th>Họ tên</th><th>Email</th><th>Vai trò</th><th>Chi hội</th><th>Chọn</th></tr></thead><tbody>'+data.map(u=>'<tr><td>'+esc(u.full_name||'Chưa cập nhật')+'</td><td>'+esc(u.email)+'</td><td>'+esc(u.assigned_roles||'Chưa phân quyền')+'</td><td>'+esc(u.assigned_branches||'—')+'</td><td><button class="secondary" type="button" onclick="selectAdminAccount(\''+esc(u.email).replace(/'/g,'&#39;')+'\')">Chọn</button></td></tr>').join('')+'</tbody></table></div>';
  }catch(e){box.textContent='Không tải được danh sách: '+e.message;}
 }
-function selectAdminAccount(email){$('adminRoleEmail').value=email;}
+async function selectAdminAccount(email){
+ $('adminRoleEmail').value=email;
+ const role=$('adminRoleCode')?.value;
+ if(['MEMBER','BRANCH_HEAD'].includes(role)){
+  try{
+   const {data,error}=await sb.from('members').select('branch_id').eq('email',email).eq('status','approved').maybeSingle();
+   if(!error&&data?.branch_id){
+    const branch=branches.find(b=>String(b.id)===String(data.branch_id));
+    if(branch)$('adminRoleBranch').value=branch.code;
+   }
+  }catch(e){console.warn('Không tự điền chi hội:',e.message);}
+ }
+}
+$('adminRoleCode')?.addEventListener('change',async()=>{
+ const email=$('adminRoleEmail')?.value.trim(),role=$('adminRoleCode')?.value;
+ if(email&&['MEMBER','BRANCH_HEAD'].includes(role))await selectAdminAccount(email);
+});
 async function submitMemberBranchTransfer(){
  if(!currentUser)return;
  const to=$('memberTransferTo')?.value,reason=$('memberTransferReason')?.value.trim();
@@ -885,6 +901,7 @@ async function changeAdminRole(enabled){
  if(!currentRoles.includes('ADMIN'))return alert('Chỉ ADMIN được phân quyền.');
  const email=$('adminRoleEmail').value.trim(),role=$('adminRoleCode').value,branch=$('adminRoleBranch').value;
  if(!email)return alert('Nhập hoặc chọn email tài khoản.');
+ if(enabled&&['MEMBER','BRANCH_HEAD'].includes(role)&&!branch){outMessage('Vui lòng chọn Chi hội.');return;}
  if(enabled&&!confirm('Xác nhận cấp/bổ sung vai trò '+role+' cho '+email+'? Hệ thống sẽ GIỮ NGUYÊN tất cả vai trò hiện có (bao gồm Hội viên) và cộng thêm vai trò mới. Người được cấp quyền cần đăng xuất/đăng nhập lại hoặc tải lại ứng dụng để nhận quyền.'))return;
  if(!enabled&&!confirm('Thu hồi riêng vai trò '+role+' khỏi '+email+'?'))return;
  const out=$('adminRoleMessage');out.textContent=enabled?'Đang bổ sung vai trò, giữ nguyên các quyền hiện có…':'Đang thu hồi riêng vai trò đã chọn…';
